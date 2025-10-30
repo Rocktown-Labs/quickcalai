@@ -1,5 +1,7 @@
 "use client";
 
+import { SignInButton, SignUpButton } from "@clerk/nextjs";
+
 const TITLE_TEXT = `
  ██████╗ ███████╗████████╗████████╗███████╗██████╗
  ██╔══██╗██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗
@@ -24,7 +26,8 @@ export default function Home() {
 				<section className="rounded-lg border p-4">
 					<h2 className="mb-2 font-medium">API Status</h2>
 				</section>
-			</div>
+				<SignInButton/>
+				<SignUpButton/>			</div>
 		</div>
 	);
 }

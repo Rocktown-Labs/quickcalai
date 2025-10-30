@@ -1,11 +1,13 @@
 "use client";
 
+import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "./theme-provider";
 import { Toaster } from "./ui/sonner";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
 	return (
-		<ThemeProvider
+	<ClerkProvider>
+	<ThemeProvider
 			attribute="class"
 			defaultTheme="system"
 			enableSystem
@@ -14,5 +16,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 			{children}
 			<Toaster richColors />
 		</ThemeProvider>
-	);
+	</ClerkProvider>
+		);
 }
