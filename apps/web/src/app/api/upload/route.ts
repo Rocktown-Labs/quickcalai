@@ -3,7 +3,9 @@ import {
   createUploadRouteHandler,  route, type Router,
 } from 'better-upload/server';
 
-const s3 = new S3Client();
+const s3 = new S3Client({
+
+});
 
 const router: Router = {
   client: s3,

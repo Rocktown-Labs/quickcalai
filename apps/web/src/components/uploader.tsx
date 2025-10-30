@@ -1,3 +1,4 @@
+'use client';
 import { useUploadFile } from "better-upload/client";
 import { UploadButton } from "./upload-button";
 
