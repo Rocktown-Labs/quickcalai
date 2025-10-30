@@ -6,7 +6,7 @@ export default function Features() {
     <section id="features" className="py-16 bg-card">
            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
              <div className="text-center mb-16">
-               <h2 className="font-serif font-bold text-3xl md:text-4xl text-foreground mb-4">Why Choose QwikCalAI?</h2>
+               <h2 className="font-serif font-bold text-3xl md:text-4xl text-foreground mb-4">Why Choose QuickCalAI?</h2>
                <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                  Experience the future of calendar management with cutting-edge AI technology
                </p>

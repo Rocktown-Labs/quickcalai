@@ -16,7 +16,7 @@ export default function Testimonials() {
                   name: "Sarah Chen",
                   role: "Product Manager",
                   content:
-                    "QwikCalAI has revolutionized how I handle meeting schedules. What used to take 15 minutes now takes 15 seconds!",
+                    "QuickCalAI has revolutionized how I handle meeting schedules. What used to take 15 minutes now takes 15 seconds!",
                   rating: 5,
                 },
                 {

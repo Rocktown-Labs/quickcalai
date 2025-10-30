@@ -27,6 +27,7 @@ export default function Navbar() {
                         <ThemeSwitcher/>
                         <Button
                           variant="outline"
+                          asChild
                           className="border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-transparent"
                         >
                           <SignInButton>
@@ -34,7 +35,7 @@ Sign In
                           </SignInButton>
 
                         </Button>
-                        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 animate-pulse-glow">
+                        <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 animate-pulse-glow">
                           <SignUpButton>
                             Get Started
                           </SignUpButton>

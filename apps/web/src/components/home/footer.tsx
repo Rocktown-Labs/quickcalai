@@ -7,7 +7,7 @@ export default function Footer() {
              <div className="grid md:grid-cols-4 gap-8">
                <div>
                  <div className="flex items-center space-x-3 mb-4">
-                   <Image src="/qwikcal-logo.png" alt="QwikCal Logo" width={32} height={32} className="w-38 h-38" />
+                   <Image src="/quickcalai-logo.png" alt="QuickCal Logo" width={32} height={32} className="w-38 h-38" />
                  </div>
                  <p className="text-muted-foreground">
                    AI-powered calendar extraction that saves you time and eliminates scheduling errors.
@@ -75,7 +75,7 @@ export default function Footer() {
                </div>
              </div>
              <div className="border-t border-border mt-8 pt-8 text-center text-muted-foreground">
-               <p>&copy; {new Date().getFullYear()} QwikCalAI. All rights reserved.</p>
+               <p>&copy; {new Date().getFullYear()} QuickCalAI. All rights reserved.</p>
              </div>
            </div>
          </footer>

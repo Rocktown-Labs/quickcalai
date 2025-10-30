@@ -10,7 +10,7 @@ export default function Hero() {
                   🚀 AI-Powered Scheduling Revolution
                 </Badge>
                 <h1 className="font-serif font-bold text-4xl md:text-6xl text-foreground mb-6 leading-tight">
-                  Transform Your Scheduling Experience with <span className="text-primary">QwikCalAI</span>
+                  Transform Your Scheduling Experience with <span className="text-primary">QuickCalAI</span>
                 </h1>
                 <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
                   Extract, organize, and optimize your calendar instantly. Upload any image with dates and times, let our
@@ -46,8 +46,8 @@ export default function Hero() {
               <div className="relative animate-float">
                 <div className="relative z-10">
                   <img
-                    src="/placeholder.svg?height=500&width=600"
-                    alt="QwikCalAI Interface"
+                    src="/quickcalai-logo.png"
+                    alt="QuickCalAI Interface"
                     className="rounded-2xl shadow-2xl"
                   />
                 </div>
