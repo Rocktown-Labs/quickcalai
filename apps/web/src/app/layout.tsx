@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
 	title: "QuickCalAI - AI-Powered Calendar Extraction",
 	description: "Extract dates and events from images and PDFs with AI. Generate calendar files (.ics) and get reminders via download, email, or SMS. Powered by Google Gemini.",
-	keywords: ["calendar", "AI", "extraction", "events", "PDF", "image", "Google Gemini", "ICS", "reminders"],
+	keywords: ["calendar", "AI", "extraction", "events", "PDF", "image", "Google Gemini", "ICS", "reminders", "ai powered", "sports schedule", "kids calendar", "family calendar", "personal calendar", "work calendar", "business calendar", "professional calendar", "corporate calendar", "enterprise calendar",],
 	authors: [{ name: "Rocktown Labs" }],
 	creator: "Rocktown Labs",
 	publisher: "Rocktown Labs",
