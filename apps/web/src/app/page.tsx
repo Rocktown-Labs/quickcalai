@@ -1,33 +1,27 @@
 "use client";
 
+import CTA from "@/components/home/cta";
+import Features from "@/components/home/features";
+import Footer from "@/components/home/footer";
+import Hero from "@/components/home/hero";
+import Navbar from "@/components/home/navbar";
+import Pricing from "@/components/home/pricing";
+import Testimonials from "@/components/home/testimonials";
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
 
-const TITLE_TEXT = `
- ██████╗ ███████╗████████╗████████╗███████╗██████╗
- ██╔══██╗██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗
- ██████╔╝█████╗     ██║      ██║   █████╗  ██████╔╝
- ██╔══██╗██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗
- ██████╔╝███████╗   ██║      ██║   ███████╗██║  ██║
- ╚═════╝ ╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝
 
- ████████╗    ███████╗████████╗ █████╗  ██████╗██╗  ██╗
- ╚══██╔══╝    ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝
-    ██║       ███████╗   ██║   ███████║██║     █████╔╝
-    ██║       ╚════██║   ██║   ██╔══██║██║     ██╔═██╗
-    ██║       ███████║   ██║   ██║  ██║╚██████╗██║  ██╗
-    ╚═╝       ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
- `;
 
 export default function Home() {
 	return (
-		<div className="container mx-auto max-w-3xl px-4 py-2">
-			<pre className="overflow-x-auto font-mono text-sm">{TITLE_TEXT}</pre>
-			<div className="grid gap-6">
-				<section className="rounded-lg border p-4">
-					<h2 className="mb-2 font-medium">API Status</h2>
-				</section>
-				<SignInButton/>
-				<SignUpButton/>			</div>
-		</div>
+		<>
+		<Navbar/>
+		<Hero/>
+		<Features />
+		<Pricing />
+		<Testimonials />
+		<CTA />
+		<Footer />
+		</>
+
 	);
 }

@@ -3,12 +3,16 @@ import {
   createUploadRouteHandler,  route, type Router,
 } from 'better-upload/server';
 
-const s3 = new S3Client({
-
+let client = new S3Client({
+  region: 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
 });
 
 const router: Router = {
-  client: s3,
+  client: client,
   bucketName: 'QuickCalUploads',
   routes: {
     calendar: route({
