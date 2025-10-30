@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ThemeProvider } from "../theme-provider";
+import { ThemeSwitcher } from "../theme-provider";
 import { Button } from "../ui/button";
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
 
@@ -24,7 +24,7 @@ export default function Navbar() {
                         <a href="#testimonials" className="text-muted-foreground hover:text-primary transition-colors">
                           Reviews
                         </a>
-                        <ThemeProvider/>
+                        <ThemeSwitcher/>
                         <Button
                           variant="outline"
                           className="border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-transparent"
