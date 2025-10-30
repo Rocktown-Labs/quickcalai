@@ -5,7 +5,15 @@
 		"build": {
 			"dependsOn": ["^build"],
 			"inputs": ["$TURBO_DEFAULT$", ".env*"],
-			"outputs": ["dist/**"]
+			"outputs": ["dist/**"],
+			"passThroughEnv": [
+				"CLERK_SECRET_KEY",
+				"DATABASE_URL",
+				"SENTRY_PROJECT",
+				"SENTRY_AUTH_TOKEN",
+				"SENTRY_ORG",
+				"AI_GATEWAY_API_KEY"
+			]
 		},
 		"lint": {
 			"dependsOn": ["^lint"]
