@@ -79,12 +79,10 @@ export default async function DashboardPage() {
         {/* AI Calendar Extraction Section */}
         <div>
           <div className="mb-6">
-            <h2 className="font-serif font-bold text-2xl text-foreground mb-2">AI Calendar Extraction</h2>
-            <p className="text-muted-foreground text-lg">
-              Upload an image with dates and times to extract calendar events instantly
-            </p>
-          </div>
+
+
           <Uploader />
+          </div>
         </div>
 
         {/* Quick Actions */}

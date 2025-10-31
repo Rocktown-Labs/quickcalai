@@ -1,6 +1,7 @@
 
 import type React from "react"
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
+import { MobileNav } from "@/components/dashboard/mobile-nav";
 
 export default function DashboardLayout({
   children,
@@ -19,10 +20,8 @@ export default function DashboardLayout({
         {children}
       </main>
 
-      {/* Mobile Navigation */}
-      <div className="md:hidden">
-        <DashboardNav />
-      </div>
+      {/* Mobile Navigation - only on small screens */}
+      <MobileNav />
     </div>
   )
 }
