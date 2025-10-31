@@ -92,20 +92,6 @@ export function DashboardNav() {
           })}
         </ul>
       </nav>
-
-      {/* Clerk User Button for desktop */}
-      <div className="p-6 border-t border-border">
-        <div className="flex justify-center">
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: "w-8 h-8",
-                userButtonTrigger: "focus:shadow-none focus:ring-0"
-              }
-            }}
-          />
-        </div>
-      </div>
     </div>
   )
 }
