@@ -26,14 +26,14 @@ export const metadata: Metadata = {
 		description: "Extract dates and events from images and PDFs with AI. Generate calendar files and get reminders instantly.",
 		url: "https://quickcalai.com",
 		siteName: "QuickCalAI",
-		images: [
-			{
-				url: "/images/quickcalai-logo.png",
-				width: 1200,
-				height: 630,
-				alt: "QuickCalAI Logo",
-			},
-		],
+ 		images: [
+ 			{
+ 				url: "/quickcalai-logo.png",
+ 				width: 1200,
+ 				height: 630,
+ 				alt: "QuickCalAI Logo",
+ 			},
+ 		],
 		locale: "en_US",
 		type: "website",
 	},
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
 		card: "summary_large_image",
 		title: "QuickCalAI - AI-Powered Calendar Extraction",
 		description: "Extract dates and events from images and PDFs with AI. Generate calendar files and get reminders instantly.",
-		images: ["/images/quickcalai-logo.png"],
+ 		images: ["/quickcalai-logo.png"],
 		creator: "@rocktownlabs",
 	},
 	robots: {
