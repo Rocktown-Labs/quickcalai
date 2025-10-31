@@ -1,6 +1,5 @@
 import { generateText } from "ai"
   ;
-import { GlobalLayoutRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 export async function isDocumentCalendar(imageBase64: string): Promise<boolean> {
   try {
     console.log("Performing pre-flight check on document type...");
