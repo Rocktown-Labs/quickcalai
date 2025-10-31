@@ -1,6 +1,10 @@
 import { UserProfile } from '@clerk/nextjs'
 
-const UserProfilePage = () =>
-  <div className='min-h-screen max-w-7xl'><UserProfile />
-</div>
-export default UserProfilePage
+
+export default function UserProfilePage() {
+  return (
+    <div className='min-h-screen w-full'>
+      <UserProfile />
+    </div>
+  )
+}
