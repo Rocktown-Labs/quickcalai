@@ -3,14 +3,14 @@ import { useState, useRef } from "react";
 import { Upload, FileImage, Zap } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useUploadFile } from "better-upload/client";
+import { useUser } from "@clerk/nextjs";
 
 export default function Uploader() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { control } = useUploadFile({ route: 'calendar' });
+  const { user } = useUser();
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -41,12 +41,47 @@ export default function Uploader() {
     }
   };
 
-  const handleProcess = () => {
-    if (uploadedFile) {
-      setIsProcessing(true);
-      control.upload(uploadedFile);
-      // Add your processing logic here
-      // This would typically trigger the AI processing
+  const handleProcess = async () => {
+    if (!uploadedFile || !user) return;
+
+    setIsProcessing(true);
+
+    try {
+      // Create form data for upload
+      const formData = new FormData();
+      formData.append('file', uploadedFile);
+
+      // Start the workflow
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const { webhookUrl } = await response.json();
+
+      // Send user ID to the webhook
+      await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.id }),
+      });
+
+      // Reset state
+      setUploadedFile(null);
+      setIsProcessing(false);
+
+      // You might want to show a success message or redirect
+      console.log('Processing started successfully');
+
+    } catch (error) {
+      console.error('Processing failed:', error);
+      setIsProcessing(false);
     }
   };
 
@@ -114,12 +149,12 @@ export default function Uploader() {
 
             {uploadedFile && (
               <div className="mt-6">
-                <Button
-                  onClick={handleProcess}
-                  disabled={isProcessing || control.isPending}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                >
-                  {isProcessing || control.isPending ? (
+                 <Button
+                   onClick={handleProcess}
+                   disabled={isProcessing || !user}
+                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                 >
+                   {isProcessing ? (
                     <>
                       <Zap className="w-4 h-4 mr-2 animate-spin" />
                       Processing with AI...
