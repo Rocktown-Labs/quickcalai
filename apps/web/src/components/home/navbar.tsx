@@ -16,33 +16,31 @@ export default function Navbar() {
                            <span className="font-semibold">QuickCalAI</span>
                          </Link>
                        </div>
-                      <div className="hidden md:flex items-center space-x-8">
-                        <a href="#features" className="text-muted-foreground hover:text-primary transition-colors">
-                          Features
-                        </a>
-                        <a href="#pricing" className="text-muted-foreground hover:text-primary transition-colors">
-                          Pricing
-                        </a>
-                        <a href="#testimonials" className="text-muted-foreground hover:text-primary transition-colors">
-                          Reviews
-                        </a>
-                        <ThemeSwitcher/>
-                        <Button
-                          variant="outline"
-                          asChild
-                          className="border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-transparent"
-                        >
-                          <SignInButton>
-Sign In
-                          </SignInButton>
-
-                        </Button>
-                        <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 animate-pulse-glow">
-                          <SignUpButton>
-                            Get Started
-                          </SignUpButton>
-                        </Button>
-                      </div>
+                       <div className="hidden md:flex items-center space-x-8">
+                         <a href="#features" className="text-muted-foreground hover:text-primary transition-colors">
+                           Features
+                         </a>
+                         <a href="#pricing" className="text-muted-foreground hover:text-primary transition-colors">
+                           Pricing
+                         </a>
+                         <a href="#testimonials" className="text-muted-foreground hover:text-primary transition-colors">
+                           Reviews
+                         </a>
+                         <ThemeSwitcher/>
+                         <SignInButton>
+                           <Button
+                             variant="outline"
+                             className="border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-transparent"
+                           >
+                             Sign In
+                           </Button>
+                         </SignInButton>
+                         <SignUpButton>
+                           <Button className="bg-primary text-primary-foreground hover:bg-primary/90 animate-pulse-glow">
+                             Get Started
+                           </Button>
+                         </SignUpButton>
+                       </div>
                     </div>
                   </div>
                 </nav>

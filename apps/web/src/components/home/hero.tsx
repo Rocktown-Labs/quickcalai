@@ -1,5 +1,6 @@
 import { Badge, Zap, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SignUpButton } from "@clerk/nextjs";
 export default function Hero() {
   return (
     <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
@@ -16,22 +17,25 @@ export default function Hero() {
                   Extract, organize, and optimize your calendar instantly. Upload any image with dates and times, let our
                   AI do the work, and get perfect calendar files in seconds.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                  <Button
-                    size="lg"
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 animate-pulse-glow text-lg px-8 py-4"
-                  >
-                    Start Your Free Trial Today
-                    <Zap className="ml-2 w-5 h-5" />
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground text-lg px-8 py-4 bg-transparent"
-                  >
-                    Watch Demo
-                  </Button>
-                </div>
+                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                   <SignUpButton>
+                     <Button
+                       size="lg"
+                       className="bg-primary text-primary-foreground hover:bg-primary/90 animate-pulse-glow text-lg px-8 py-4"
+                     >
+                       Start Your Free Trial Today
+                       <Zap className="ml-2 w-5 h-5" />
+                     </Button>
+                   </SignUpButton>
+                   <Button
+                     size="lg"
+                     variant="outline"
+                     className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground text-lg px-8 py-4 bg-transparent"
+                     asChild
+                   >
+                     <a href="#features">Watch Demo</a>
+                   </Button>
+                 </div>
                 <div className="flex items-center space-x-6 text-sm text-muted-foreground">
                   <div className="flex items-center">
                     <CheckCircle className="w-4 h-4 text-green-500 mr-2" />

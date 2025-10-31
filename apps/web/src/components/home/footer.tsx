@@ -15,63 +15,63 @@ export default function Footer() {
                </div>
                <div>
                  <h3 className="font-semibold mb-4">Product</h3>
-                 <ul className="space-y-2 text-muted-foreground">
-                   <li>
-                     <a href="#" className="hover:text-foreground transition-colors">
-                       Features
-                     </a>
-                   </li>
-                   <li>
-                     <a href="#" className="hover:text-foreground transition-colors">
-                       Pricing
-                     </a>
-                   </li>
-                   <li>
-                     <a href="#" className="hover:text-foreground transition-colors">
-                       API
-                     </a>
-                   </li>
-                 </ul>
+                  <ul className="space-y-2 text-muted-foreground">
+                    <li>
+                      <a href="#features" className="hover:text-foreground transition-colors">
+                        Features
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#pricing" className="hover:text-foreground transition-colors">
+                        Pricing
+                      </a>
+                    </li>
+                    <li>
+                      <a href="/dashboard" className="hover:text-foreground transition-colors">
+                        Dashboard
+                      </a>
+                    </li>
+                  </ul>
                </div>
                <div>
                  <h3 className="font-semibold mb-4">Company</h3>
-                 <ul className="space-y-2 text-muted-foreground">
-                   <li>
-                     <a href="#" className="hover:text-foreground transition-colors">
-                       About
-                     </a>
-                   </li>
-                   <li>
-                     <a href="#" className="hover:text-foreground transition-colors">
-                       Blog
-                     </a>
-                   </li>
-                   <li>
-                     <a href="#" className="hover:text-foreground transition-colors">
-                       Careers
-                     </a>
-                   </li>
-                 </ul>
+                  <ul className="space-y-2 text-muted-foreground">
+                    <li>
+                      <a href="#hero" className="hover:text-foreground transition-colors">
+                        About
+                      </a>
+                    </li>
+                    <li>
+                      <a href="https://github.com/Rocktown-Labs/quickcalai" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
+                        GitHub
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#contact" className="hover:text-foreground transition-colors">
+                        Contact
+                      </a>
+                    </li>
+                  </ul>
                </div>
                <div>
                  <h3 className="font-semibold mb-4">Support</h3>
-                 <ul className="space-y-2 text-muted-foreground">
-                   <li>
-                     <a href="#" className="hover:text-foreground transition-colors">
-                       Help Center
-                     </a>
-                   </li>
-                   <li>
-                     <a href="#" className="hover:text-foreground transition-colors">
-                       Contact
-                     </a>
-                   </li>
-                   <li>
-                     <a href="#" className="hover:text-foreground transition-colors">
-                       Privacy
-                     </a>
-                   </li>
-                 </ul>
+                  <ul className="space-y-2 text-muted-foreground">
+                    <li>
+                      <a href="#features" className="hover:text-foreground transition-colors">
+                        Help Center
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#contact" className="hover:text-foreground transition-colors">
+                        Contact
+                      </a>
+                    </li>
+                    <li>
+                      <a href="/privacy" className="hover:text-foreground transition-colors">
+                        Privacy
+                      </a>
+                    </li>
+                  </ul>
                </div>
              </div>
              <div className="border-t border-border mt-8 pt-8 text-center text-muted-foreground">
