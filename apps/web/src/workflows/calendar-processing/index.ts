@@ -5,12 +5,14 @@ export interface CalendarProcessingInput {
   s3Url: string;
   fileName: string;
   fileType: string;
+  userId: string;
 }
 
 export interface CalendarProcessingResult {
   uploadId: string;
   eventCount: number;
   status: 'completed' | 'no_events' | 'failed';
+  webhookUrl?: string;
 }
 
 export async function calendarProcessingWorkflow(
@@ -50,23 +52,16 @@ export async function calendarProcessingWorkflow(
     };
   }
 
-  // Step 4: Create webhook to receive user ID from client
-  const webhook = createWebhook();
-  console.log("Created webhook for user ID:", webhook.url);
+   // User ID is now provided as input
 
-  // Step 5: Wait for client to send user ID
-  const request = await webhook;
-  const { userId } = await request.json();
-  console.log("Received user ID:", userId);
-
-  // Step 6: Save upload and events to database
-  const result = await saveToDatabase({
-    fileName: input.fileName,
-    fileType: input.fileType,
-    storageUrl: s3Url,
-    userId,
-    events: extractedEvents
-  });
+   // Step 4: Save upload and events to database
+   const result = await saveToDatabase({
+     fileName: input.fileName,
+     fileType: input.fileType,
+     storageUrl: s3Url,
+     userId: input.userId,
+     events: extractedEvents
+   });
 
   console.log("Workflow completed successfully");
   return {

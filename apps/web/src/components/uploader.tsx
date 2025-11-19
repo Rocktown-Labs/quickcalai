@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef } from "react";
-import { Upload, FileImage, Zap } from "lucide-react";
+import { Upload, FileImage, Zap, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs";
@@ -9,6 +9,10 @@ export default function Uploader() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [runId, setRunId] = useState<string | null>(null);
+  const [processingComplete, setProcessingComplete] = useState(false);
+  const [extractedEvents, setExtractedEvents] = useState<any[]>([]);
+  const [eventCount, setEventCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useUser();
 
@@ -61,26 +65,41 @@ export default function Uploader() {
         throw new Error('Upload failed');
       }
 
-      const { webhookUrl } = await response.json();
+      const { runId: workflowRunId } = await response.json();
+      setRunId(workflowRunId);
 
-      // Send user ID to the webhook
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId: user.id }),
-      });
-
-      // Reset state
-      setUploadedFile(null);
-      setIsProcessing(false);
-
-      // You might want to show a success message or redirect
-      console.log('Processing started successfully');
+      // Start polling for workflow completion
+      pollWorkflowStatus(workflowRunId);
 
     } catch (error) {
       console.error('Processing failed:', error);
+      setIsProcessing(false);
+    }
+  };
+
+  const pollWorkflowStatus = async (workflowRunId: string) => {
+    try {
+      const response = await fetch(`/api/workflow/status/${workflowRunId}`);
+      if (!response.ok) {
+        throw new Error('Failed to get workflow status');
+      }
+
+      const status = await response.json();
+
+      if (status.status === 'completed') {
+        setProcessingComplete(true);
+        setIsProcessing(false);
+        setEventCount(status.eventCount || 0);
+        // Reset file
+        setUploadedFile(null);
+      } else if (status.status === 'failed') {
+        throw new Error('Workflow failed');
+      } else {
+        // Still processing, poll again in 2 seconds
+        setTimeout(() => pollWorkflowStatus(workflowRunId), 2000);
+      }
+    } catch (error) {
+      console.error('Status check failed:', error);
       setIsProcessing(false);
     }
   };
@@ -147,14 +166,14 @@ export default function Uploader() {
               )}
             </div>
 
-            {uploadedFile && (
-              <div className="mt-6">
-                 <Button
-                   onClick={handleProcess}
-                   disabled={isProcessing || !user}
-                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                 >
-                   {isProcessing ? (
+             {uploadedFile && !processingComplete && (
+               <div className="mt-6">
+                  <Button
+                    onClick={handleProcess}
+                    disabled={isProcessing || !user}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    {isProcessing ? (
                      <>
                        <Zap className="w-4 h-4 mr-2 animate-spin" />
                        Processing document with AI...
@@ -165,9 +184,33 @@ export default function Uploader() {
                        Extract Calendar Events
                      </>
                    )}
-                </Button>
-              </div>
-            )}
+                 </Button>
+               </div>
+             )}
+
+             {processingComplete && (
+               <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                 <div className="flex items-center space-x-2 text-green-800">
+                   <CheckCircle className="w-5 h-5" />
+                   <span className="font-medium">Processing Complete!</span>
+                 </div>
+                 <p className="text-green-700 mt-1">
+                   Successfully extracted {eventCount} calendar events! Check your dashboard for the results.
+                 </p>
+                 <Button
+                   onClick={() => {
+                     setProcessingComplete(false);
+                     setRunId(null);
+                     setExtractedEvents([]);
+                     setEventCount(0);
+                   }}
+                   variant="outline"
+                   className="mt-3"
+                 >
+                   Process Another File
+                 </Button>
+               </div>
+             )}
           </CardContent>
         </Card>
       </div>

@@ -1,6 +1,7 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { start } from 'workflow/api';
 import { calendarProcessingWorkflow, type CalendarProcessingInput } from '@/workflows/calendar-processing';
+import { auth } from '@clerk/nextjs/server';
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || 'us-east-1',
@@ -34,19 +35,23 @@ export async function POST(request: Request) {
     await s3Client.send(command);
     const s3Url = `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/${key}`;
 
+    // Get user ID from auth
+    const { userId } = await auth();
+
     // Start the calendar processing workflow
     const workflowInput: CalendarProcessingInput = {
       s3Url,
       fileName: file.name,
       fileType: file.type,
+      userId: userId || 'anonymous',
     };
 
     const run = await start(calendarProcessingWorkflow, [workflowInput]);
 
+    // For now, don't return webhook URL - the client will need to handle this differently
     return Response.json({
       message: 'Upload processing started',
-      runId: run.runId,
-      webhookUrl: `/.well-known/workflow/v1/webhook/${run.runId}` // This will be used by the client to send user ID
+      runId: run.runId
     });
 
   } catch (error) {
