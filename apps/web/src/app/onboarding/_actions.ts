@@ -17,8 +17,8 @@ export const completeOnboarding = async (formData: FormData) => {
     const phone = formData.get('phone') as string
     const accountType = formData.get('accountType') as string
 
-    if (!email || !phone || !accountType) {
-      return { error: 'All fields are required' }
+    if (!email || !phone) {
+      return { error: 'Email and phone are required' }
     }
 
     const res = await client.users.updateUser(userId, {

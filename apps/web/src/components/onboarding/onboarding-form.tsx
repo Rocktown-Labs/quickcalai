@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2, Mail, Phone, CreditCard, ArrowLeft, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { completeOnboarding } from '@/app/onboarding/_actions';
+import { PricingTable } from '@clerk/nextjs';
 
 interface OnboardingFormProps {
   user: {
@@ -27,7 +28,6 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
   const [formData, setFormData] = useState({
     email: user?.email || '',
     phone: '',
-    accountType: '',
   });
 
   const router = useRouter();
@@ -45,6 +45,7 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
     if (step === 1) {
       return formData.email.trim() && formData.phone.trim();
     }
+    // Step 2 (PricingTable) doesn't need validation - user selects plan there
     return true;
   };
 
@@ -74,14 +75,15 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
     const submitData = new FormData();
     submitData.append('email', formData.email);
     submitData.append('phone', formData.phone);
-    submitData.append('accountType', formData.accountType);
+    // Note: accountType will be determined by Clerk billing after subscription
+    submitData.append('accountType', 'pending'); // Will be updated when subscription completes
 
     const res = await completeOnboarding(submitData);
 
     if (res?.message) {
       // Reload the user's data from Clerk to get updated metadata
       await clerkUser?.reload();
-      toast.success('Welcome to QuickCal AI!');
+      toast.success('Welcome to QuickCal AI! Complete your subscription to unlock premium features.');
       router.push('/dashboard');
     }
 
@@ -142,46 +144,22 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold mb-2">Choose Your Plan</h2>
-              <p className="text-muted-foreground">Select the plan that best fits your needs</p>
+              <p className="text-muted-foreground">Select a subscription plan to unlock premium features</p>
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="accountType">Account Type</Label>
-                <select
-                  id="accountType"
-                  value={formData.accountType}
-                  onChange={(e) => handleInputChange('accountType', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                >
-                  <option value="">Choose your plan</option>
-                  <option value="free">Free Plan - Basic features</option>
-                  <option value="pro">Pro Plan - Advanced features</option>
-                  <option value="enterprise">Enterprise - Full access</option>
-                </select>
-              </div>
+            <div className="max-w-4xl mx-auto">
+              <PricingTable
+                appearance={{
+                  baseTheme: undefined,
+                  variables: {
+                    colorPrimary: '#3b82f6',
+                  },
+                }}
+              />
+            </div>
 
-              {/* Plan comparison */}
-              <div className="grid gap-4 mt-6">
-                <div className={`p-4 border rounded-lg cursor-pointer transition-colors ${formData.accountType === 'free' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`} onClick={() => handleInputChange('accountType', 'free')}>
-                  <h3 className="font-semibold">Free Plan</h3>
-                  <p className="text-sm text-muted-foreground">Manual event creation, basic features</p>
-                  <p className="text-lg font-bold">$0/month</p>
-                </div>
-
-                <div className={`p-4 border rounded-lg cursor-pointer transition-colors ${formData.accountType === 'pro' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`} onClick={() => handleInputChange('accountType', 'pro')}>
-                  <h3 className="font-semibold">Pro Plan</h3>
-                  <p className="text-sm text-muted-foreground">AI-powered document processing, email sharing</p>
-                  <p className="text-lg font-bold">$9.99/month</p>
-                </div>
-
-                <div className={`p-4 border rounded-lg cursor-pointer transition-colors ${formData.accountType === 'enterprise' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`} onClick={() => handleInputChange('accountType', 'enterprise')}>
-                  <h3 className="font-semibold">Enterprise Plan</h3>
-                  <p className="text-sm text-muted-foreground">Full access, SMS sharing, priority support</p>
-                  <p className="text-lg font-bold">$29.99/month</p>
-                </div>
-              </div>
+            <div className="text-center text-sm text-muted-foreground">
+              <p>You can change your plan anytime from your account settings.</p>
             </div>
           </div>
         );
@@ -199,7 +177,7 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
           <span>Complete Your Profile</span>
         </CardTitle>
         <CardDescription>
-          Step {currentStep} of {totalSteps}: {currentStep === 1 ? 'Contact Information' : 'Choose Your Plan'}
+          Step {currentStep} of {totalSteps}: {currentStep === 1 ? 'Contact Information' : 'Select Subscription'}
         </CardDescription>
       </CardHeader>
       <CardContent>
