@@ -106,7 +106,7 @@ export async function saveToDatabase(input: SaveToDatabaseInput): Promise<SaveTo
     fileName: input.fileName,
     fileType: input.fileType,
     storageUrl: input.storageUrl,
-    // icsUrl: icsUrl, // TODO: Add back after DB migration
+    icsUrl: icsUrl,
     status: 'completed',
     userId: input.userId,
   });
