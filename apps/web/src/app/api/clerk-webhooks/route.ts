@@ -4,6 +4,7 @@ import { userSyncWorkflow, type UserSyncInput } from '@/workflows/user-sync';
 import { db } from '@quickcalai/db';
 import { users } from '@quickcalai/db/schema';
 import { eq } from 'drizzle-orm';
+import { serverLogger } from '@/lib/logger';
 import type { NextRequest } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -11,7 +12,7 @@ export async function POST(request: NextRequest) {
     // Verify the webhook
     const evt = await verifyWebhook(request);
 
-    console.log(`Received Clerk webhook: ${evt.type}`);
+    serverLogger.log(`Received Clerk webhook: ${evt.type}`);
 
     // Handle different event types
     if (evt.type === 'user.created' || evt.type === 'user.updated') {
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
 
       // Start the user sync workflow
       const run = await start(userSyncWorkflow, [input]);
-      console.log(`Started user sync workflow: ${run.runId}`);
+      serverLogger.log(`Started user sync workflow: ${run.runId}`);
 
       return new Response('User sync workflow started', { status: 200 });
     }
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
 
       // Delete user from our database
       await db.delete(users).where(eq(users.id, userId));
-      console.log(`User deleted from database: ${userId}`);
+      serverLogger.log(`User deleted from database: ${userId}`);
 
       return new Response('User deleted from database', { status: 200 });
     }
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
         evt.type === 'subscriptionItem.ended' ||
         evt.type === 'subscriptionItem.upcoming') {
 
-      console.log(`Billing event received: ${evt.type}`, evt.data);
+      serverLogger.log(`Billing event received: ${evt.type}`, evt.data);
 
       // For now, just log the billing events
       // TODO: Implement database storage for subscription status

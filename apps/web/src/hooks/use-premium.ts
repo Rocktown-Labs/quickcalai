@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { useUser } from '@clerk/nextjs';
+import { logger } from '@/lib/logger';
 
 export function usePremium() {
   const { has, getToken } = useAuth();
@@ -22,7 +23,7 @@ export function usePremium() {
 
       // If Clerk says they're premium, trust it immediately
       if (clerkPremiumStatus) {
-        console.log('Premium status (Clerk):', {
+        logger.log('Premium status (Clerk):', {
           hasPremiumPlan,
           hasPremiumFeature,
           hasFileSharing,
@@ -42,7 +43,7 @@ export function usePremium() {
 
       const refreshedPremiumStatus = refreshedHasPremiumPlan || refreshedHasPremiumFeature || refreshedHasFileSharing;
 
-      console.log('Premium status check (refreshed):', {
+      logger.log('Premium status check (refreshed):', {
         hasPremiumPlan: refreshedHasPremiumPlan,
         hasPremiumFeature: refreshedHasPremiumFeature,
         hasFileSharing: refreshedHasFileSharing,
@@ -51,7 +52,7 @@ export function usePremium() {
 
       setIsPremium(refreshedPremiumStatus);
     } catch (error) {
-      console.error('Error checking premium status:', error);
+      logger.error('Error checking premium status:', error);
       setIsPremium(false);
     } finally {
       setIsLoading(false);
