@@ -23,24 +23,15 @@ import { downloadFile, emailFile, smsFile } from "@/app/dashboard/files/actions"
 import { toast } from "sonner";
 
 interface FilesCardProps {
-  upload: {
+  icsFile: {
     id: string;
     fileName: string;
-    fileType: string;
-    storageUrl: string;
+    originalFileName: string;
+    icsUrl: string;
     status: "pending" | "processing" | "completed" | "failed";
     createdAt: Date;
     updatedAt: Date;
   };
-  events?: Array<{
-    id: string;
-    title: string;
-    description: string | null;
-    location: string | null;
-    startTime: Date;
-    endTime?: Date;
-    isAllDay: boolean;
-  }>;
   isSelected: boolean;
   onSelect: (selected: boolean) => void;
   isPremium: boolean;
@@ -69,7 +60,7 @@ const statusConfig = {
   }
 };
 
-export function FilesCard({ upload, events = [], isSelected, onSelect, isPremium }: FilesCardProps) {
+export function FilesCard({ icsFile, isSelected, onSelect, isPremium }: FilesCardProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isEmailing, setIsEmailing] = useState(false);
   const [isSmsing, setIsSmsing] = useState(false);
@@ -78,24 +69,20 @@ export function FilesCard({ upload, events = [], isSelected, onSelect, isPremium
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [showSmsForm, setShowSmsForm] = useState(false);
 
-  const statusInfo = statusConfig[upload.status];
+  const statusInfo = statusConfig[icsFile.status];
   const StatusIcon = statusInfo.icon;
-
-  const isImage = upload.fileType.startsWith('image/');
-  const isPDF = upload.fileType === 'application/pdf';
 
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      const result = await downloadFile(upload.id);
-      // Create a temporary link to download the file
+      // Create a temporary link to download the ICS file
       const link = document.createElement('a');
-      link.href = result.storageUrl;
-      link.download = result.fileName;
+      link.href = icsFile.icsUrl;
+      link.download = icsFile.fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      toast.success('File downloaded successfully');
+      toast.success('ICS file downloaded successfully');
     } catch (error) {
       console.error('Failed to download file:', error);
       toast.error('Failed to download file');
@@ -112,7 +99,7 @@ export function FilesCard({ upload, events = [], isSelected, onSelect, isPremium
 
     setIsEmailing(true);
     try {
-      const result = await emailFile(upload.id, email);
+      const result = await emailFile(icsFile.id, email);
       toast.success(result.message);
       setShowEmailForm(false);
       setEmail("");
@@ -132,7 +119,7 @@ export function FilesCard({ upload, events = [], isSelected, onSelect, isPremium
 
     setIsSmsing(true);
     try {
-      const result = await smsFile(upload.id, phoneNumber);
+      const result = await smsFile(icsFile.id, phoneNumber);
       toast.success(result.message);
       setShowSmsForm(false);
       setPhoneNumber("");
@@ -157,74 +144,33 @@ export function FilesCard({ upload, events = [], isSelected, onSelect, isPremium
               className="mt-1"
             />
             <div className="flex items-center space-x-2">
-              {isImage ? (
-                <FileImage className="w-5 h-5 text-blue-500" />
-              ) : isPDF ? (
-                <FileText className="w-5 h-5 text-red-500" />
-              ) : (
-                <FileText className="w-5 h-5 text-gray-500" />
-              )}
+              <Calendar className="w-5 h-5 text-green-500" />
               <div>
-                <h3 className="font-medium text-sm truncate max-w-[200px]" title={upload.fileName}>
-                  {upload.fileName}
+                <h3 className="font-medium text-sm truncate max-w-[200px]" title={icsFile.fileName}>
+                  {icsFile.fileName}
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  {format(upload.createdAt, 'MMM d, yyyy')}
+                  From: {icsFile.originalFileName}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {format(icsFile.createdAt, 'MMM d, yyyy')}
                 </p>
               </div>
             </div>
           </div>
           <Badge variant="secondary" className={statusInfo.color}>
-            <StatusIcon className={`w-3 h-3 mr-1 ${upload.status === 'processing' ? 'animate-spin' : ''}`} />
+            <StatusIcon className={`w-3 h-3 mr-1 ${icsFile.status === 'processing' ? 'animate-spin' : ''}`} />
             {statusInfo.label}
           </Badge>
         </div>
       </CardHeader>
 
       <CardContent className="pt-0">
-        {isImage && (
-          <div className="mb-4">
-            <img
-              src={upload.storageUrl}
-              alt={upload.fileName}
-              className="w-full h-32 object-cover rounded-md"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          </div>
-        )}
-
-        {events.length > 0 && (
-          <div className="mb-4">
-            <h4 className="text-sm font-medium mb-2 flex items-center">
-              <Calendar className="w-4 h-4 mr-1" />
-              Extracted Events ({events.length})
-            </h4>
-            <div className="space-y-2 max-h-24 overflow-y-auto">
-              {events.slice(0, 3).map((event) => (
-                <div key={event.id} className="text-xs p-2 bg-muted rounded">
-                  <div className="font-medium truncate">{event.title}</div>
-                  <div className="text-muted-foreground flex items-center mt-1">
-                    <Clock className="w-3 h-3 mr-1" />
-                    {format(event.startTime, 'MMM d, h:mm a')}
-                    {event.location && (
-                      <>
-                        <MapPin className="w-3 h-3 ml-2 mr-1" />
-                        {event.location}
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))}
-              {events.length > 3 && (
-                <div className="text-xs text-muted-foreground text-center">
-                  +{events.length - 3} more events
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        <div className="mb-4 p-3 bg-muted rounded-md">
+          <p className="text-sm text-muted-foreground">
+            Calendar file containing extracted events from your uploaded document.
+          </p>
+        </div>
 
         <div className="space-y-3">
           {/* Download Button - Available to all users */}
@@ -259,15 +205,15 @@ export function FilesCard({ upload, events = [], isSelected, onSelect, isPremium
               ) : (
                 <div className="col-span-2 space-y-2">
                   <div>
-                    <Label htmlFor={`email-${upload.id}`} className="text-xs">Email Address</Label>
-                    <Input
-                      id={`email-${upload.id}`}
-                      type="email"
-                      placeholder="user@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="h-8 text-xs"
-                    />
+                    <Label htmlFor={`email-${icsFile.id}`} className="text-xs">Email Address</Label>
+                     <Input
+                       id={`email-${icsFile.id}`}
+                       type="email"
+                       placeholder="user@example.com"
+                       value={email}
+                       onChange={(e) => setEmail(e.target.value)}
+                       className="h-8 text-xs"
+                     />
                   </div>
                   <div className="flex space-x-2">
                     <Button
@@ -311,15 +257,15 @@ export function FilesCard({ upload, events = [], isSelected, onSelect, isPremium
               ) : (
                 <div className="col-span-2 space-y-2">
                   <div>
-                    <Label htmlFor={`sms-${upload.id}`} className="text-xs">Phone Number</Label>
-                    <Input
-                      id={`sms-${upload.id}`}
-                      type="tel"
-                      placeholder="+1234567890"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="h-8 text-xs"
-                    />
+                    <Label htmlFor={`sms-${icsFile.id}`} className="text-xs">Phone Number</Label>
+                     <Input
+                       id={`sms-${icsFile.id}`}
+                       type="tel"
+                       placeholder="+1234567890"
+                       value={phoneNumber}
+                       onChange={(e) => setPhoneNumber(e.target.value)}
+                       className="h-8 text-xs"
+                     />
                   </div>
                   <div className="flex space-x-2">
                     <Button

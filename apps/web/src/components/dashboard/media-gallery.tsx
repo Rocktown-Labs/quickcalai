@@ -19,20 +19,10 @@ interface Upload {
   updatedAt: Date;
 }
 
-interface UploadWithEvents extends Upload {
-  events: Array<{
-    id: string;
-    title: string;
-    description: string | null;
-    location: string | null;
-    startTime: Date;
-    endTime?: Date;
-    isAllDay: boolean;
-  }>;
-}
+
 
 export function MediaGallery() {
-  const [uploads, setUploads] = useState<UploadWithEvents[]>([]);
+  const [uploads, setUploads] = useState<Upload[]>([]);
   const [selectedUploads, setSelectedUploads] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
@@ -43,8 +33,8 @@ export function MediaGallery() {
   const loadUploads = async () => {
     try {
       setLoading(true);
-      const uploadsWithEvents = await getUserMedia();
-      setUploads(uploadsWithEvents);
+      const userUploads = await getUserMedia();
+      setUploads(userUploads);
     } catch (error) {
       console.error('Failed to load uploads:', error);
       toast.error('Failed to load media files');
@@ -185,17 +175,16 @@ export function MediaGallery() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {uploads.map((upload) => (
-            <MediaCard
-              key={upload.id}
-              upload={upload}
-              events={upload.events}
-              isSelected={selectedUploads.has(upload.id)}
-              onSelect={(selected) => handleSelectUpload(upload.id, selected)}
-              onDelete={() => handleDeleteUpload(upload.id)}
-              onDownload={() => handleDownload(upload)}
-            />
-          ))}
+           {uploads.map((upload) => (
+             <MediaCard
+               key={upload.id}
+               upload={upload}
+               isSelected={selectedUploads.has(upload.id)}
+               onSelect={(selected) => handleSelectUpload(upload.id, selected)}
+               onDelete={() => handleDeleteUpload(upload.id)}
+               onDownload={() => handleDownload(upload)}
+             />
+           ))}
         </div>
       )}
     </div>

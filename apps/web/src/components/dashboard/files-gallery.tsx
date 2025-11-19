@@ -8,31 +8,19 @@ import { FilesCard } from "./files-card";
 import { getUserFiles, checkPremiumStatus } from "@/app/dashboard/files/actions";
 import { toast } from "sonner";
 
-interface Upload {
+interface IcsFile {
   id: string;
   fileName: string;
-  fileType: string;
-  storageUrl: string;
+  originalFileName: string;
+  icsUrl: string;
   status: "pending" | "processing" | "completed" | "failed";
   createdAt: Date;
   updatedAt: Date;
 }
 
-interface UploadWithEvents extends Upload {
-  events: Array<{
-    id: string;
-    title: string;
-    description: string | null;
-    location: string | null;
-    startTime: Date;
-    endTime?: Date;
-    isAllDay: boolean;
-  }>;
-}
-
 export function FilesGallery() {
-  const [uploads, setUploads] = useState<UploadWithEvents[]>([]);
-  const [selectedUploads, setSelectedUploads] = useState<Set<string>>(new Set());
+  const [icsFiles, setIcsFiles] = useState<IcsFile[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
 
@@ -48,7 +36,7 @@ export function FilesGallery() {
         checkPremiumStatus()
       ]);
 
-      setUploads(filesData);
+      setIcsFiles(filesData);
       setIsPremium(premiumStatus.isPremium);
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -58,21 +46,21 @@ export function FilesGallery() {
     }
   };
 
-  const handleSelectUpload = (uploadId: string, selected: boolean) => {
-    const newSelected = new Set(selectedUploads);
+  const handleSelectFile = (fileId: string, selected: boolean) => {
+    const newSelected = new Set(selectedFiles);
     if (selected) {
-      newSelected.add(uploadId);
+      newSelected.add(fileId);
     } else {
-      newSelected.delete(uploadId);
+      newSelected.delete(fileId);
     }
-    setSelectedUploads(newSelected);
+    setSelectedFiles(newSelected);
   };
 
   const handleSelectAll = (selected: boolean) => {
     if (selected) {
-      setSelectedUploads(new Set(uploads.map(upload => upload.id)));
+      setSelectedFiles(new Set(icsFiles.map(file => file.id)));
     } else {
-      setSelectedUploads(new Set());
+      setSelectedFiles(new Set());
     }
   };
 
@@ -103,15 +91,15 @@ export function FilesGallery() {
             </div>
           )}
         </div>
-        {uploads.length > 0 && (
+        {icsFiles.length > 0 && (
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <Checkbox
-                checked={selectedUploads.size === uploads.length && uploads.length > 0}
+                checked={selectedFiles.size === icsFiles.length && icsFiles.length > 0}
                 onCheckedChange={handleSelectAll}
               />
               <span className="text-sm text-muted-foreground">
-                Select all ({selectedUploads.size} selected)
+                Select all ({selectedFiles.size} selected)
               </span>
             </div>
           </div>
@@ -134,7 +122,7 @@ export function FilesGallery() {
         </div>
       )}
 
-      {uploads.length === 0 ? (
+      {icsFiles.length === 0 ? (
         <div className="text-center py-12">
           <div className="max-w-md mx-auto">
             <div className="mb-6">
@@ -143,9 +131,9 @@ export function FilesGallery() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">No files yet</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">No ICS files yet</h3>
               <p className="text-muted-foreground mb-6">
-                Upload images with dates and times to extract calendar events and share them via email or SMS.
+                Upload images or PDFs with dates and times to extract calendar events and download them as ICS files.
               </p>
             </div>
             <Button asChild size="lg">
@@ -160,13 +148,12 @@ export function FilesGallery() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {uploads.map((upload) => (
+          {icsFiles.map((file) => (
             <FilesCard
-              key={upload.id}
-              upload={upload}
-              events={upload.events}
-              isSelected={selectedUploads.has(upload.id)}
-              onSelect={(selected) => handleSelectUpload(upload.id, selected)}
+              key={file.id}
+              icsFile={file}
+              isSelected={selectedFiles.has(file.id)}
+              onSelect={(selected) => handleSelectFile(file.id, selected)}
               isPremium={isPremium}
             />
           ))}

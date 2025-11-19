@@ -8,6 +8,13 @@
       "when": 1761786706229,
       "tag": "0000_dusty_franklin_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1763572724251,
+      "tag": "0001_fearless_abomination",
+      "breakpoints": true
     }
   ]
 }

@@ -1,9 +1,10 @@
-import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { isDocumentCalendar, extractEventsFromDocument } from '@/lib/ai';
 import { db } from '@quickcalai/db';
 import { uploads, events, users } from '@quickcalai/db/schema';
 import { generateICS, type CalendarEvent } from '@/lib/ics';
 import { randomUUID } from 'crypto';
+
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || 'us-east-1',
@@ -74,7 +75,12 @@ export interface SaveToDatabaseInput {
   events: any[];
 }
 
-export async function saveToDatabase(input: SaveToDatabaseInput): Promise<{ uploadId: string }> {
+export interface SaveToDatabaseResult {
+  uploadId: string;
+  icsUrl?: string;
+}
+
+export async function saveToDatabase(input: SaveToDatabaseInput): Promise<SaveToDatabaseResult> {
   "use step";
 
   console.log("Saving to database for user:", input.userId);
@@ -97,6 +103,28 @@ export async function saveToDatabase(input: SaveToDatabaseInput): Promise<{ uplo
     userId: input.userId,
   });
 
+  // Convert events to CalendarEvent format
+  const calendarEvents: CalendarEvent[] = input.events.map(event => ({
+    date: event.date,
+    time: event.time,
+    description: event.description,
+  }));
+
+  // Generate combined ICS file for all events
+  const combinedIcsContent = generateICS(calendarEvents);
+
+  // Upload ICS file to S3
+  const icsKey = `ics/${uploadId}.ics`;
+  const icsCommand = new PutObjectCommand({
+    Bucket: 'quickcalai-dev-quickcaluploadsbucket-rkfdrxet',
+    Key: icsKey,
+    Body: combinedIcsContent,
+    ContentType: 'text/calendar',
+  });
+
+  await s3Client.send(icsCommand);
+  const icsUrl = `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/${icsKey}`;
+
   // Create event records
   for (const event of input.events) {
     const calendarEvent: CalendarEvent = {
@@ -118,5 +146,5 @@ export async function saveToDatabase(input: SaveToDatabaseInput): Promise<{ uplo
   }
 
   console.log("Database save completed");
-  return { uploadId };
+  return { uploadId, icsUrl };
 }

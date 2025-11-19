@@ -12,7 +12,7 @@ export interface CalendarProcessingResult {
   uploadId: string;
   eventCount: number;
   status: 'completed' | 'no_events' | 'failed';
-  webhookUrl?: string;
+  icsUrl?: string;
 }
 
 export async function calendarProcessingWorkflow(
@@ -63,10 +63,11 @@ export async function calendarProcessingWorkflow(
      events: extractedEvents
    });
 
-  console.log("Workflow completed successfully");
-  return {
-    uploadId: result.uploadId,
-    eventCount: extractedEvents.length,
-    status: 'completed'
-  };
+   console.log("Workflow completed successfully");
+   return {
+     uploadId: result.uploadId,
+     eventCount: extractedEvents.length,
+     status: 'completed',
+     icsUrl: result.icsUrl
+   };
 }

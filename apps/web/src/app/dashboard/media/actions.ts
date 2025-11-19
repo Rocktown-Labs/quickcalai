@@ -13,23 +13,7 @@ export async function getUserMedia() {
 
   try {
     const uploads = await getUserUploads(userId);
-
-    // Load events for each upload
-    const uploadsWithEvents = await Promise.all(
-      uploads.map(async (upload) => {
-        const events = await getUploadEvents(upload.id);
-        return {
-          ...upload,
-          events: events.map(event => ({
-            ...event,
-            startTime: new Date(event.startTime),
-            endTime: event.endTime ? new Date(event.endTime) : undefined,
-          }))
-        };
-      })
-    );
-
-    return uploadsWithEvents;
+    return uploads;
   } catch (error) {
     console.error('Failed to fetch user media:', error);
     throw new Error('Failed to load media files');

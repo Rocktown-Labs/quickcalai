@@ -22,6 +22,9 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   name: text("name"),
   imageUrl: text("image_url"),
+  phoneNumber: text("phone_number"),
+  accountType: text("account_type"),
+  isOnboarded: boolean("is_onboarded").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

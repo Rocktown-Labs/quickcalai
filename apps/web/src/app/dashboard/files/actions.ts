@@ -14,22 +14,20 @@ export async function getUserFiles() {
   try {
     const uploads = await getUserUploads(userId);
 
-    // Load events for each upload
-    const uploadsWithEvents = await Promise.all(
-      uploads.map(async (upload) => {
-        const events = await getUploadEvents(upload.id);
-        return {
-          ...upload,
-          events: events.map(event => ({
-            ...event,
-            startTime: new Date(event.startTime),
-            endTime: event.endTime ? new Date(event.endTime) : undefined,
-          }))
-        };
-      })
-    );
+    // Return uploads that have been processed (completed status) as ICS files
+    const icsFiles = uploads
+      .filter(upload => upload.status === 'completed')
+      .map(upload => ({
+        id: upload.id,
+        fileName: `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`, // Replace extension with .ics
+        originalFileName: upload.fileName,
+        icsUrl: `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/ics/${upload.id}.ics`,
+        status: upload.status,
+        createdAt: upload.createdAt,
+        updatedAt: upload.updatedAt,
+      }));
 
-    return uploadsWithEvents;
+    return icsFiles;
   } catch (error) {
     console.error('Failed to fetch user files:', error);
     throw new Error('Failed to load files');
@@ -44,7 +42,7 @@ export async function downloadFile(uploadId: string) {
   }
 
   try {
-    // Get the upload to verify ownership and get storage URL
+    // Get the upload to verify ownership
     const uploads = await getUserUploads(userId);
     const upload = uploads.find(u => u.id === uploadId);
 
@@ -52,7 +50,11 @@ export async function downloadFile(uploadId: string) {
       throw new Error('File not found');
     }
 
-    return { storageUrl: upload.storageUrl, fileName: upload.fileName };
+    // Return the ICS file URL
+    const icsUrl = `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/ics/${uploadId}.ics`;
+    const fileName = `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`;
+
+    return { storageUrl: icsUrl, fileName };
   } catch (error) {
     console.error('Failed to get download URL:', error);
     throw new Error('Failed to download file');
@@ -82,11 +84,12 @@ export async function emailFile(uploadId: string, email: string) {
       throw new Error('File not found');
     }
 
-    // Here you would implement the email sending logic
+    // Here you would implement the email sending logic with the ICS file
     // For now, we'll just return success
-    console.log(`Sending file ${upload.fileName} to ${email}`);
+    const icsFileName = `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`;
+    console.log(`Sending ICS file ${icsFileName} to ${email}`);
 
-    return { success: true, message: `File sent to ${email}` };
+    return { success: true, message: `ICS file sent to ${email}` };
   } catch (error) {
     console.error('Failed to email file:', error);
     throw new Error('Failed to send email');
@@ -116,11 +119,12 @@ export async function smsFile(uploadId: string, phoneNumber: string) {
       throw new Error('File not found');
     }
 
-    // Here you would implement the SMS sending logic
+    // Here you would implement the SMS sending logic with the ICS file
     // For now, we'll just return success
-    console.log(`Sending file ${upload.fileName} to ${phoneNumber} via SMS`);
+    const icsFileName = `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`;
+    console.log(`Sending ICS file ${icsFileName} to ${phoneNumber} via SMS`);
 
-    return { success: true, message: `File sent to ${phoneNumber}` };
+    return { success: true, message: `ICS file sent to ${phoneNumber}` };
   } catch (error) {
     console.error('Failed to send SMS:', error);
     throw new Error('Failed to send SMS');

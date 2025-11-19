@@ -11,7 +11,6 @@ export default function Uploader() {
   const [dragActive, setDragActive] = useState(false);
   const [runId, setRunId] = useState<string | null>(null);
   const [processingComplete, setProcessingComplete] = useState(false);
-  const [extractedEvents, setExtractedEvents] = useState<any[]>([]);
   const [eventCount, setEventCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useUser();
@@ -111,7 +110,7 @@ export default function Uploader() {
         <div className="mb-6">
           <h2 className="font-serif font-bold text-2xl text-foreground mb-2">AI Calendar Extraction</h2>
           <p className="text-muted-foreground text-lg">
-            Upload an image with dates and times to extract calendar events instantly
+            Upload an image or PDF with dates and times to extract calendar events instantly
           </p>
         </div>
 
@@ -119,9 +118,9 @@ export default function Uploader() {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Upload className="w-5 h-5" />
-              <span>Upload Image</span>
+              <span>Upload Document</span>
             </CardTitle>
-             <CardDescription>Drag and drop or click to select an image or PDF with dates and times</CardDescription>
+            <CardDescription>Drag and drop or click to select an image or PDF with dates and times</CardDescription>
           </CardHeader>
           <CardContent>
             <div
@@ -165,52 +164,6 @@ export default function Uploader() {
                 </div>
               )}
             </div>
-
-             {uploadedFile && !processingComplete && (
-               <div className="mt-6">
-                  <Button
-                    onClick={handleProcess}
-                    disabled={isProcessing || !user}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
-                    {isProcessing ? (
-                     <>
-                       <Zap className="w-4 h-4 mr-2 animate-spin" />
-                       Processing document with AI...
-                     </>
-                   ) : (
-                     <>
-                       <Zap className="w-4 h-4 mr-2" />
-                       Extract Calendar Events
-                     </>
-                   )}
-                 </Button>
-               </div>
-             )}
-
-             {processingComplete && (
-               <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                 <div className="flex items-center space-x-2 text-green-800">
-                   <CheckCircle className="w-5 h-5" />
-                   <span className="font-medium">Processing Complete!</span>
-                 </div>
-                 <p className="text-green-700 mt-1">
-                   Successfully extracted {eventCount} calendar events! Check your dashboard for the results.
-                 </p>
-                 <Button
-                   onClick={() => {
-                     setProcessingComplete(false);
-                     setRunId(null);
-                     setExtractedEvents([]);
-                     setEventCount(0);
-                   }}
-                   variant="outline"
-                   className="mt-3"
-                 >
-                   Process Another File
-                 </Button>
-               </div>
-             )}
           </CardContent>
         </Card>
       </div>
