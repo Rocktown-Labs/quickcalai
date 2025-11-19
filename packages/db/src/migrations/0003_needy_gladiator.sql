@@ -1,0 +1,1 @@
+ALTER TABLE "uploads" DROP COLUMN "ics_url";

@@ -59,7 +59,7 @@ export const uploads = pgTable("uploads", {
   fileName: text("file_name").notNull(),
   fileType: text("file_type").notNull(), // e.g., 'image/png', 'application/pdf'
   storageUrl: text("storage_url").notNull(), // URL from Vercel Blob, S3, etc.
-  icsUrl: text("ics_url"), // URL to the combined ICS file for all events
+  // icsUrl: text("ics_url"), // TODO: Add back after DB migration
 
   // The status is updated by your Vercel Workflow at each step of the process.
   status: uploadStatusEnum("status").default("pending").notNull(),
