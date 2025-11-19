@@ -11,7 +11,12 @@ import { toast } from 'sonner';
 import { completeOnboarding } from '@/app/onboarding/_actions';
 
 interface OnboardingFormProps {
-  user: any;
+  user: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+  };
 }
 
 export default function OnboardingForm({ user }: OnboardingFormProps) {
@@ -62,7 +67,7 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
               name="email"
               type="email"
               placeholder="your@email.com"
-              defaultValue={user?.emailAddresses?.[0]?.emailAddress || ''}
+              defaultValue={user?.email || ''}
               required
             />
           </div>

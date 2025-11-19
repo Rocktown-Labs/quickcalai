@@ -35,7 +35,7 @@ export default async function OnboardingPage() {
             id: user.id,
             firstName: user.firstName,
             lastName: user.lastName,
-            emailAddresses: user.emailAddresses,
+            email: user.emailAddresses?.[0]?.emailAddress || '',
           }}
         />
       </div>
