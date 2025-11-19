@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { runId: string } }
+  { params }: { params: Promise<{ runId: string }> }
 ) {
   try {
-    const runId = params.runId;
+    const { runId } = await params;
     const run = getRun(runId);
 
     const status = await run.status;
@@ -15,7 +15,7 @@ export async function GET(
     return NextResponse.json({
       status,
       result: returnValue,
-      eventCount: returnValue?.eventCount || 0
+      eventCount: (returnValue as any)?.eventCount || 0
     });
   } catch (error) {
     console.error('Workflow status error:', error);
