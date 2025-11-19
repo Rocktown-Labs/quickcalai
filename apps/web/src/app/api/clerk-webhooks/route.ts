@@ -46,6 +46,21 @@ export async function POST(request: NextRequest) {
       return new Response('User deleted from database', { status: 200 });
     }
 
+    // Handle billing/subscription events
+    if (evt.type === 'subscription.active' ||
+        evt.type === 'subscriptionItem.active' ||
+        evt.type === 'subscriptionItem.canceled' ||
+        evt.type === 'subscriptionItem.ended' ||
+        evt.type === 'subscriptionItem.upcoming') {
+
+      console.log(`Billing event received: ${evt.type}`, evt.data);
+
+      // For now, just log the billing events
+      // TODO: Implement database storage for subscription status
+      // The webhook data structure needs to be analyzed first
+      return new Response('Billing event logged', { status: 200 });
+    }
+
     return new Response('Event type not handled', { status: 200 });
 
   } catch (error) {

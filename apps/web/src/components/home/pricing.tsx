@@ -52,7 +52,7 @@ export default function Pricing() {
                    <CardHeader className="text-center">
                      <CardTitle className="font-serif font-semibold text-2xl text-card-foreground">Premium</CardTitle>
                      <div className="mt-4">
-                       <span className="text-4xl font-bold text-foreground">$5.99</span>
+                       <span className="text-4xl font-bold text-foreground">$10.99</span>
                        <span className="text-muted-foreground">/month</span>
                      </div>
                      <CardDescription>AI powered calendar automation</CardDescription>
@@ -61,13 +61,14 @@ export default function Pricing() {
                      <ul className="space-y-3">
                        <li className="flex items-center">
                          <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                         <span className="text-card-foreground">Unlimited AI Extractions</span>
+                         <span className="text-card-foreground">Everything in Free</span>
                        </li>
+
                        <li className="flex items-center">
                          <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                         <span className="text-card-foreground">Manual file creation</span>
+                         <span className="text-card-foreground">Unlimited AI Extractions</span>
                        </li>
-                       <li className="flex items-center">
+                                              <li className="flex items-center">
                          <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
                          <span className="text-card-foreground">Files delivered via email</span>
                        </li>
@@ -75,10 +76,7 @@ export default function Pricing() {
                          <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
                          <span className="text-card-foreground">Files delivered via SMS</span>
                        </li>
-                       <li className="flex items-center">
-                         <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                         <span className="text-card-foreground">Files delivered via downloads</span>
-                       </li>
+
                        <li className="flex items-center">
                          <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
                          <span className="text-card-foreground">Calendar integration</span>
@@ -99,7 +97,7 @@ export default function Pricing() {
                        <span className="text-muted-foreground">/year</span>
                      </div>
                      <CardDescription>
-                       <Badge className="bg-green-100 text-green-800">$5.99/month</Badge>
+                       Billed at $5.99/month
                      </CardDescription>
                    </CardHeader>
                    <CardContent className="space-y-4">

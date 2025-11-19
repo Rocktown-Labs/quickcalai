@@ -16,6 +16,16 @@ export const uploadStatusEnum = pgEnum("upload_status", [
   "failed", // AI failed to process or no event found
 ]);
 
+export const subscriptionStatusEnum = pgEnum("subscription_status", [
+  "active",
+  "canceled",
+  "past_due",
+  "incomplete",
+  "ended",
+  "upcoming",
+  "free",
+]);
+
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(), // Clerk User ID
@@ -26,6 +36,21 @@ export const users = pgTable("users", {
   accountType: text("account_type"),
   isOnboarded: boolean("is_onboarded").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const subscriptionStatus = pgTable("subscription_status", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  clerkSubscriptionId: text("clerk_subscription_id"),
+  clerkSubscriptionItemId: text("clerk_subscription_item_id"),
+  planId: text("plan_id"),
+  status: subscriptionStatusEnum("status").notNull(),
+  isActive: boolean("is_active").default(false).notNull(),
+  periodStart: timestamp("period_start"),
+  periodEnd: timestamp("period_end"),
+  canceledAt: timestamp("canceled_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 
@@ -72,6 +97,7 @@ export const events = pgTable("events", {
 export const usersRelations = relations(users, ({ many }) => ({
   uploads: many(uploads),
   events: many(events),
+  subscriptionStatuses: many(subscriptionStatus),
 }));
 
 export const uploadsRelations = relations(uploads, ({ one, many }) => ({
@@ -90,5 +116,12 @@ export const eventsRelations = relations(events, ({ one }) => ({
   upload: one(uploads, {
     fields: [events.uploadId],
     references: [uploads.id],
+  }),
+}));
+
+export const subscriptionStatusRelations = relations(subscriptionStatus, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptionStatus.userId],
+    references: [users.id],
   }),
 }));

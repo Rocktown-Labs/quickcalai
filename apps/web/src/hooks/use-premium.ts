@@ -1,18 +1,55 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
+import { useUser } from '@clerk/nextjs';
 
 export function usePremium() {
   const { has, getToken } = useAuth();
+  const { user } = useUser();
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const checkPremiumStatus = async () => {
     try {
       setIsLoading(true);
-      // Force refresh token to get latest session data
+
+      // First try to check Clerk directly (fastest)
+      const hasPremiumPlan = has ? has({ plan: 'premium_user' }) : false;
+      const hasPremiumFeature = has ? has({ feature: 'premium' }) : false;
+      const hasFileSharing = has ? has({ feature: 'file_sharing' }) : false;
+
+      // User is premium if they have the premium plan OR premium features
+      const clerkPremiumStatus = hasPremiumPlan || hasPremiumFeature || hasFileSharing;
+
+      // If Clerk says they're premium, trust it immediately
+      if (clerkPremiumStatus) {
+        console.log('Premium status (Clerk):', {
+          hasPremiumPlan,
+          hasPremiumFeature,
+          hasFileSharing,
+          finalStatus: true
+        });
+        setIsPremium(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // If Clerk says they're not premium, double-check by forcing token refresh
+      // This handles cases where Clerk's cache is stale
       await getToken({ skipCache: true });
-      const premiumStatus = has ? has({ plan: 'premium_user' }) : false;
-      setIsPremium(premiumStatus);
+      const refreshedHasPremiumPlan = has ? has({ plan: 'premium_user' }) : false;
+      const refreshedHasPremiumFeature = has ? has({ feature: 'premium' }) : false;
+      const refreshedHasFileSharing = has ? has({ feature: 'file_sharing' }) : false;
+
+      const refreshedPremiumStatus = refreshedHasPremiumPlan || refreshedHasPremiumFeature || refreshedHasFileSharing;
+
+      console.log('Premium status check (refreshed):', {
+        hasPremiumPlan: refreshedHasPremiumPlan,
+        hasPremiumFeature: refreshedHasPremiumFeature,
+        hasFileSharing: refreshedHasFileSharing,
+        finalStatus: refreshedPremiumStatus
+      });
+
+      setIsPremium(refreshedPremiumStatus);
     } catch (error) {
       console.error('Error checking premium status:', error);
       setIsPremium(false);
@@ -22,14 +59,22 @@ export function usePremium() {
   };
 
   useEffect(() => {
-    checkPremiumStatus();
+    if (user) {
+      checkPremiumStatus();
+    } else {
+      setIsLoading(false);
+    }
 
     // Check on window focus (when user comes back to tab)
-    const handleFocus = () => checkPremiumStatus();
+    const handleFocus = () => {
+      if (user) {
+        checkPremiumStatus();
+      }
+    };
     window.addEventListener('focus', handleFocus);
 
     return () => window.removeEventListener('focus', handleFocus);
-  }, [has, getToken]);
+  }, [has, getToken, user]);
 
   return { isPremium, isLoading, refreshStatus: checkPremiumStatus };
 }

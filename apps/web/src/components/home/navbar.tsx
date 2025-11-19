@@ -78,9 +78,14 @@ export default function Navbar() {
                              </Button>
                            </SignUpButton>
                          </SignedOut>
-                         <SignedIn>
-                           <UserButton />
-                         </SignedIn>
+                          <SignedIn>
+                            <Link href="/dashboard">
+                              <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                                Dashboard
+                              </Button>
+                            </Link>
+                            <UserButton />
+                          </SignedIn>
                        </div>
                     </div>
                   </div>
