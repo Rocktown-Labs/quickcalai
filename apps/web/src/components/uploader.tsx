@@ -340,34 +340,35 @@ export default function Uploader() {
              </div>
            )}
 
-            {isPremium && processingComplete && (
-              <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center space-x-2 text-green-800">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="font-medium">Processing Complete!</span>
-                </div>
-                <p className="text-green-700 mt-1">
-                  Successfully extracted {eventCount} calendar events!
-                </p>
-                <div className="flex gap-2 mt-3">
-                  <Link href="/dashboard/files">
-                    <Button variant="outline">
-                      View Extracted Events
-                    </Button>
-                  </Link>
-                  <Button
-                    onClick={() => {
-                      setProcessingComplete(false);
-                      setRunId(null);
-                      setEventCount(0);
-                    }}
-                    variant="outline"
-                  >
-                    Process Another File
-                  </Button>
-                </div>
-              </div>
-            )}
+             {isPremium && processingComplete && (
+               <div className="mt-6 p-6 bg-muted/50 border border-primary/20 rounded-lg text-center">
+                 <div className="flex items-center justify-center space-x-2 text-foreground mb-2">
+                   <CheckCircle className="w-6 h-6 text-primary" />
+                   <span className="font-semibold text-lg">Processing Complete!</span>
+                 </div>
+                 <p className="text-muted-foreground mb-4">
+                   Successfully extracted {eventCount} calendar events!
+                 </p>
+                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                   <Link href="/dashboard/files">
+                     <Button variant="outline" className="w-full sm:w-auto">
+                       View Extracted Events
+                     </Button>
+                   </Link>
+                   <Button
+                     onClick={() => {
+                       setProcessingComplete(false);
+                       setRunId(null);
+                       setEventCount(0);
+                     }}
+                     variant="outline"
+                     className="w-full sm:w-auto"
+                   >
+                     Process Another File
+                   </Button>
+                 </div>
+               </div>
+             )}
           </Activity>
 
           <Activity mode={activeTab === 'manual' ? 'visible' : 'hidden'}>
