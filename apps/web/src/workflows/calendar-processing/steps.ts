@@ -1,5 +1,5 @@
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { isDocumentCalendar, extractEventsFromImage } from '@/lib/ai';
+import { isDocumentCalendar, extractEventsFromDocument } from '@/lib/ai';
 import { db } from '@quickcalai/db';
 import { uploads, events, users } from '@quickcalai/db/schema';
 import { generateICS, type CalendarEvent } from '@/lib/ics';
@@ -9,7 +9,7 @@ const s3Client = new S3Client({
   region: process.env.AWS_REGION || 'us-east-1',
 });
 
-async function getImageFromS3(s3Url: string): Promise<string> {
+async function getFileFromS3(s3Url: string): Promise<{ buffer: Buffer, contentType: string }> {
   const urlParts = s3Url.split('/');
   const key = urlParts.slice(3).join('/'); // Remove the domain and bucket parts
 
@@ -19,15 +19,16 @@ async function getImageFromS3(s3Url: string): Promise<string> {
   });
 
   const response = await s3Client.send(command);
-  const buffer = await response.Body?.transformToByteArray();
+  const uint8Array = await response.Body?.transformToByteArray();
 
-  if (!buffer) {
-    throw new Error('Failed to fetch image from S3');
+  if (!uint8Array) {
+    throw new Error('Failed to fetch file from S3');
   }
 
-  // Convert to base64
-  const base64 = Buffer.from(buffer).toString('base64');
-  return `data:image/jpeg;base64,${base64}`; // Assuming JPEG, you might want to detect the actual type
+  const buffer = Buffer.from(uint8Array);
+  const contentType = response.ContentType || 'application/octet-stream';
+
+  return { buffer, contentType };
 }
 
 export async function checkIsCalendar(s3Url: string): Promise<boolean> {
@@ -36,8 +37,8 @@ export async function checkIsCalendar(s3Url: string): Promise<boolean> {
   console.log("Checking if document is a calendar:", s3Url);
 
   try {
-    const imageBase64 = await getImageFromS3(s3Url);
-    const isCalendar = await isDocumentCalendar(imageBase64);
+    const { buffer, contentType } = await getFileFromS3(s3Url);
+    const isCalendar = await isDocumentCalendar(buffer, contentType);
     return isCalendar;
   } catch (error) {
     console.error("Error checking if calendar:", error);
@@ -48,11 +49,11 @@ export async function checkIsCalendar(s3Url: string): Promise<boolean> {
 export async function extractEvents(s3Url: string): Promise<any[]> {
   "use step";
 
-  console.log("Extracting events from:", s3Url);
+  console.log("Extracting events from document:", s3Url);
 
   try {
-    const imageBase64 = await getImageFromS3(s3Url);
-    const extractedEvents = await extractEventsFromImage(imageBase64);
+    const { buffer, contentType } = await getFileFromS3(s3Url);
+    const extractedEvents = await extractEventsFromDocument(buffer, contentType);
     return extractedEvents;
   } catch (error) {
     console.error("Error extracting events:", error);

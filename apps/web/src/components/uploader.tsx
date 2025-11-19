@@ -29,7 +29,7 @@ export default function Uploader() {
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith('image/') || file.type === 'application/pdf') {
         setUploadedFile(file);
       }
     }
@@ -102,7 +102,7 @@ export default function Uploader() {
               <Upload className="w-5 h-5" />
               <span>Upload Image</span>
             </CardTitle>
-            <CardDescription>Drag and drop or click to select an image with dates and times</CardDescription>
+             <CardDescription>Drag and drop or click to select an image or PDF with dates and times</CardDescription>
           </CardHeader>
           <CardContent>
             <div
@@ -117,7 +117,7 @@ export default function Uploader() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                 accept="image/*,application/pdf"
                 onChange={handleFileInput}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
@@ -142,7 +142,7 @@ export default function Uploader() {
                     <p className="text-lg font-medium text-foreground">Drop your image here</p>
                     <p className="text-muted-foreground">or click to browse files</p>
                   </div>
-                  <p className="text-sm text-muted-foreground">Supports JPEG, PNG, WebP up to 10MB</p>
+                   <p className="text-sm text-muted-foreground">Supports JPEG, PNG, WebP, and PDF up to 10MB</p>
                 </div>
               )}
             </div>
@@ -155,16 +155,16 @@ export default function Uploader() {
                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                  >
                    {isProcessing ? (
-                    <>
-                      <Zap className="w-4 h-4 mr-2 animate-spin" />
-                      Processing with AI...
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-4 h-4 mr-2" />
-                      Extract Calendar Events
-                    </>
-                  )}
+                     <>
+                       <Zap className="w-4 h-4 mr-2 animate-spin" />
+                       Processing document with AI...
+                     </>
+                   ) : (
+                     <>
+                       <Zap className="w-4 h-4 mr-2" />
+                       Extract Calendar Events
+                     </>
+                   )}
                 </Button>
               </div>
             )}

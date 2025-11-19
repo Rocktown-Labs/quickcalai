@@ -1,8 +1,13 @@
 import { generateText } from "ai"
   ;
-export async function isDocumentCalendar(imageBase64: string): Promise<boolean> {
+export async function isDocumentCalendar(fileBuffer: Buffer, fileType: string): Promise<boolean> {
   try {
     console.log("Performing pre-flight check on document type...");
+
+    // For PDFs, convert to base64 data URL format that Gemini can handle
+    const base64Data = fileBuffer.toString('base64');
+    const dataUrl = `data:${fileType};base64,${base64Data}`;
+
     const { text } = await generateText({
       model: 'google/gemini-2.5-pro',
       messages: [
@@ -15,8 +20,7 @@ export async function isDocumentCalendar(imageBase64: string): Promise<boolean> 
             },
             {
               type: 'image',
-              image: imageBase64,
-
+              image: dataUrl,
             },
           ],
         },
@@ -40,12 +44,16 @@ export interface ExtractedEvent {
   description: string;
 }
 
-export async function extractEventsFromImage(
-  imageBase64: string,
-
+export async function extractEventsFromDocument(
+  fileBuffer: Buffer,
+  fileType: string,
 ): Promise<ExtractedEvent[]> {
   try {
-    console.log("Calling Gemini API to extract events...");
+    console.log("Calling Gemini API to extract events from document...");
+
+    // Convert buffer to base64 data URL
+    const base64Data = fileBuffer.toString('base64');
+    const dataUrl = `data:${fileType};base64,${base64Data}`;
 
     const { text } = await generateText({
       model: 'google/gemini-2.5-flash',
@@ -55,51 +63,50 @@ export async function extractEventsFromImage(
           content: [
             {
               type: 'text',
-              text: `Analyze the provided calendar, schedule, or agenda. Identity all distinct events, appointments, or line items. For each item, extract the date (YYYY-MM-DD format), time (HH:MM 24 hour format), and a brief description. If a date or time is not explicitly mentioned for an item, leave the corresponding field as an empty string. Return the data as a JSON array of objects.`,
+              text: `Analyze the provided calendar, schedule, or agenda document. Please examine ALL pages and identify all distinct events, appointments, or line items across the entire document. For each item, extract the date (YYYY-MM-DD format), time (HH:MM 24 hour format), and a brief description. If a date or time is not explicitly mentioned for an item, leave the corresponding field as an empty string. Return the data as a JSON array of objects with no duplicates.`,
             },
             {
               type: 'image',
-              image: imageBase64,
+              image: dataUrl,
             }
           ]
         }
       ]
     });
 
-    if (text ===undefined) {
-      console.warn("Gemini API returned no text context. Returning empty array.",);
+    if (text === undefined) {
+      console.warn("Gemini API returned no text context. Returning empty array.");
       return [];
     }
 
     const cleanedText = text.trim().replace(/^```json\s*/, "").replace(/\s*```$/, "");
-    console.log(
-      'Cleaned Gemini API response:', cleanedText);
+    console.log('Cleaned Gemini API response:', cleanedText);
 
     if (cleanedText === "") {
       return [];
     }
 
     const parsedData: Omit<ExtractedEvent, "id">[] = JSON.parse(cleanedText);
-        console.log("Parsed data:", parsedData);
+    console.log("Parsed data:", parsedData);
 
-        const eventsWithIds = parsedData.map((item, index) => ({
-          ...item,
-          id: Date.now() + index,
-        }));
+    const eventsWithIds = parsedData.map((item, index) => ({
+      ...item,
+      id: Date.now() + index,
+    }));
 
-        console.log("Events with IDs:", eventsWithIds);
-        return eventsWithIds;
-      } catch (error) {
-        console.error("Error calling Gemini API:", error);
-        console.error("Error details:", {
-          name: error instanceof Error ? error.name : "Unknown",
-          message: error instanceof Error ? error.message : "Unknown error",
-          stack: error instanceof Error ? error.stack : "No stack trace",
-        });
+    console.log("Events with IDs:", eventsWithIds);
+    return eventsWithIds;
+  } catch (error) {
+    console.error("Error calling Gemini API:", error);
+    console.error("Error details:", {
+      name: error instanceof Error ? error.name : "Unknown",
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : "No stack trace",
+    });
 
-        if (error instanceof Error) {
-          throw new Error(`Failed to extract data from image: ${error.message}`);
-        }
-        throw new Error("An unknown error occurred while extracting data.");
-      }
+    if (error instanceof Error) {
+      throw new Error(`Failed to extract data from document: ${error.message}`);
     }
+    throw new Error("An unknown error occurred while extracting data.");
+  }
+}
