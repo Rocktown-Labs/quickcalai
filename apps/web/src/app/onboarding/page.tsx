@@ -33,8 +33,8 @@ export default async function OnboardingPage() {
         <OnboardingForm
           user={{
             id: user.id,
-            firstName: user.firstName,
-            lastName: user.lastName,
+            firstName: user.firstName || undefined,
+            lastName: user.lastName || undefined,
             email: user.emailAddresses?.[0]?.emailAddress || '',
           }}
         />
