@@ -118,8 +118,12 @@ export const metadata: Metadata = {
 		google: "your-google-site-verification-code", // Replace with actual code when available
 	},
 	icons: {
-		icon: "/favicon.ico",
-		apple: "/apple-touch-icon.png", // Add this file if needed
+		icon: [
+			{ url: "/favicon.ico", sizes: "any" },
+			{ url: "/icon0.svg", type: "image/svg+xml" },
+			{ url: "/icon1.png", sizes: "192x192", type: "image/png" },
+		],
+		apple: "/apple-icon.png",
 	},
 	manifest: "/manifest.json",
 	metadataBase: new URL("https://quickcalai.com"),
