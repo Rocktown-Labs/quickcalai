@@ -8,22 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Mail, Phone, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
-
-async function completeOnboarding(data: { email: string; phone: string; accountType: string }) {
-  const response = await fetch('/api/onboarding', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to complete onboarding');
-  }
-
-  return response.json();
-}
+import { completeOnboarding } from '@/app/onboarding/_actions';
 
 interface OnboardingFormProps {
   user: any;
@@ -31,42 +16,27 @@ interface OnboardingFormProps {
 
 export default function OnboardingForm({ user }: OnboardingFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    email: user?.emailAddresses?.[0]?.emailAddress || '',
-    phone: '',
-    accountType: '',
-  });
+  const [error, setError] = useState('');
 
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.email || !formData.phone || !formData.accountType) {
-      toast.error('Please fill in all fields');
-      return;
-    }
-
+  const handleSubmit = async (formData: FormData) => {
     setIsLoading(true);
+    setError('');
 
-    try {
-      await completeOnboarding(formData);
+    const res = await completeOnboarding(formData);
 
+    if (res?.message) {
       toast.success('Welcome to QuickCal AI!');
       router.push('/dashboard');
-    } catch (error) {
-      console.error('Onboarding error:', error);
-      toast.error('Something went wrong. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
-  };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    if (res?.error) {
+      setError(res.error);
+      toast.error(res.error);
+    }
+
+    setIsLoading(false);
   };
 
   return (
@@ -81,7 +51,7 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form action={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="email" className="flex items-center space-x-2">
               <Mail className="w-4 h-4" />
@@ -89,10 +59,10 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
             </Label>
             <Input
               id="email"
+              name="email"
               type="email"
               placeholder="your@email.com"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
+              defaultValue={user?.emailAddresses?.[0]?.emailAddress || ''}
               required
             />
           </div>
@@ -104,10 +74,9 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
             </Label>
             <Input
               id="phone"
+              name="phone"
               type="tel"
               placeholder="+1 (555) 123-4567"
-              value={formData.phone}
-              onChange={(e) => handleInputChange('phone', e.target.value)}
               required
             />
           </div>
@@ -116,8 +85,35 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
             <Label htmlFor="accountType">Account Type</Label>
             <select
               id="accountType"
-              value={formData.accountType}
-              onChange={(e) => handleInputChange('accountType', e.target.value)}
+              name="accountType"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="">Choose your plan</option>
+              <option value="free">Free Plan - Basic features</option>
+              <option value="pro">Pro Plan - Advanced features</option>
+              <option value="enterprise">Enterprise - Full access</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone" className="flex items-center space-x-2">
+              <Phone className="w-4 h-4" />
+              <span>Phone Number</span>
+            </Label>
+            <Input
+              id="phone"
+              type="tel"
+              placeholder="+1 (555) 123-4567"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="accountType">Account Type</Label>
+            <select
+              id="accountType"
+              name="accountType"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >

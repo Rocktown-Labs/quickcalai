@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server';
+import { auth, clerkClient } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { db } from '@quickcalai/db';
 import { users } from '@quickcalai/db/schema';
@@ -6,9 +6,9 @@ import { eq } from 'drizzle-orm';
 
 export async function POST(request: Request) {
   try {
-    const { userId } = await auth();
+    const { isAuthenticated, userId } = await auth();
 
-    if (!userId) {
+    if (!isAuthenticated || !userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -18,7 +18,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Update user with onboarding data
+    const client = await clerkClient();
+
+    // Update Clerk user metadata to mark onboarding as complete
+    await client.users.updateUser(userId, {
+      publicMetadata: {
+        onboardingComplete: true,
+        accountType,
+      },
+    });
+
+    // Also update our database
     await db.update(users)
       .set({
         email,
