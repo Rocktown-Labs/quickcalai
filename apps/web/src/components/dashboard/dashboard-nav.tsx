@@ -7,12 +7,13 @@ import { Upload, ImageIcon, FileText, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import type { Route } from "next"
+import { UserButton } from "@clerk/nextjs"
 
 const navigation = [
   { name: "Home", href: "/dashboard" as Route, icon: Upload },
   { name: "Media", href: "/dashboard/media" as Route, icon: ImageIcon },
   { name: "Files", href: "/dashboard/files" as Route, icon: FileText },
-  { name: "Settings", href: "/dashboard/user-profile" as Route, icon: Settings },
+  { name: "Settings", href: "/dashboard/settings" as Route, icon: Settings },
 ]
 
 export function DashboardNav() {
@@ -49,6 +50,19 @@ export function DashboardNav() {
           })}
         </ul>
       </nav>
+
+      {/* User button at bottom */}
+      <div className="p-6 border-t border-border">
+        <div className="flex items-center justify-center">
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox: "w-8 h-8",
+              },
+            }}
+          />
+        </div>
+      </div>
     </div>
   )
 }

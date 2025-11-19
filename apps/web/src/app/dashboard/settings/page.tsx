@@ -10,6 +10,18 @@ export default async function SettingsPage() {
 
   const user = await currentUser();
 
+  if (!user) {
+    return <div>Please sign in to access settings</div>;
+  }
+
+  // Extract only serializable user data
+  const userData = {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.emailAddresses?.[0]?.emailAddress || '',
+  };
+
   return (
     <div className="container mx-auto py-8 max-w-2xl">
       <div className="space-y-6">
@@ -20,7 +32,7 @@ export default async function SettingsPage() {
           </p>
         </div>
 
-        <SettingsForm user={user} />
+        <SettingsForm user={userData} />
       </div>
     </div>
   );
