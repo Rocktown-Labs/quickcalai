@@ -31,7 +31,7 @@ export async function getUserFiles() {
             id: upload.id,
             fileName: `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`, // Replace extension with .ics
             originalFileName: upload.fileName,
-            icsUrl: `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/ics/${upload.id}.ics`,
+            icsUrl: (upload as any).icsUrl || `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/ics/${upload.id}.ics`, // Fallback to S3 for now
             status: upload.status,
             createdAt: upload.createdAt,
             updatedAt: upload.updatedAt,
@@ -68,7 +68,7 @@ export async function downloadFile(uploadId: string) {
     }
 
     // Return the ICS file URL
-    const icsUrl = `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/ics/${uploadId}.ics`;
+    const icsUrl = (upload as any).icsUrl || `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/ics/${uploadId}.ics`;
     const fileName = `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`;
 
     return { storageUrl: icsUrl, fileName };
@@ -102,7 +102,7 @@ export async function emailFile(uploadId: string, email: string) {
     }
 
     // Get the ICS file content
-    const icsUrl = `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/ics/${uploadId}.ics`;
+    const icsUrl = (upload as any).icsUrl || `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/ics/${uploadId}.ics`;
     const icsFileName = `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`;
 
     try {
@@ -163,7 +163,7 @@ export async function smsFile(uploadId: string, phoneNumber: string) {
     }
 
     // Send SMS with download link
-    const icsUrl = `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/ics/${uploadId}.ics`;
+    const icsUrl = (upload as any).icsUrl || `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/ics/${uploadId}.ics`;
     const icsFileName = `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`;
 
     try {

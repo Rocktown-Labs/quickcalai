@@ -2,7 +2,7 @@ import { createWebhook } from "workflow";
 import { checkIsCalendar, extractEvents, saveToDatabase } from "./steps";
 
 export interface CalendarProcessingInput {
-  s3Url: string;
+  blobUrl: string;
   fileName: string;
   fileType: string;
   userId: string;
@@ -22,12 +22,12 @@ export async function calendarProcessingWorkflow(
 
   console.log("Starting calendar processing workflow for file:", input.fileName);
 
-  // File is already uploaded to S3
-  const s3Url = input.s3Url;
-  console.log("Using S3 URL:", s3Url);
+  // File is already uploaded to Vercel Blob
+  const blobUrl = input.blobUrl;
+  console.log("Using blob URL:", blobUrl);
 
   // Step 2: Check if document is a calendar
-  const isCalendar = await checkIsCalendar(s3Url);
+  const isCalendar = await checkIsCalendar(blobUrl);
   console.log("Is calendar:", isCalendar);
 
   if (!isCalendar) {
@@ -40,7 +40,7 @@ export async function calendarProcessingWorkflow(
   }
 
   // Step 3: Extract events from the calendar
-  const extractedEvents = await extractEvents(s3Url);
+  const extractedEvents = await extractEvents(blobUrl);
   console.log("Extracted events:", extractedEvents.length);
 
   if (extractedEvents.length === 0) {
@@ -58,7 +58,7 @@ export async function calendarProcessingWorkflow(
    const result = await saveToDatabase({
      fileName: input.fileName,
      fileType: input.fileType,
-     storageUrl: s3Url,
+     storageUrl: blobUrl,
      userId: input.userId,
      events: extractedEvents
    });

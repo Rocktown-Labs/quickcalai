@@ -21,6 +21,7 @@
     "@tanstack/react-form": "^1.12.3",
     "@tanstack/react-query": "^5.85.5",
     "@vercel/analytics": "^1.5.0",
+    "@vercel/blob": "^2.0.0",
     "ai": "^5.0.82",
     "babel-plugin-react-compiler": "^1.0.0",
     "better-upload": "^2.0.3",

@@ -15,6 +15,13 @@
       "when": 1763572724251,
       "tag": "0001_fearless_abomination",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1763589805793,
+      "tag": "0002_lonely_caretaker",
+      "breakpoints": true
     }
   ]
 }

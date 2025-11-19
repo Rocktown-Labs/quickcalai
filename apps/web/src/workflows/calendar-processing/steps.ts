@@ -1,49 +1,36 @@
-import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { put, head } from '@vercel/blob';
 import { isDocumentCalendar, extractEventsFromDocument } from '@/lib/ai';
 import { db } from '@quickcalai/db';
 import { uploads, events, users } from '@quickcalai/db/schema';
 import { generateICS, type CalendarEvent } from '@/lib/ics';
 import { randomUUID } from 'crypto';
 
+async function getFileFromBlob(blobUrl: string): Promise<{ buffer: Buffer, contentType: string }> {
+  try {
+    // Fetch the file content from the blob URL
+    const response = await fetch(blobUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch blob: ${response.status} ${response.statusText}`);
+    }
 
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-    sessionToken: process.env.AWS_SESSION_TOKEN,
-  },
-});
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const contentType = response.headers.get('content-type') || 'application/octet-stream';
 
-async function getFileFromS3(s3Url: string): Promise<{ buffer: Buffer, contentType: string }> {
-  const urlParts = s3Url.split('/');
-  const key = urlParts.slice(3).join('/'); // Remove the domain and bucket parts
-
-  const command = new GetObjectCommand({
-    Bucket: 'quickcalai-dev-quickcaluploadsbucket-rkfdrxet',
-    Key: key,
-  });
-
-  const response = await s3Client.send(command);
-  const uint8Array = await response.Body?.transformToByteArray();
-
-  if (!uint8Array) {
-    throw new Error('Failed to fetch file from S3');
+    return { buffer, contentType };
+  } catch (error) {
+    console.error('Error fetching file from blob:', error);
+    throw new Error('Failed to fetch file from Vercel Blob');
   }
-
-  const buffer = Buffer.from(uint8Array);
-  const contentType = response.ContentType || 'application/octet-stream';
-
-  return { buffer, contentType };
 }
 
-export async function checkIsCalendar(s3Url: string): Promise<boolean> {
+export async function checkIsCalendar(blobUrl: string): Promise<boolean> {
   "use step";
 
-  console.log("Checking if document is a calendar:", s3Url);
+  console.log("Checking if document is a calendar:", blobUrl);
 
   try {
-    const { buffer, contentType } = await getFileFromS3(s3Url);
+    const { buffer, contentType } = await getFileFromBlob(blobUrl);
     const isCalendar = await isDocumentCalendar(buffer, contentType);
     return isCalendar;
   } catch (error) {
@@ -52,13 +39,13 @@ export async function checkIsCalendar(s3Url: string): Promise<boolean> {
   }
 }
 
-export async function extractEvents(s3Url: string): Promise<any[]> {
+export async function extractEvents(blobUrl: string): Promise<any[]> {
   "use step";
 
-  console.log("Extracting events from document:", s3Url);
+  console.log("Extracting events from document:", blobUrl);
 
   try {
-    const { buffer, contentType } = await getFileFromS3(s3Url);
+    const { buffer, contentType } = await getFileFromBlob(blobUrl);
     const extractedEvents = await extractEventsFromDocument(buffer, contentType);
     return extractedEvents;
   } catch (error) {
@@ -92,16 +79,8 @@ export async function saveToDatabase(input: SaveToDatabaseInput): Promise<SaveTo
     name: 'User', // This would come from Clerk
   }).onConflictDoNothing();
 
-  // Create upload record
+  // Create upload record ID first
   const uploadId = randomUUID();
-  await db.insert(uploads).values({
-    id: uploadId,
-    fileName: input.fileName,
-    fileType: input.fileType,
-    storageUrl: input.storageUrl,
-    status: 'completed',
-    userId: input.userId,
-  });
 
   // Convert events to CalendarEvent format
   const calendarEvents: CalendarEvent[] = input.events.map(event => ({
@@ -113,17 +92,24 @@ export async function saveToDatabase(input: SaveToDatabaseInput): Promise<SaveTo
   // Generate combined ICS file for all events
   const combinedIcsContent = generateICS(calendarEvents);
 
-  // Upload ICS file to S3
-  const icsKey = `ics/${uploadId}.ics`;
-  const icsCommand = new PutObjectCommand({
-    Bucket: 'quickcalai-dev-quickcaluploadsbucket-rkfdrxet',
-    Key: icsKey,
-    Body: combinedIcsContent,
-    ContentType: 'text/calendar',
+  // Upload ICS file to Vercel Blob
+  const icsFileName = `ics/${uploadId}.ics`;
+  const icsBlob = await put(icsFileName, combinedIcsContent, {
+    access: 'public',
+    contentType: 'text/calendar',
   });
+  const icsUrl = icsBlob.url;
 
-  await s3Client.send(icsCommand);
-  const icsUrl = `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/${icsKey}`;
+  // Create upload record
+  await db.insert(uploads).values({
+    id: uploadId,
+    fileName: input.fileName,
+    fileType: input.fileType,
+    storageUrl: input.storageUrl,
+    // icsUrl: icsUrl, // TODO: Add back after DB migration
+    status: 'completed',
+    userId: input.userId,
+  });
 
   // Create event records
   for (const event of input.events) {
