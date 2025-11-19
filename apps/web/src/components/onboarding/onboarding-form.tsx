@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,6 +31,7 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
   });
 
   const router = useRouter();
+  const { user: clerkUser } = useUser();
   const totalSteps = 2;
 
   const handleInputChange = (field: string, value: string) => {
@@ -77,6 +79,8 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
     const res = await completeOnboarding(submitData);
 
     if (res?.message) {
+      // Reload the user's data from Clerk to get updated metadata
+      await clerkUser?.reload();
       toast.success('Welcome to QuickCal AI!');
       router.push('/dashboard');
     }
