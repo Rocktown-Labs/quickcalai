@@ -1,7 +1,9 @@
 'use server';
 
 import { auth } from '@clerk/nextjs/server';
-import { getUserUploads, getUploadEvents } from '@quickcalai/db';
+import { getUserUploads, getUploadEvents, db } from '@quickcalai/db';
+import { users } from '@quickcalai/db/schema';
+import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { Resend } from 'resend';
 import { Twilio } from 'twilio';
@@ -84,7 +86,7 @@ export async function emailFile(uploadId: string, email: string) {
   }
 
   // Check if user has premium access
-  const hasPremium = has({ plan: 'premium' }) || has({ feature: 'file_sharing' });
+  const hasPremium = has({ plan: 'premium_user' }) || has({ feature: 'file_sharing' });
 
   if (!hasPremium) {
     throw new Error('Premium feature required');
@@ -106,7 +108,7 @@ export async function emailFile(uploadId: string, email: string) {
     try {
       // Send email with ICS file attachment
       await resend.emails.send({
-        from: 'QuickCal AI <noreply@extractions.quickcalai.com>',
+        from: 'QuickCalAI <noreply@extractions.quickcalai.com>',
         to: email,
         subject: `Your Calendar Events - ${icsFileName}`,
         html: `
@@ -145,7 +147,7 @@ export async function smsFile(uploadId: string, phoneNumber: string) {
   }
 
   // Check if user has premium access
-  const hasPremium = has({ plan: 'premium' }) || has({ feature: 'file_sharing' });
+  const hasPremium = has({ plan: 'premium_user' }) || has({ feature: 'file_sharing' });
 
   if (!hasPremium) {
     throw new Error('Premium feature required');
@@ -185,7 +187,30 @@ export async function smsFile(uploadId: string, phoneNumber: string) {
 export async function checkPremiumStatus() {
   const { has } = await auth();
 
-  const hasPremium = has({ plan: 'premium' }) || has({ feature: 'file_sharing' });
+  const hasPremium = has({ plan: 'premium_user' }) || has({ feature: 'file_sharing' });
 
   return { isPremium: hasPremium };
+}
+
+export async function getUserContactInfo() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error('Unauthorized');
+  }
+
+  try {
+    const user = await db.select({
+      email: users.email,
+      phoneNumber: users.phoneNumber
+    }).from(users).where(eq(users.id, userId)).limit(1);
+
+    return {
+      email: user[0]?.email || '',
+      phoneNumber: user[0]?.phoneNumber || ''
+    };
+  } catch (error) {
+    console.error('Failed to fetch user contact info:', error);
+    throw new Error('Failed to load contact information');
+  }
 }

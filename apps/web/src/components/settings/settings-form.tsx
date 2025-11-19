@@ -18,8 +18,8 @@ export default function SettingsForm({ user }: SettingsFormProps) {
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
-    email: user?.emailAddresses?.[0]?.emailAddress || '',
-    phone: '', // This would come from our database
+    email: user?.email || '',
+    phone: user?.phone || '',
   });
 
   const router = useRouter();

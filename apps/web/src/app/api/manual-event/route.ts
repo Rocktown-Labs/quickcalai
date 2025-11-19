@@ -1,9 +1,10 @@
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { db } from '@quickcalai/db';
 import { users, uploads, events } from '@quickcalai/db/schema';
 import { generateICS } from '@/lib/ics';
 import { randomUUID } from 'crypto';
+import { eq } from 'drizzle-orm';
 
 export async function POST(request: Request) {
   try {
@@ -17,6 +18,27 @@ export async function POST(request: Request) {
 
     if (!title || !date) {
       return NextResponse.json({ error: 'Title and date are required' }, { status: 400 });
+    }
+
+    // Ensure user exists in database
+    const clerkUser = await currentUser();
+    if (!clerkUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Check if user exists, if not create them
+    const existingUser = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+
+    if (existingUser.length === 0) {
+      // Create user in database
+      await db.insert(users).values({
+        id: userId,
+        email: clerkUser.emailAddresses?.[0]?.emailAddress || '',
+        name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || undefined,
+        imageUrl: clerkUser.imageUrl,
+        phoneNumber: clerkUser.phoneNumbers?.[0]?.phoneNumber,
+        isOnboarded: true, // Assume onboarded if creating manual events
+      });
     }
 
     // Create a manual upload record

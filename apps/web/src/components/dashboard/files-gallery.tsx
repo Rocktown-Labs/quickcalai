@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Crown } from "lucide-react";
 import { FilesCard } from "./files-card";
-import { getUserFiles } from "@/app/dashboard/files/actions";
+import { getUserFiles, getUserContactInfo } from "@/app/dashboard/files/actions";
 import { toast } from "sonner";
 
 interface IcsFile {
@@ -32,6 +32,7 @@ export function FilesGallery() {
   const [icsFiles, setIcsFiles] = useState<IcsFile[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [userContactInfo, setUserContactInfo] = useState<{ email: string; phoneNumber: string } | null>(null);
   const { has } = useAuth();
 
   const isPremium = has ? has({ plan: 'premium_user' }) : false;
@@ -43,8 +44,12 @@ export function FilesGallery() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const filesData = await getUserFiles();
+      const [filesData, contactInfo] = await Promise.all([
+        getUserFiles(),
+        getUserContactInfo()
+      ]);
       setIcsFiles(filesData);
+      setUserContactInfo(contactInfo);
     } catch (error) {
       console.error('Failed to load data:', error);
       toast.error('Failed to load files');
@@ -92,7 +97,7 @@ export function FilesGallery() {
         <div className="flex items-center space-x-4">
           <h1 className="text-2xl font-bold">Files</h1>
           {isPremium && (
-            <div className="flex items-center space-x-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+            <div className="flex items-center space-x-2 bg-linear-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium">
               <Crown className="w-4 h-4" />
               <span>Premium</span>
             </div>
@@ -114,7 +119,7 @@ export function FilesGallery() {
       </div>
 
       {!isPremium && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <div className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-blue-900 dark:text-blue-100">Unlock Premium Features</h3>
@@ -122,7 +127,7 @@ export function FilesGallery() {
                 Share your calendar files via Email and SMS with a Premium subscription
               </p>
             </div>
-            <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+            <Button asChild className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
               <a href="/pricing">Upgrade Now</a>
             </Button>
           </div>
@@ -163,6 +168,7 @@ export function FilesGallery() {
               isSelected={selectedFiles.has(file.id)}
               onSelect={(selected) => handleSelectFile(file.id, selected)}
               isPremium={isPremium}
+              userContactInfo={userContactInfo || undefined}
             />
           ))}
         </div>

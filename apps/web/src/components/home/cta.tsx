@@ -13,13 +13,13 @@ export default function CTA() {
              </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <SignUpButton>
-                  <Button
-                    size="lg"
-                    className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 text-lg px-8 py-4"
-                  >
-                    Start Your Free Trial
-                    <Zap className="ml-2 w-5 h-5" />
-                  </Button>
+                   <Button
+                     size="lg"
+                     className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 text-lg px-8 py-4"
+                   >
+                     Get Started Now
+                     <Zap className="ml-2 w-5 h-5" />
+                   </Button>
                 </SignUpButton>
                 <Button
                   size="lg"
@@ -30,9 +30,9 @@ export default function CTA() {
                   <a href="#contact">Schedule Demo</a>
                 </Button>
               </div>
-             <p className="text-primary-foreground/80 text-sm mt-4">
-               No credit card required • 14-day free trial • Cancel anytime
-             </p>
+              <p className="text-primary-foreground/80 text-sm mt-4">
+                Start extracting calendar events instantly • Cancel anytime
+              </p>
            </div>
          </section>
   )

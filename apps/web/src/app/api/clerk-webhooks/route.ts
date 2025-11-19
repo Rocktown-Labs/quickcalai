@@ -1,6 +1,9 @@
 import { verifyWebhook } from '@clerk/nextjs/webhooks';
 import { start } from 'workflow/api';
 import { userSyncWorkflow, type UserSyncInput } from '@/workflows/user-sync';
+import { db } from '@quickcalai/db';
+import { users } from '@quickcalai/db/schema';
+import { eq } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -29,10 +32,18 @@ export async function POST(request: NextRequest) {
     }
 
     if (evt.type === 'user.deleted') {
-      // For deleted users, we might want to mark them as deleted or remove them
-      // For now, just log it
-      console.log(`User deleted: ${evt.data.id}`);
-      return new Response('User deletion logged', { status: 200 });
+      const userId = evt.data.id;
+
+      if (!userId) {
+        console.error('User ID missing in delete event');
+        return new Response('User ID missing', { status: 400 });
+      }
+
+      // Delete user from our database
+      await db.delete(users).where(eq(users.id, userId));
+      console.log(`User deleted from database: ${userId}`);
+
+      return new Response('User deleted from database', { status: 200 });
     }
 
     return new Response('Event type not handled', { status: 200 });

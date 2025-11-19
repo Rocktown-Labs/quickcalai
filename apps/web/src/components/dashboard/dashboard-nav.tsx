@@ -1,13 +1,17 @@
 
 "use client"
 
+"use client";
+
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Upload, ImageIcon, FileText, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import type { Route } from "next"
-import { UserButton } from "@clerk/nextjs"
+import { UserButton, SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs"
+import { ThemeSwitcher } from "../theme-provider"
+import { usePremium } from "@/hooks/use-premium"
 
 const navigation = [
   { name: "Home", href: "/dashboard" as Route, icon: Upload },
@@ -18,13 +22,14 @@ const navigation = [
 
 export function DashboardNav() {
   const pathname = usePathname()
+  const { isPremium } = usePremium()
 
   // Desktop sidebar navigation
   return (
     <div className="flex flex-col h-full bg-background border-r">
       <div className="p-6 border-b border-border">
         <Link href="/" className="flex items-center space-x-2">
-          <Image src="/quickcalai-logo.png" alt="QuickCal Logo" width={32} height={32} className="rounded" />
+          <Image src="/QuickCalAI.png" alt="QuickCal Logo" width={32} height={32} className="object-contain rounded" />
           <span className="font-serif font-bold text-xl text-foreground">QuickCalAI</span>
         </Link>
       </div>
@@ -53,14 +58,25 @@ export function DashboardNav() {
 
       {/* User button at bottom */}
       <div className="p-6 border-t border-border">
-        <div className="flex items-center justify-center">
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: "w-8 h-8",
-              },
-            }}
-          />
+        <div className="flex items-center justify-center space-x-4">
+          <ThemeSwitcher />
+          <SignedOut>
+            <SignInButton />
+            <SignUpButton>
+              <button className="bg-[#6c47ff] text-white rounded-full font-medium text-sm px-4 py-2 cursor-pointer">
+                Sign Up
+              </button>
+            </SignUpButton>
+          </SignedOut>
+          <SignedIn>
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: "w-8 h-8",
+                },
+              }}
+            />
+          </SignedIn>
         </div>
       </div>
     </div>

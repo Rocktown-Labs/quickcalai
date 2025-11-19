@@ -11,7 +11,7 @@ const navigation = [
   { name: "Home", href: "/dashboard" as Route, icon: Upload },
   { name: "Media", href: "/dashboard/media" as Route, icon: ImageIcon },
   { name: "Files", href: "/dashboard/files" as Route, icon: FileText },
-  { name: "Settings", href: "/dashboard/user-profile" as Route, icon: Settings },
+  { name: "Settings", href: "/dashboard/settings" as Route, icon: Settings },
 ]
 
 export function MobileNav() {

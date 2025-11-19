@@ -21,6 +21,7 @@ import {
 import { format } from "date-fns";
 import { downloadFile, emailFile, smsFile } from "@/app/dashboard/files/actions";
 import { toast } from "sonner";
+import Link from "next/link";
 
 interface FilesCardProps {
   icsFile: {
@@ -44,6 +45,10 @@ interface FilesCardProps {
   isSelected: boolean;
   onSelect: (selected: boolean) => void;
   isPremium: boolean;
+  userContactInfo?: {
+    email: string;
+    phoneNumber: string;
+  };
 }
 
 const statusConfig = {
@@ -69,12 +74,12 @@ const statusConfig = {
   }
 };
 
-export function FilesCard({ icsFile, events = [], isSelected, onSelect, isPremium }: FilesCardProps) {
+export function FilesCard({ icsFile, events = [], isSelected, onSelect, isPremium, userContactInfo }: FilesCardProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isEmailing, setIsEmailing] = useState(false);
   const [isSmsing, setIsSmsing] = useState(false);
-  const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState(userContactInfo?.email || "");
+  const [phoneNumber, setPhoneNumber] = useState(userContactInfo?.phoneNumber || "");
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [showSmsForm, setShowSmsForm] = useState(false);
 
@@ -336,7 +341,7 @@ export function FilesCard({ icsFile, events = [], isSelected, onSelect, isPremiu
                 Upgrade to Premium for Email & SMS sharing
               </p>
               <Button variant="outline" size="sm" className="w-full text-xs" asChild>
-                <a href="/pricing">Upgrade to Premium</a>
+                <Link href={'/dashboard/settings'}>Upgrade to Premium</Link>
               </Button>
             </div>
           )}

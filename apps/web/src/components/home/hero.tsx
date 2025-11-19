@@ -1,4 +1,4 @@
-import { Badge, Zap, CheckCircle } from "lucide-react";
+import { Zap, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SignUpButton } from "@clerk/nextjs";
 export default function Hero() {
@@ -7,9 +7,11 @@ export default function Hero() {
           <div className="max-w-7xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="animate-slide-up">
-                <Badge className="mb-4 bg-accent/20 text-accent-foreground border-accent/30">
-                  🚀 AI-Powered Scheduling Revolution
-                </Badge>
+
+<span className="mb-">🚀 AI-Powered Scheduling Revolution
+</span>
+
+
                 <h1 className="font-serif font-bold text-4xl md:text-6xl text-foreground mb-6 leading-tight">
                   Transform Your Scheduling Experience with <span className="text-primary">QuickCalAI</span>
                 </h1>
@@ -19,13 +21,13 @@ export default function Hero() {
                 </p>
                  <div className="flex flex-col sm:flex-row gap-4 mb-8">
                    <SignUpButton>
-                     <Button
-                       size="lg"
-                       className="bg-primary text-primary-foreground hover:bg-primary/90 animate-pulse-glow text-lg px-8 py-4"
-                     >
-                       Start Your Free Trial Today
-                       <Zap className="ml-2 w-5 h-5" />
-                     </Button>
+                      <Button
+                        size="lg"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 animate-pulse-glow text-lg px-8 py-4"
+                      >
+                        Get Started Now
+                        <Zap className="ml-2 w-5 h-5" />
+                      </Button>
                    </SignUpButton>
                    <Button
                      size="lg"
@@ -47,16 +49,16 @@ export default function Hero() {
                   </div>
                 </div>
               </div>
-              <div className="relative animate-float">
-                <div className="relative z-10">
-                  <img
-                    src="/quickcalai-logo.png"
-                    alt="QuickCalAI Interface"
-                    className="rounded-2xl shadow-2xl"
-                  />
-                </div>
-                <div className="absolute -top-4 -right-4 w-full h-full bg-primary/20 rounded-2xl blur-xl"></div>
-              </div>
+               <div className="relative animate-float">
+                 <div className="relative z-10">
+                   <img
+                     src="/quickcalai-hero-image.png"
+                     alt="QuickCalAI Interface"
+                     className="rounded-2xl shadow-2xl"
+                   />
+                 </div>
+                 <div className="absolute -top-4 -right-4 w-full h-full bg-primary/20 rounded-2xl blur-xl"></div>
+               </div>
             </div>
           </div>
         </section>

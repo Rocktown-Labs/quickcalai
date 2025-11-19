@@ -6,9 +6,10 @@ export default function Footer() {
            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
              <div className="grid md:grid-cols-4 gap-8">
                <div>
-                 <div className="flex items-center space-x-3 mb-4">
-                   <Image src="/quickcalai-logo.png" alt="QuickCal Logo" width={32} height={32} className="w-38 h-38" />
-                 </div>
+                  <div className="flex items-center space-x-3 mb-4">
+                    <Image src="/QuickCalAI.png" alt="QuickCal Logo" width={32} height={32} className="w-8 h-8 object-contain rounded" />
+                    <span className="font-semibold">QuickCalAI</span>
+                  </div>
                  <p className="text-muted-foreground">
                    AI-powered calendar extraction that saves you time and eliminates scheduling errors.
                  </p>

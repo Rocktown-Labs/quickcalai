@@ -3,7 +3,7 @@ import { ChartLine, Clock, ShieldCheck, Sparkles } from 'lucide-react';
 
 export default function SignUpPage() {
   return (
-    <div className='bg-muted grid flex-1 lg:grid-cols-2'>
+    <div className='bg-muted grid flex-1 lg:grid-cols-2 min-h-svh'>
       <div className='hidden flex-1 items-center justify-end p-6 md:p-10 lg:flex'>
         <ul className='max-w-sm space-y-8'>
           <li>
