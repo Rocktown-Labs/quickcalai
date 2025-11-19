@@ -32,6 +32,15 @@ interface FilesCardProps {
     createdAt: Date;
     updatedAt: Date;
   };
+  events?: Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    location: string | null;
+    startTime: Date;
+    endTime?: Date;
+    isAllDay: boolean;
+  }>;
   isSelected: boolean;
   onSelect: (selected: boolean) => void;
   isPremium: boolean;
@@ -60,7 +69,7 @@ const statusConfig = {
   }
 };
 
-export function FilesCard({ icsFile, isSelected, onSelect, isPremium }: FilesCardProps) {
+export function FilesCard({ icsFile, events = [], isSelected, onSelect, isPremium }: FilesCardProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isEmailing, setIsEmailing] = useState(false);
   const [isSmsing, setIsSmsing] = useState(false);
@@ -166,11 +175,36 @@ export function FilesCard({ icsFile, isSelected, onSelect, isPremium }: FilesCar
       </CardHeader>
 
       <CardContent className="pt-0">
-        <div className="mb-4 p-3 bg-muted rounded-md">
-          <p className="text-sm text-muted-foreground">
-            Calendar file containing extracted events from your uploaded document.
-          </p>
-        </div>
+        {events.length > 0 && (
+          <div className="mb-4">
+            <h4 className="text-sm font-medium mb-2 flex items-center">
+              <Calendar className="w-4 h-4 mr-1" />
+              Extracted Events ({events.length})
+            </h4>
+            <div className="space-y-2 max-h-24 overflow-y-auto">
+              {events.slice(0, 3).map((event) => (
+                <div key={event.id} className="text-xs p-2 bg-muted rounded">
+                  <div className="font-medium truncate">{event.title}</div>
+                  <div className="text-muted-foreground flex items-center mt-1">
+                    <Clock className="w-3 h-3 mr-1" />
+                    {format(event.startTime, 'MMM d, h:mm a')}
+                    {event.location && (
+                      <>
+                        <MapPin className="w-3 h-3 ml-2 mr-1" />
+                        {event.location}
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {events.length > 3 && (
+                <div className="text-xs text-muted-foreground text-center">
+                  +{events.length - 3} more events
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="space-y-3">
           {/* Download Button - Available to all users */}

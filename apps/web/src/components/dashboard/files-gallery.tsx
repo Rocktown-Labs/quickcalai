@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Crown } from "lucide-react";
 import { FilesCard } from "./files-card";
-import { getUserFiles, checkPremiumStatus } from "@/app/dashboard/files/actions";
+import { getUserFiles } from "@/app/dashboard/files/actions";
 import { toast } from "sonner";
 
 interface IcsFile {
@@ -16,13 +17,24 @@ interface IcsFile {
   status: "pending" | "processing" | "completed" | "failed";
   createdAt: Date;
   updatedAt: Date;
+  events?: Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    location: string | null;
+    startTime: Date;
+    endTime?: Date;
+    isAllDay: boolean;
+  }>;
 }
 
 export function FilesGallery() {
   const [icsFiles, setIcsFiles] = useState<IcsFile[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [isPremium, setIsPremium] = useState(false);
+  const { has } = useAuth();
+
+  const isPremium = has ? has({ plan: 'premium_user' }) : false;
 
   useEffect(() => {
     loadData();
@@ -31,13 +43,8 @@ export function FilesGallery() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [filesData, premiumStatus] = await Promise.all([
-        getUserFiles(),
-        checkPremiumStatus()
-      ]);
-
+      const filesData = await getUserFiles();
       setIcsFiles(filesData);
-      setIsPremium(premiumStatus.isPremium);
     } catch (error) {
       console.error('Failed to load data:', error);
       toast.error('Failed to load files');
@@ -152,6 +159,7 @@ export function FilesGallery() {
             <FilesCard
               key={file.id}
               icsFile={file}
+              events={file.events}
               isSelected={selectedFiles.has(file.id)}
               onSelect={(selected) => handleSelectFile(file.id, selected)}
               isPremium={isPremium}

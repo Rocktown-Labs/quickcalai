@@ -3,6 +3,11 @@
 import { auth } from '@clerk/nextjs/server';
 import { getUserUploads, getUploadEvents } from '@quickcalai/db';
 import { revalidatePath } from 'next/cache';
+import { Resend } from 'resend';
+import { Twilio } from 'twilio';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+const twilio = new Twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
 export async function getUserFiles() {
   const { userId } = await auth();
@@ -14,18 +19,28 @@ export async function getUserFiles() {
   try {
     const uploads = await getUserUploads(userId);
 
-    // Return uploads that have been processed (completed status) as ICS files
-    const icsFiles = uploads
-      .filter(upload => upload.status === 'completed')
-      .map(upload => ({
-        id: upload.id,
-        fileName: `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`, // Replace extension with .ics
-        originalFileName: upload.fileName,
-        icsUrl: `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/ics/${upload.id}.ics`,
-        status: upload.status,
-        createdAt: upload.createdAt,
-        updatedAt: upload.updatedAt,
-      }));
+    // Return uploads that have been processed (completed status) as ICS files with events
+    const icsFiles = await Promise.all(
+      uploads
+        .filter(upload => upload.status === 'completed')
+        .map(async (upload) => {
+          const events = await getUploadEvents(upload.id);
+          return {
+            id: upload.id,
+            fileName: `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`, // Replace extension with .ics
+            originalFileName: upload.fileName,
+            icsUrl: `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/ics/${upload.id}.ics`,
+            status: upload.status,
+            createdAt: upload.createdAt,
+            updatedAt: upload.updatedAt,
+            events: events.map(event => ({
+              ...event,
+              startTime: new Date(event.startTime),
+              endTime: event.endTime ? new Date(event.endTime) : undefined,
+            }))
+          };
+        })
+    );
 
     return icsFiles;
   } catch (error) {
@@ -84,12 +99,38 @@ export async function emailFile(uploadId: string, email: string) {
       throw new Error('File not found');
     }
 
-    // Here you would implement the email sending logic with the ICS file
-    // For now, we'll just return success
+    // Get the ICS file content
+    const icsUrl = `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/ics/${uploadId}.ics`;
     const icsFileName = `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`;
-    console.log(`Sending ICS file ${icsFileName} to ${email}`);
 
-    return { success: true, message: `ICS file sent to ${email}` };
+    try {
+      // Send email with ICS file attachment
+      await resend.emails.send({
+        from: 'QuickCal AI <noreply@extractions.quickcalai.com>',
+        to: email,
+        subject: `Your Calendar Events - ${icsFileName}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Your Calendar Events are Ready!</h2>
+            <p>Hi there,</p>
+            <p>Your calendar events have been extracted and are attached to this email as an ICS file.</p>
+            <p>You can import this file into any calendar application (Google Calendar, Outlook, Apple Calendar, etc.).</p>
+            <p>Best regards,<br>The QuickCal AI Team</p>
+          </div>
+        `,
+        attachments: [
+          {
+            filename: icsFileName,
+            path: icsUrl,
+          },
+        ],
+      });
+
+      return { success: true, message: `ICS file sent to ${email}` };
+    } catch (emailError) {
+      console.error('Email sending failed:', emailError);
+      throw new Error('Failed to send email');
+    }
   } catch (error) {
     console.error('Failed to email file:', error);
     throw new Error('Failed to send email');
@@ -119,12 +160,22 @@ export async function smsFile(uploadId: string, phoneNumber: string) {
       throw new Error('File not found');
     }
 
-    // Here you would implement the SMS sending logic with the ICS file
-    // For now, we'll just return success
+    // Send SMS with download link
+    const icsUrl = `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/ics/${uploadId}.ics`;
     const icsFileName = `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`;
-    console.log(`Sending ICS file ${icsFileName} to ${phoneNumber} via SMS`);
 
-    return { success: true, message: `ICS file sent to ${phoneNumber}` };
+    try {
+      await twilio.messages.create({
+        body: `Your calendar events are ready! Download your ICS file: ${icsUrl}`,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: phoneNumber,
+      });
+
+      return { success: true, message: `Download link sent to ${phoneNumber}` };
+    } catch (smsError) {
+      console.error('SMS sending failed:', smsError);
+      throw new Error('Failed to send SMS');
+    }
   } catch (error) {
     console.error('Failed to send SMS:', error);
     throw new Error('Failed to send SMS');
