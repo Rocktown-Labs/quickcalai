@@ -20,14 +20,14 @@ export async function POST(request: Request) {
     const key = `uploads/${Date.now()}-${file.name}`;
 
     const command = new PutObjectCommand({
-      Bucket: 'QuickCalUploads',
+      Bucket: 'quickcalai-dev-quickcaluploadsbucket-rkfdrxet',
       Key: key,
       Body: buffer,
       ContentType: file.type,
     });
 
     await s3Client.send(command);
-    const s3Url = `https://QuickCalUploads.s3.amazonaws.com/${key}`;
+    const s3Url = `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/${key}`;
 
     // Start the calendar processing workflow
     const workflowInput: CalendarProcessingInput = {

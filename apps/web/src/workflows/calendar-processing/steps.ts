@@ -14,7 +14,7 @@ async function getFileFromS3(s3Url: string): Promise<{ buffer: Buffer, contentTy
   const key = urlParts.slice(3).join('/'); // Remove the domain and bucket parts
 
   const command = new GetObjectCommand({
-    Bucket: 'QuickCalUploads',
+    Bucket: 'quickcalai-dev-quickcaluploadsbucket-rkfdrxet',
     Key: key,
   });
 
