@@ -38,11 +38,15 @@ const structuredData = {
 const geistSans = Geist({
 	variable: "--font-geist-sans",
 	subsets: ["latin"],
+	display: "swap",
+	preload: true,
 });
 
 const geistMono = Geist_Mono({
 	variable: "--font-geist-mono",
 	subsets: ["latin"],
+	display: "swap",
+	preload: true,
 });
 
 export const metadata: Metadata = {
@@ -146,6 +150,23 @@ export default function RootLayout({
 					type="application/ld+json"
 					dangerouslySetInnerHTML={{
 						__html: JSON.stringify(structuredData),
+					}}
+				/>
+				<script
+					dangerouslySetInnerHTML={{
+						__html: `
+							if ('serviceWorker' in navigator) {
+								window.addEventListener('load', function() {
+									navigator.serviceWorker.register('/sw.js')
+										.then(function(registration) {
+											console.log('SW registered: ', registration);
+										})
+										.catch(function(registrationError) {
+											console.log('SW registration failed: ', registrationError);
+										});
+								});
+							}
+						`,
 					}}
 				/>
 			</head>

@@ -1,13 +1,104 @@
 import {withSentryConfig} from "@sentry/nextjs";
 import { withWorkflow } from 'workflow/next';
 import type { NextConfig } from "next";
+import withBundleAnalyzer from '@next/bundle-analyzer';
 
 const nextConfig: NextConfig = {
-				typedRoutes: true,
-				reactCompiler: true,
+	typedRoutes: true,
+	reactCompiler: true,
+
+	// Performance optimizations
+	experimental: {
+		optimizeCss: true,
+		scrollRestoration: true,
+	},
+
+	// Remove console.logs in production
+	compiler: {
+		removeConsole: process.env.NODE_ENV === 'production',
+	},
+
+
+
+	// Image optimization
+	images: {
+		formats: ['image/webp', 'image/avif'],
+		minimumCacheTTL: 60,
+		dangerouslyAllowSVG: true,
+		contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+	},
+
+	// Compression and headers
+	async headers() {
+		return [
+			{
+				source: '/(.*)',
+				headers: [
+					{
+						key: 'X-Frame-Options',
+						value: 'DENY',
+					},
+					{
+						key: 'X-Content-Type-Options',
+						value: 'nosniff',
+					},
+					{
+						key: 'Referrer-Policy',
+						value: 'origin-when-cross-origin',
+					},
+				],
+			},
+			{
+				source: '/static/(.*)',
+				headers: [
+					{
+						key: 'Cache-Control',
+						value: 'public, max-age=31536000, immutable',
+					},
+				],
+			},
+			{
+				source: '/_next/image(.*)',
+				headers: [
+					{
+						key: 'Cache-Control',
+						value: 'public, max-age=31536000, immutable',
+					},
+				],
+			},
+		];
+	},
+
+	// Bundle analysis
+	webpack: (config, { isServer }) => {
+		// Optimize bundle splitting
+		if (!isServer) {
+			config.optimization.splitChunks.chunks = 'all';
+			config.optimization.splitChunks.cacheGroups = {
+				...config.optimization.splitChunks.cacheGroups,
+				framework: {
+					chunks: 'all',
+					name: 'framework',
+					test: /(?<!node_modules.*)[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
+					priority: 40,
+					enforce: true,
+				},
+				lib: {
+					test: /[\\/]node_modules[\\/]/,
+					name: 'lib',
+					priority: 30,
+					chunks: 'all',
+				},
+			};
+		}
+
+		return config;
+	},
 };
 
-export default withSentryConfig(withWorkflow(nextConfig), {
+export default withSentryConfig(withWorkflow(withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})(nextConfig)), {
  // For all available options, see:
 	// https://www.npmjs.com/package/@sentry/webpack-plugin#options
 

@@ -1,13 +1,45 @@
 "use client";
 
-import CTA from "@/components/home/cta";
-import Features from "@/components/home/features";
-import Footer from "@/components/home/footer";
+import dynamic from "next/dynamic";
+
+// Critical components - load immediately
 import Hero from "@/components/home/hero";
 import Navbar from "@/components/home/navbar";
-import Pricing from "@/components/home/pricing";
-import Testimonials from "@/components/home/testimonials";
-import { SignInButton, SignUpButton } from "@clerk/nextjs";
+
+// Non-critical components - lazy load with loading states
+const Features = dynamic(() => import("@/components/home/features"), {
+  loading: () => (
+    <div className="min-h-[50vh] flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    </div>
+  )
+});
+
+const Pricing = dynamic(() => import("@/components/home/pricing"), {
+  loading: () => (
+    <div className="min-h-[50vh] flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    </div>
+  )
+});
+
+const Testimonials = dynamic(() => import("@/components/home/testimonials"), {
+  loading: () => (
+    <div className="min-h-[50vh] flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    </div>
+  )
+});
+
+const CTA = dynamic(() => import("@/components/home/cta"), {
+  loading: () => (
+    <div className="min-h-[30vh] flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    </div>
+  )
+});
+
+const Footer = dynamic(() => import("@/components/home/footer"));
 
 
 
