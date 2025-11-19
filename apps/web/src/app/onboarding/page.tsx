@@ -10,6 +10,10 @@ export default async function OnboardingPage() {
 
   const user = await currentUser();
 
+  if (!user) {
+    return <div>Please sign in to continue</div>;
+  }
+
   // Check if user is already onboarded
   // For now, we'll assume they need onboarding if they reach this page
   // In a real app, you'd check a database field
@@ -26,7 +30,14 @@ export default async function OnboardingPage() {
           </p>
         </div>
 
-        <OnboardingForm user={user} />
+        <OnboardingForm
+          user={{
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            emailAddresses: user.emailAddresses,
+          }}
+        />
       </div>
     </div>
   );
