@@ -13,7 +13,7 @@ export async function getUserUploads(userId: string) {
       fileName: uploads.fileName,
       fileType: uploads.fileType,
       storageUrl: uploads.storageUrl,
-      icsUrl: uploads.icsUrl,
+      // icsUrl: uploads.icsUrl, // TODO: Uncomment after DB migration
       status: uploads.status,
       createdAt: uploads.createdAt,
       updatedAt: uploads.updatedAt,
