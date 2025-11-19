@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Block access to API routes
+Disallow: /api/
+Disallow: /_next/
+Disallow: /dashboard/
+
+# Allow access to static assets
+Allow: /quickcalai-og.png
+Allow: /favicon.ico
+
+# Sitemap
+Sitemap: https://quickcalai.com/sitemap.xml

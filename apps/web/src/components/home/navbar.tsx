@@ -46,9 +46,9 @@ export default function Navbar() {
           <nav className="fixed top-0 w-full bg-background/90 backdrop-blur-md border-b border-border z-50">
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center space-x-3">
-                          <Link href="/" className="flex items-center space-x-2">
-                            <Image src="/QuickCalAI.png" alt="QuickCalAI Logo" width={32} height={32} className="w-8 h-8 object-contain rounded" />
+                        <div className="flex items-center">
+                          <Link href="/" className="flex items-center">
+                            {/*<Image src="/QuickCalAI.png" alt="QuickCalAI Logo" width={32} height={32} className="w-8 h-8 object-contain rounded" />*/}
                             <span className="font-semibold">QuickCalAI</span>
                           </Link>
                         </div>

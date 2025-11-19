@@ -1,6 +1,7 @@
 import { Zap, CheckCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 import { SignUpButton } from "@clerk/nextjs";
+import Image from "next/image";
 export default function Hero() {
   return (
     <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
@@ -49,16 +50,21 @@ export default function Hero() {
                   </div>
                 </div>
               </div>
-               <div className="relative animate-float">
-                 <div className="relative z-10">
-                   <img
-                     src="/quickcalai-hero-image.png"
-                     alt="QuickCalAI Interface"
-                     className="rounded-2xl shadow-2xl"
-                   />
-                 </div>
-                 <div className="absolute -top-4 -right-4 w-full h-full bg-primary/20 rounded-2xl blur-xl"></div>
-               </div>
+                <div className="relative animate-float">
+                  <div className="relative z-10">
+                    <Image
+                      src="/quickcalai-hero-image.png"
+                      alt="QuickCalAI Interface - AI-powered calendar extraction from images and PDFs"
+                      width={800}
+                      height={600}
+                      className="rounded-2xl shadow-2xl"
+                      priority
+                      placeholder="blur"
+                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
+                    />
+                  </div>
+                  <div className="absolute -top-4 -right-4 w-full h-full bg-primary/20 rounded-2xl blur-xl"></div>
+                </div>
             </div>
           </div>
         </section>
