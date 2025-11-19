@@ -73,10 +73,14 @@ export async function POST(request: Request) {
       userId,
     });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Event created successfully',
-      eventId: randomUUID()
+    // Return ICS file directly as downloadable attachment
+    const fileName = `${title.replace(/[^a-zA-Z0-9\s]/g, '_').trim()}.ics`;
+    return new Response(icsContent, {
+      headers: {
+        'Content-Type': 'text/calendar; charset=utf-8',
+        'Content-Disposition': `attachment; filename="${fileName}"`,
+        'Cache-Control': 'no-cache',
+      },
     });
   } catch (error) {
     console.error('Manual event creation error:', error);
