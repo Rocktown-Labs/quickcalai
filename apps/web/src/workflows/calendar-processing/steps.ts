@@ -82,12 +82,14 @@ export async function saveToDatabase(input: SaveToDatabaseInput): Promise<SaveTo
   // Create upload record ID first
   const uploadId = randomUUID();
 
-  // Convert events to CalendarEvent format
-  const calendarEvents: CalendarEvent[] = input.events.map(event => ({
-    date: event.date,
-    time: event.time,
-    description: event.description,
-  }));
+  // Convert events to CalendarEvent format, filtering out events with empty dates
+  const calendarEvents: CalendarEvent[] = input.events
+    .filter(event => event.date && event.date.trim() !== '') // Filter out events with empty dates
+    .map(event => ({
+      date: event.date,
+      time: event.time,
+      description: event.description,
+    }));
 
   // Generate combined ICS file for all events
   const combinedIcsContent = generateICS(calendarEvents);
@@ -111,8 +113,8 @@ export async function saveToDatabase(input: SaveToDatabaseInput): Promise<SaveTo
     userId: input.userId,
   });
 
-  // Create event records
-  for (const event of input.events) {
+  // Create event records (only for events with valid dates)
+  for (const event of input.events.filter(event => event.date && event.date.trim() !== '')) {
     const calendarEvent: CalendarEvent = {
       date: event.date,
       time: event.time,
