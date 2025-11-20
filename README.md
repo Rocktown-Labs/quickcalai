@@ -42,8 +42,7 @@ pnpm install
 DATABASE_URL="postgresql://username:password@localhost:5432/quickcalai"
 CLERK_SECRET_KEY="your_clerk_secret"
 GOOGLE_GEMINI_API_KEY="your_gemini_api_key"
-AWS_ACCESS_KEY_ID="your_aws_key"
-AWS_SECRET_ACCESS_KEY="your_aws_secret"
+BLOB_READ_WRITE_TOKEN="your_vercel_blob_token"
 RESEND_API_KEY="your_resend_key"
 TWILIO_ACCOUNT_SID="your_twilio_sid"
 TWILIO_AUTH_TOKEN="your_twilio_token"
@@ -103,7 +102,7 @@ quickcalai/
 - **Database**: PostgreSQL with Drizzle ORM
 - **Authentication**: Clerk
 - **AI**: Google Gemini via Vercel AI SDK
-- **File Storage**: AWS S3
+- **File Storage**: Vercel Blob
 - **Email**: Resend
 - **SMS**: Twilio
 - **Build System**: Turborepo
