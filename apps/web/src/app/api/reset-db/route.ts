@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { sql } from 'drizzle-orm';
 import { db } from '@quickcalai/db';
 
 export async function POST() {
@@ -8,15 +9,13 @@ export async function POST() {
       return NextResponse.json({ error: 'Not allowed in production' }, { status: 403 });
     }
 
-    // Drop all tables in reverse dependency order
-    await db.execute(`
-      DROP TABLE IF EXISTS events CASCADE;
-      DROP TABLE IF EXISTS uploads CASCADE;
-      DROP TABLE IF EXISTS subscription_status CASCADE;
-      DROP TABLE IF EXISTS users CASCADE;
-      DROP TYPE IF EXISTS upload_status CASCADE;
-      DROP TYPE IF EXISTS subscription_status CASCADE;
-    `);
+    // Drop all tables and types in reverse dependency order
+    await db.execute(sql`DROP TABLE IF EXISTS events CASCADE`);
+    await db.execute(sql`DROP TABLE IF EXISTS uploads CASCADE`);
+    await db.execute(sql`DROP TABLE IF EXISTS subscription_status CASCADE`);
+    await db.execute(sql`DROP TABLE IF EXISTS users CASCADE`);
+    await db.execute(sql`DROP TYPE IF EXISTS upload_status CASCADE`);
+    await db.execute(sql`DROP TYPE IF EXISTS subscription_status CASCADE`);
 
     return NextResponse.json({ message: 'Database reset successfully' });
   } catch (error) {
