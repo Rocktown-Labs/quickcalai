@@ -1,0 +1,1 @@
+ALTER TABLE "users" RENAME COLUMN "account_type" TO "is_premium";

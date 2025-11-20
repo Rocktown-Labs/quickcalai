@@ -128,7 +128,7 @@ export function FilesGallery() {
               </p>
             </div>
             <Button asChild className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
-              <a href="/pricing">Upgrade Now</a>
+              <a href="/dashboard/settings#subscription">Upgrade Now</a>
             </Button>
           </div>
         </div>

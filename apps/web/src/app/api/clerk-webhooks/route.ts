@@ -153,10 +153,10 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        // Update user's account type based on subscription status
-        const accountType = status === 'active' ? 'premium' : 'free';
+        // Update user's premium status based on subscription status
+        const isPremium = status === 'active';
         await db.update(users)
-          .set({ accountType })
+          .set({ isPremium })
           .where(eq(users.id, userId));
 
         serverLogger.log(`Updated subscription status for user ${userId}: ${status} (${evt.type})`);

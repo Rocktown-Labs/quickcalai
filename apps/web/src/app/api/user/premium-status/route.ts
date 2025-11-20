@@ -12,9 +12,9 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user account type from database
+    // Get user premium status from database
     const dbUser = await db
-      .select({ accountType: users.accountType })
+      .select({ isPremium: users.isPremium })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
@@ -23,7 +23,7 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const isPremium = dbUser[0].accountType === 'premium';
+    const isPremium = dbUser[0].isPremium;
 
     return NextResponse.json({ isPremium });
   } catch (error) {

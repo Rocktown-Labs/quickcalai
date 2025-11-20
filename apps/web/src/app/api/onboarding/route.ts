@@ -18,6 +18,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // Determine premium status based on account type
+    const isPremium = accountType === 'premium';
+
     const client = await clerkClient();
 
     // Update Clerk user metadata to mark onboarding as complete
@@ -33,7 +36,7 @@ export async function POST(request: Request) {
       .set({
         email,
         phoneNumber: phone,
-        accountType,
+        isPremium,
         isOnboarded: true,
       })
       .where(eq(users.id, userId));

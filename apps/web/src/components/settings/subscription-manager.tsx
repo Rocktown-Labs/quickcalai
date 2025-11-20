@@ -17,7 +17,7 @@ export default function SubscriptionManager() {
   };
 
   return (
-    <div className="space-y-4">
+    <div id="subscription" className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Manage Subscription</h2>
