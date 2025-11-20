@@ -7,7 +7,9 @@ export interface CalendarEvent {
   timezone?: string;
 }
 
-export function generateICS(events: CalendarEvent[]): string {
+// For AI-extracted events - treat times as document local time
+export function generateICSForAI(events: CalendarEvent[]): string {
+  console.log('Generating ICS for AI-extracted events (document local time)');
   const icsEvents: EventAttributes[] = events.map((event) => {
     const dateParts = event.date.split("-").map(Number);
     const [year, month, day] = dateParts;
@@ -17,14 +19,9 @@ export function generateICS(events: CalendarEvent[]): string {
       throw new Error(`Invalid date format: ${event.date}`);
     }
 
-    // Log timezone information for debugging
-    if (event.timezone) {
-      console.log(`Generating ICS event in timezone: ${event.timezone}`);
-    }
-
     // If a specific time is provided, create a timed event with a 1-hour duration.
     if (event.time && event.time.trim() !== '') {
-      console.log('Creating timed event for time:', event.time);
+      console.log('Creating AI timed event for time:', event.time);
       const timeParts = event.time.split(":").map(Number);
       const [hour, minute] = timeParts;
 
@@ -32,18 +29,14 @@ export function generateICS(events: CalendarEvent[]): string {
         throw new Error(`Invalid time format: ${event.time}`);
       }
 
-      const eventAttributes: EventAttributes = {
+      return {
         title: event.description,
         description: event.description,
         start: [year, month, day, hour, minute] as [number, number, number, number, number],
         duration: { hours: 1 },
-        startInputType: 'local', // Treat as local time
-        startOutputType: 'local', // Output as local time
       };
-
-      return eventAttributes;
     } else {
-      console.log('Creating all-day event, time was:', event.time);
+      console.log('Creating AI all-day event, time was:', event.time);
     }
 
     // Otherwise, create an all-day event by specifying a 1-day duration.
@@ -58,8 +51,69 @@ export function generateICS(events: CalendarEvent[]): string {
   const { error, value } = createEvents(icsEvents);
 
   if (error) {
-    throw new Error("Failed to generate ICS file");
+    throw new Error("Failed to generate ICS file for AI events");
   }
 
   return value!;
+}
+
+// For manual events - respect user's timezone
+export function generateICSForManual(events: CalendarEvent[]): string {
+  console.log('Generating ICS for manual events (user timezone aware)');
+  const icsEvents: EventAttributes[] = events.map((event) => {
+    const dateParts = event.date.split("-").map(Number);
+    const [year, month, day] = dateParts;
+
+    // Validate date parts
+    if (!year || !month || !day || dateParts.some(isNaN)) {
+      throw new Error(`Invalid date format: ${event.date}`);
+    }
+
+    // Log timezone information for debugging
+    if (event.timezone) {
+      console.log(`Generating manual ICS event in timezone: ${event.timezone}`);
+    }
+
+    // If a specific time is provided, create a timed event with a 1-hour duration.
+    if (event.time && event.time.trim() !== '') {
+      console.log('Creating manual timed event for time:', event.time);
+      const timeParts = event.time.split(":").map(Number);
+      const [hour, minute] = timeParts;
+
+      if (timeParts.some(isNaN)) {
+        throw new Error(`Invalid time format: ${event.time}`);
+      }
+
+      return {
+        title: event.description,
+        description: event.description,
+        start: [year, month, day, hour, minute] as [number, number, number, number, number],
+        duration: { hours: 1 },
+      };
+    } else {
+      console.log('Creating manual all-day event, time was:', event.time);
+    }
+
+    // Otherwise, create an all-day event by specifying a 1-day duration.
+    return {
+      title: event.description,
+      description: event.description,
+      start: [year, month, day] as [number, number, number], // No time components
+      duration: { days: 1 }, // Add this for all-day events
+    };
+  });
+
+  const { error, value } = createEvents(icsEvents);
+
+  if (error) {
+    throw new Error("Failed to generate ICS file for manual events");
+  }
+
+  return value!;
+}
+
+// Legacy function - kept for backward compatibility
+export function generateICS(events: CalendarEvent[]): string {
+  // Default to AI extraction behavior for backward compatibility
+  return generateICSForAI(events);
 }

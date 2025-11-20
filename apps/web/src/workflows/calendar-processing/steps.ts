@@ -2,7 +2,7 @@ import { put, head } from '@vercel/blob';
 import { isDocumentCalendar, extractEventsFromDocument } from '@/lib/ai';
 import { db } from '@quickcalai/db';
 import { uploads, events, users } from '@quickcalai/db/schema';
-import { generateICS, type CalendarEvent } from '@/lib/ics';
+import { generateICSForAI, type CalendarEvent } from '@/lib/ics';
 import { randomUUID } from 'crypto';
 
 async function getFileFromBlob(blobUrl: string): Promise<{ buffer: Buffer, contentType: string }> {
@@ -91,8 +91,8 @@ export async function saveToDatabase(input: SaveToDatabaseInput): Promise<SaveTo
       description: event.description,
     }));
 
-  // Generate combined ICS file for all events
-  const combinedIcsContent = generateICS(calendarEvents);
+  // Generate combined ICS file for all events (AI extracted)
+  const combinedIcsContent = generateICSForAI(calendarEvents);
 
   // Upload ICS file to Vercel Blob
   const icsFileName = `ics/${uploadId}.ics`;
@@ -120,12 +120,12 @@ export async function saveToDatabase(input: SaveToDatabaseInput): Promise<SaveTo
       description: event.description,
     };
 
-    const icsContent = generateICS([calendarEvent] as CalendarEvent[]);
+    const icsContent = generateICSForAI([calendarEvent] as CalendarEvent[]);
 
     await db.insert(events).values({
       title: event.description,
       description: event.description,
-      startTime: new Date(`${event.date}T${event.time || '00:00'}`),
+      startTime: new Date(`${event.date}T${event.time || '00:00'}:00Z`), // Treat as UTC
       icsContent,
       uploadId,
       userId: input.userId,

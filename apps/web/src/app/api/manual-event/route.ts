@@ -2,7 +2,7 @@ import { auth, currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { db } from '@quickcalai/db';
 import { users, uploads, events } from '@quickcalai/db/schema';
-import { generateICS } from '@/lib/ics';
+import { generateICSForManual } from '@/lib/ics';
 import { randomUUID } from 'crypto';
 import { eq } from 'drizzle-orm';
 
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       timezone, // Pass timezone for proper ICS generation
     };
     console.log('Creating calendar event:', calendarEvent, 'in timezone:', timezone);
-    const icsContent = generateICS([calendarEvent]);
+    const icsContent = generateICSForManual([calendarEvent]);
     console.log('Generated ICS content:', icsContent.substring(0, 200));
 
     await db.insert(events).values({
