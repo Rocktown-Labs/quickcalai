@@ -49,12 +49,77 @@ export async function POST(request: NextRequest) {
 
     // Handle billing/subscription events
     if (evt.type.startsWith('subscription') || evt.type.startsWith('subscriptionItem')) {
-      serverLogger.log(`Billing event received: ${evt.type}`, JSON.stringify(evt.data, null, 2));
+      serverLogger.log(`Billing event received: ${evt.type}`);
 
       try {
-        // For now, just log all billing events to understand the structure
-        // We'll implement proper handling once we see the actual webhook data
-        return new Response('Billing event logged', { status: 200 });
+        // Handle subscription item events (these contain the actual subscription details)
+        if (evt.type.startsWith('subscriptionItem')) {
+          const eventData = evt.data as any; // Type assertion for billing events
+
+          const userId = eventData.payer?.user_id;
+          if (!userId) {
+            serverLogger.error('No user ID found in subscription item event');
+            return new Response('No user ID in event', { status: 400 });
+          }
+
+          // Map Clerk status to our enum
+          let status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'ended' | 'upcoming' | 'free' = 'free';
+          switch (eventData.status) {
+            case 'active':
+              status = 'active';
+              break;
+            case 'canceled':
+              status = 'canceled';
+              break;
+            case 'past_due':
+              status = 'past_due';
+              break;
+            case 'incomplete':
+              status = 'incomplete';
+              break;
+            case 'ended':
+              status = 'ended';
+              break;
+            case 'upcoming':
+              status = 'upcoming';
+              break;
+            default:
+              status = 'free';
+          }
+
+          // Upsert subscription status
+          await db.insert(subscriptionStatus).values({
+            userId,
+            clerkSubscriptionId: eventData.subscription_id,
+            clerkSubscriptionItemId: eventData.id,
+            planId: eventData.plan_id,
+            status,
+            isActive: status === 'active',
+            periodStart: eventData.period_start ? new Date(eventData.period_start * 1000) : null,
+            periodEnd: eventData.period_end ? new Date(eventData.period_end * 1000) : null,
+            canceledAt: eventData.canceled_at ? new Date(eventData.canceled_at * 1000) : null,
+          }).onConflictDoUpdate({
+            target: [subscriptionStatus.clerkSubscriptionItemId],
+            set: {
+              status,
+              isActive: status === 'active',
+              periodStart: eventData.period_start ? new Date(eventData.period_start * 1000) : null,
+              periodEnd: eventData.period_end ? new Date(eventData.period_end * 1000) : null,
+              canceledAt: eventData.canceled_at ? new Date(eventData.canceled_at * 1000) : null,
+              updatedAt: new Date(),
+            },
+          });
+
+          // Update user's account type based on subscription
+          const accountType = status === 'active' ? 'premium' : 'free';
+          await db.update(users)
+            .set({ accountType })
+            .where(eq(users.id, userId));
+
+          serverLogger.log(`Updated subscription status for user ${userId}: ${status}`);
+        }
+
+        return new Response('Subscription event processed', { status: 200 });
 
       } catch (error) {
         serverLogger.error('Error processing subscription event:', error);

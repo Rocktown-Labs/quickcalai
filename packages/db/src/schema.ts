@@ -16,7 +16,7 @@ export const uploadStatusEnum = pgEnum("upload_status", [
   "failed", // AI failed to process or no event found
 ]);
 
-export const subscriptionStatusEnum = pgEnum("subscription_status", [
+export const subscriptionStatusEnum = pgEnum("billing_status", [
   "active",
   "canceled",
   "past_due",
