@@ -139,6 +139,8 @@ export default function Uploader() {
         }),
       });
 
+      console.log('Manual event response status:', response.status, response.ok);
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Manual event creation failed:', errorText);
@@ -146,6 +148,7 @@ export default function Uploader() {
       }
 
       // Manual events return ICS file directly for download
+      console.log('Processing successful response as blob');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -295,12 +298,17 @@ export default function Uploader() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="date">Date *</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      value={manualEvent.date}
-                      onChange={(e) => setManualEvent(prev => ({ ...prev, date: e.target.value }))}
-                    />
+                     <Input
+                       id="date"
+                       type="date"
+                       value={manualEvent.date}
+                       onChange={(e) => setManualEvent(prev => ({ ...prev, date: e.target.value }))}
+                       onClick={(e) => {
+                         // Ensure the input gets focus when clicked anywhere
+                         e.currentTarget.focus();
+                       }}
+                       className="cursor-text"
+                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -315,8 +323,12 @@ export default function Uploader() {
                          console.log('Time changed from', manualEvent.time, 'to:', newTime);
                          setManualEvent(prev => ({ ...prev, time: newTime }));
                        }}
+                       onClick={(e) => {
+                         // Ensure the input gets focus when clicked anywhere
+                         e.currentTarget.focus();
+                       }}
                        step="60"
-                       placeholder="Select time"
+                       className="cursor-text"
                      />
                      <p className="text-xs text-muted-foreground">
                        Use the time picker above, or manually enter time in HH:MM format

@@ -148,35 +148,27 @@ export function FilesCard({ icsFile, events = [], isSelected, onSelect, isPremiu
   return (
     <Card className={`relative transition-all duration-200 hover:shadow-lg ${
       isSelected ? 'ring-2 ring-primary' : ''
-    }`}>
+    } ${icsFile.status === 'completed' ? 'border-green-500' : ''}`}>
       <CardHeader className="pb-3">
-        <div className="flex flex-col space-y-2 lg:flex-row lg:items-start lg:justify-between lg:space-y-0">
-          <div className="flex items-center space-x-3 flex-1">
-            <Checkbox
-              checked={isSelected}
-              onCheckedChange={onSelect}
-              className="mt-1"
-            />
-            <div className="flex items-center space-x-2 flex-1 min-w-0">
-              <Calendar className="w-5 h-5 text-green-500 flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <h3 className="font-medium text-sm truncate" title={icsFile.fileName}>
-                  {icsFile.fileName}
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  From: {icsFile.originalFileName}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {format(icsFile.createdAt, 'MMM d, yyyy')}
-                </p>
-              </div>
+        <div className="flex items-center space-x-3">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={onSelect}
+            className="mt-1"
+          />
+          <div className="flex items-center space-x-2 flex-1 min-w-0">
+            <Calendar className="w-5 h-5 text-green-500 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <h3 className="font-medium text-sm truncate" title={icsFile.fileName}>
+                {icsFile.fileName}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                From: {icsFile.originalFileName}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {format(icsFile.createdAt, 'MMM d, yyyy')}
+              </p>
             </div>
-          </div>
-          <div className="flex justify-end lg:flex-shrink-0 lg:ml-2">
-            <Badge variant="secondary" className={statusInfo.color}>
-              <StatusIcon className={`w-3 h-3 mr-1 ${icsFile.status === 'processing' ? 'animate-spin' : ''}`} />
-              {statusInfo.label}
-            </Badge>
           </div>
         </div>
       </CardHeader>

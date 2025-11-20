@@ -76,38 +76,30 @@ export function MediaCard({ upload, isSelected, onSelect, onDelete, onDownload }
   return (
     <Card className={`relative transition-all duration-200 hover:shadow-lg ${
       isSelected ? 'ring-2 ring-primary' : ''
-    }`}>
+    } ${upload.status === 'completed' ? 'border-green-500' : ''}`}>
       <CardHeader className="pb-3">
-        <div className="flex flex-col space-y-2 lg:flex-row lg:items-start lg:justify-between lg:space-y-0">
-          <div className="flex items-center space-x-3 flex-1">
-            <Checkbox
-              checked={isSelected}
-              onCheckedChange={onSelect}
-              className="mt-1"
-            />
-            <div className="flex items-center space-x-2 flex-1 min-w-0">
-              {isImage ? (
-                <FileImage className="w-5 h-5 text-blue-500 flex-shrink-0" />
-              ) : isPDF ? (
-                <FileText className="w-5 h-5 text-red-500 flex-shrink-0" />
-              ) : (
-                <FileText className="w-5 h-5 text-gray-500 flex-shrink-0" />
-              )}
-              <div className="min-w-0 flex-1">
-                <h3 className="font-medium text-sm truncate" title={upload.fileName}>
-                  {upload.fileName}
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  {format(upload.createdAt, 'MMM d, yyyy')}
-                </p>
-              </div>
+        <div className="flex items-center space-x-3">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={onSelect}
+            className="mt-1"
+          />
+          <div className="flex items-center space-x-2 flex-1 min-w-0">
+            {isImage ? (
+              <FileImage className="w-5 h-5 text-blue-500 flex-shrink-0" />
+            ) : isPDF ? (
+              <FileText className="w-5 h-5 text-red-500 flex-shrink-0" />
+            ) : (
+              <FileText className="w-5 h-5 text-gray-500 flex-shrink-0" />
+            )}
+            <div className="min-w-0 flex-1">
+              <h3 className="font-medium text-sm truncate" title={upload.fileName}>
+                {upload.fileName}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                {format(upload.createdAt, 'MMM d, yyyy')}
+              </p>
             </div>
-          </div>
-          <div className="flex justify-end lg:flex-shrink-0 lg:ml-2">
-            <Badge variant="secondary" className={statusInfo.color}>
-              <StatusIcon className={`w-3 h-3 mr-1 ${upload.status === 'processing' ? 'animate-spin' : ''}`} />
-              {statusInfo.label}
-            </Badge>
           </div>
         </div>
       </CardHeader>
