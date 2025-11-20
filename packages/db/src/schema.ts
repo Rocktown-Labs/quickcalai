@@ -32,7 +32,7 @@ export const users = pgTable("users", {
   name: text("name"),
   imageUrl: text("image_url"),
   phoneNumber: text("phone_number"),
-  isPremium: boolean("is_premium").default(false).notNull(),
+  isPremiumUser: boolean("is_premium_user").default(false).notNull(),
   isOnboarded: boolean("is_onboarded").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

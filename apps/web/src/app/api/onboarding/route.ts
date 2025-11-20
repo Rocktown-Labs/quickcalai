@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     // Determine premium status based on account type
-    const isPremium = accountType === 'premium';
+    const isPremiumUser = accountType === 'premium';
 
     const client = await clerkClient();
 
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       .set({
         email,
         phoneNumber: phone,
-        isPremium,
+        isPremiumUser,
         isOnboarded: true,
       })
       .where(eq(users.id, userId));

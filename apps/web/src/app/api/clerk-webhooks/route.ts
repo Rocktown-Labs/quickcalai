@@ -154,9 +154,9 @@ export async function POST(request: NextRequest) {
         }
 
         // Update user's premium status based on subscription status
-        const isPremium = status === 'active';
+        const isPremiumUser = status === 'active';
         await db.update(users)
-          .set({ isPremium })
+          .set({ isPremiumUser })
           .where(eq(users.id, userId));
 
         serverLogger.log(`Updated subscription status for user ${userId}: ${status} (${evt.type})`);

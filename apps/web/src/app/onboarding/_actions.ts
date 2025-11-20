@@ -22,7 +22,7 @@ export const completeOnboarding = async (formData: FormData) => {
     }
 
     // Determine premium status based on account type
-    const isPremium = accountType === 'premium';
+    const isPremiumUser = accountType === 'premium';
 
     const res = await client.users.updateUser(userId, {
       publicMetadata: {
@@ -40,7 +40,7 @@ export const completeOnboarding = async (formData: FormData) => {
       .set({
         email,
         phoneNumber: phone,
-        isPremium,
+        isPremiumUser,
         isOnboarded: true,
       })
       .where(eq(users.id, userId))

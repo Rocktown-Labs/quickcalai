@@ -14,7 +14,7 @@ export async function GET() {
 
     // Get user premium status from database
     const dbUser = await db
-      .select({ isPremium: users.isPremium })
+      .select({ isPremiumUser: users.isPremiumUser })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
@@ -23,7 +23,7 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const isPremium = dbUser[0].isPremium;
+    const isPremium = dbUser[0].isPremiumUser;
 
     return NextResponse.json({ isPremium });
   } catch (error) {
