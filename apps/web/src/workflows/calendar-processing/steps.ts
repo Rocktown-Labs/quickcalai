@@ -79,9 +79,6 @@ export async function saveToDatabase(input: SaveToDatabaseInput): Promise<SaveTo
     name: 'User', // This would come from Clerk
   }).onConflictDoNothing();
 
-  // Create upload record ID first
-  const uploadId = randomUUID();
-
   // Convert events to CalendarEvent format, filtering out events with empty dates
   const calendarEvents: CalendarEvent[] = input.events
     .filter(event => event.date && event.date.trim() !== '') // Filter out events with empty dates
@@ -91,11 +88,14 @@ export async function saveToDatabase(input: SaveToDatabaseInput): Promise<SaveTo
       description: event.description,
     }));
 
-  // Generate combined ICS file for all events (AI extracted)
+  // Generate combined ICS file for all events
   const combinedIcsContent = generateICSForAI(calendarEvents);
 
+  // Create a temporary ID for the ICS filename (will be replaced with actual DB ID)
+  const tempId = randomUUID();
+
   // Upload ICS file to Vercel Blob
-  const icsFileName = `ics/${uploadId}.ics`;
+  const icsFileName = `ics/${tempId}.ics`;
   const icsBlob = await put(icsFileName, combinedIcsContent, {
     access: 'public',
     contentType: 'text/calendar',
@@ -103,14 +103,20 @@ export async function saveToDatabase(input: SaveToDatabaseInput): Promise<SaveTo
   const icsUrl = icsBlob.url;
 
   // Create upload record
-  await db.insert(uploads).values({
+  const uploadResult = await db.insert(uploads).values({
     fileName: input.fileName,
     fileType: input.fileType,
     storageUrl: input.storageUrl,
     icsUrl: icsUrl,
-    status: 'completed',
+    status: 'completed' as const,
     userId: input.userId,
-  } as any);
+  }).returning({ id: uploads.id });
+
+  if (!uploadResult[0]) {
+    throw new Error('Failed to create upload record');
+  }
+
+  const actualUploadId = uploadResult[0].id;
 
   // Create event records (only for events with valid dates)
   for (const event of input.events.filter(event => event.date && event.date.trim() !== '')) {
@@ -127,11 +133,11 @@ export async function saveToDatabase(input: SaveToDatabaseInput): Promise<SaveTo
       description: event.description,
       startTime: new Date(`${event.date}T${event.time || '00:00'}:00Z`), // Treat as UTC
       icsContent,
-      uploadId,
+      uploadId: actualUploadId,
       userId: input.userId,
     });
   }
 
   console.log("Database save completed");
-  return { uploadId, icsUrl };
+  return { uploadId: actualUploadId, icsUrl };
 }
