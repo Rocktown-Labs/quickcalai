@@ -4,6 +4,7 @@ export interface CalendarEvent {
   date: string;
   time?: string;
   description: string;
+  timezone?: string;
 }
 
 export function generateICS(events: CalendarEvent[]): string {
@@ -16,6 +17,11 @@ export function generateICS(events: CalendarEvent[]): string {
       throw new Error(`Invalid date format: ${event.date}`);
     }
 
+    // Log timezone information for debugging
+    if (event.timezone) {
+      console.log(`Generating ICS event in timezone: ${event.timezone}`);
+    }
+
     // If a specific time is provided, create a timed event with a 1-hour duration.
     if (event.time && event.time.trim() !== '') {
       console.log('Creating timed event for time:', event.time);
@@ -26,12 +32,16 @@ export function generateICS(events: CalendarEvent[]): string {
         throw new Error(`Invalid time format: ${event.time}`);
       }
 
-      return {
+      const eventAttributes: EventAttributes = {
         title: event.description,
         description: event.description,
         start: [year, month, day, hour, minute] as [number, number, number, number, number],
         duration: { hours: 1 },
+        startInputType: 'local', // Treat as local time
+        startOutputType: 'local', // Output as local time
       };
+
+      return eventAttributes;
     } else {
       console.log('Creating all-day event, time was:', event.time);
     }

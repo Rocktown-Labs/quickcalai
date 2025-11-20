@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Activity } from "react";
 import { Upload, FileImage, Zap, CheckCircle, Calendar, PenTool, Crown, Sparkles } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,10 +26,16 @@ export default function Uploader() {
     time: '',
     description: '',
   });
+  const [userTimezone, setUserTimezone] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useUser();
   const router = useRouter();
   const { isPremium, refreshStatus } = usePremium();
+
+  // Initialize user timezone
+  useEffect(() => {
+    setUserTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  }, []);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -87,7 +93,8 @@ export default function Uploader() {
       pollWorkflowStatus(workflowRunId);
 
     } catch (error) {
-      console.error('Processing failed:', error);
+      console.error('Processing failed:', error, { runId, userId: user?.id });
+      toast.error(`Processing failed. ${runId ? `Reference ID: ${runId.substring(0, 8)}` : ''}`);
       setIsProcessing(false);
     }
   };
@@ -116,7 +123,8 @@ export default function Uploader() {
         setTimeout(() => pollWorkflowStatus(workflowRunId), 2000);
       }
     } catch (error) {
-      console.error('Status check failed:', error);
+      console.error('Status check failed:', error, { runId });
+      toast.error(`Status check failed. ${runId ? `Reference ID: ${runId.substring(0, 8)}` : ''}`);
       setIsProcessing(false);
     }
   };
@@ -128,6 +136,9 @@ export default function Uploader() {
     }
 
     try {
+      // Get user's timezone
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
       const response = await fetch('/api/manual-event', {
         method: 'POST',
         headers: {
@@ -136,6 +147,7 @@ export default function Uploader() {
         body: JSON.stringify({
           ...manualEvent,
           userId: user?.id,
+          timezone: userTimezone,
         }),
       });
 
@@ -164,7 +176,7 @@ export default function Uploader() {
       setManualEvent({ title: '', date: '', time: '', description: '' });
     } catch (error) {
       console.error('Manual event creation failed:', error);
-      toast.error('Failed to create event');
+      toast.error('Failed to create event. Please try again.');
     }
   };
 
@@ -266,6 +278,19 @@ export default function Uploader() {
                         <p className="text-muted-foreground">or click to browse files</p>
                       </div>
                       <p className="text-sm text-muted-foreground">Supports JPEG, PNG, WebP, and PDF up to 10MB</p>
+                      {!isPremium && (
+                        <div className="flex items-center justify-center space-x-2 mt-4">
+                          <span className="text-sm text-muted-foreground">Status seems off?</span>
+                          <Button
+                            onClick={refreshStatus}
+                            variant="outline"
+                            size="sm"
+                            disabled={isProcessing}
+                          >
+                            Refresh Status
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -285,6 +310,13 @@ export default function Uploader() {
 
             {/* Manual Input Tab */}
             <Activity mode={activeTab === 'manual' ? 'visible' : 'hidden'}>
+              {userTimezone && (
+                <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg mb-4">
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    📅 Events will be created in your local timezone: <strong>{userTimezone}</strong>
+                  </p>
+                </div>
+              )}
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -369,12 +401,17 @@ export default function Uploader() {
                      <Zap className="w-4 h-4 mr-2 animate-spin" />
                      Processing document with AI...
                    </>
-                 ) : (
-                   <>
-                     <Zap className="w-4 h-4 mr-2" />
-                     Extract Calendar Events
-                   </>
-                 )}
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4 mr-2 animate-spin" />
+                      Processing document with AI...
+                      {runId && (
+                        <span className="text-xs text-muted-foreground ml-2">
+                          (ID: {runId.substring(0, 8)})
+                        </span>
+                      )}
+                    </>
+                  )}
                </Button>
              </div>
            )}

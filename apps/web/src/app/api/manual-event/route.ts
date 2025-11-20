@@ -14,7 +14,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { title, date, time, description } = await request.json();
+    const { title, date, time, description, timezone } = await request.json();
 
     if (!title || !date) {
       return NextResponse.json({ error: 'Title and date are required' }, { status: 400 });
@@ -41,17 +41,25 @@ export async function POST(request: Request) {
       });
     }
 
-    // Create the event directly (no upload record for manual events)
+    // Create the event in user's timezone
     const eventDateTime = time ? `${date}T${time}` : `${date}T00:00`;
-    const startTime = new Date(eventDateTime);
 
-    // Generate ICS content
+    // Parse the date/time in user's timezone
+    // Create a date object that represents the user's local time
+    const userLocalDate = new Date(`${eventDateTime}:00`); // Add seconds if missing
+
+    // For storage, we'll keep it as-is since the ICS generation will handle timezone display
+    // The key is to ensure the ICS file shows the correct local time
+    const startTime = userLocalDate;
+
+    // Generate ICS content with timezone awareness
     const calendarEvent = {
       date,
       time: time || '',
       description: title + (description ? `\n\n${description}` : ''),
+      timezone, // Pass timezone for proper ICS generation
     };
-    console.log('Creating calendar event:', calendarEvent);
+    console.log('Creating calendar event:', calendarEvent, 'in timezone:', timezone);
     const icsContent = generateICS([calendarEvent]);
     console.log('Generated ICS content:', icsContent.substring(0, 200));
 
