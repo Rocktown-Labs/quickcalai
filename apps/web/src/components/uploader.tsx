@@ -144,6 +144,7 @@ export default function Uploader() {
       }
 
       const result = await response.json();
+      console.log('Manual event created successfully:', result);
       toast.success('Event created successfully!');
       setManualEvent({ title: '', date: '', time: '', description: '' });
     } catch (error) {
@@ -291,18 +292,29 @@ export default function Uploader() {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="time">Time</Label>
+                   <div className="space-y-2">
+                     <Label htmlFor="time">Time (optional - format: HH:MM)</Label>
                      <Input
                        id="time"
                        type="time"
                        value={manualEvent.time}
                        onChange={(e) => {
-                         console.log('Time changed to:', e.target.value);
-                         setManualEvent(prev => ({ ...prev, time: e.target.value }));
+                         const newTime = e.target.value;
+                         console.log('Time changed from', manualEvent.time, 'to:', newTime);
+                         setManualEvent(prev => ({ ...prev, time: newTime }));
                        }}
+                       step="60"
+                       placeholder="Select time"
                      />
-                  </div>
+                     <p className="text-xs text-muted-foreground">
+                       Use the time picker above, or manually enter time in HH:MM format
+                     </p>
+                     {manualEvent.time && (
+                       <p className="text-sm text-primary font-medium">
+                         ✓ Selected time: {manualEvent.time}
+                       </p>
+                     )}
+                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
