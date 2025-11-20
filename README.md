@@ -39,13 +39,24 @@ pnpm install
 1. Set up a PostgreSQL database
 2. Configure environment variables in `apps/web/.env`:
 ```env
-DATABASE_URL="postgresql://username:password@localhost:5432/quickcalai"
-CLERK_SECRET_KEY="your_clerk_secret"
-GOOGLE_GEMINI_API_KEY="your_gemini_api_key"
-BLOB_READ_WRITE_TOKEN="your_vercel_blob_token"
-RESEND_API_KEY="your_resend_key"
-TWILIO_ACCOUNT_SID="your_twilio_sid"
-TWILIO_AUTH_TOKEN="your_twilio_token"
+AI_GATEWAY_API_KEY=
+BLOB_READ_WRITE_TOKEN=
+CLERK_SECRET_KEY=
+CLERK_WEBHOOK_SIGNING_SECRET=
+DATABASE_URL=
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL=
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=
+NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL=
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=
+NEXT_PUBLIC_POSTHOG_HOST=
+NEXT_PUBLIC_POSTHOG_KEY=
+NEXT_PUBLIC_SENTRY_DSN=
+RESEND_API_KEY=
+SENTRY_AUTH_TOKEN=
+SENTRY_ORG=
+SENTRY_PROJECT=
+VERCEL_OIDC_TOKEN=
 ```
 
 3. Push the database schema:
@@ -93,6 +104,12 @@ quickcalai/
 - `pnpm db:push` - Push database schema changes
 - `pnpm db:generate` - Generate database migrations
 - `pnpm db:studio` - Open Drizzle Studio for database management
+- `pnpm db:migrate` - Run database migrations
+- `pnpm test` - Run unit tests in watch mode
+- `pnpm test:run` - Run unit tests once
+- `pnpm test:coverage` - Run unit tests with coverage report
+- `pnpm test:e2e` - Run end-to-end tests
+- `pnpm test:e2e:ui` - Run end-to-end tests with UI
 
 ## Tech Stack
 

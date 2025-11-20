@@ -15,7 +15,12 @@
     "db:push": "turbo -F @quickcalai/db db:push",
     "db:studio": "turbo -F @quickcalai/db db:studio",
     "db:generate": "turbo -F @quickcalai/db db:generate",
-    "db:migrate": "turbo -F @quickcalai/db db:migrate"
+    "db:migrate": "turbo -F @quickcalai/db db:migrate",
+    "test": "turbo test",
+    "test:run": "turbo test:run",
+    "test:coverage": "turbo test:coverage",
+    "test:e2e": "turbo test:e2e",
+    "test:e2e:ui": "turbo test:e2e:ui"
   },
   "dependencies": {
     "dotenv": "^17.2.2",
