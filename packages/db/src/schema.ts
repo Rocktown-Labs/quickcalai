@@ -86,8 +86,7 @@ export const events = pgTable("events", {
   icsContent: text("ics_content").notNull(),
 
   uploadId: uuid("upload_id")
-    .notNull()
-    .references(() => uploads.id, { onDelete: "cascade" }), // Links back to the source upload
+    .references(() => uploads.id, { onDelete: "cascade" }), // Links back to the source upload (optional for manual events)
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }), // Direct link to user for easy querying

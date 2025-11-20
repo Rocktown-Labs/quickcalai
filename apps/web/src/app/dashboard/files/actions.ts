@@ -22,9 +22,10 @@ export async function getUserFiles() {
     const uploads = await getUserUploads(userId);
 
     // Return uploads that have been processed (completed status) as ICS files with events
+    // Exclude manual events since they don't have downloadable ICS files
     const icsFiles = await Promise.all(
       uploads
-        .filter(upload => upload.status === 'completed')
+        .filter(upload => upload.status === 'completed' && upload.fileType !== 'manual')
         .map(async (upload) => {
           const events = await getUploadEvents(upload.id);
           return {
@@ -67,6 +68,11 @@ export async function downloadFile(uploadId: string) {
       throw new Error('File not found');
     }
 
+    // Manual events don't have downloadable ICS files
+    if (upload.fileType === 'manual') {
+      throw new Error('Manual events cannot be downloaded as files');
+    }
+
     // Return the ICS file URL
     const icsUrl = (upload as any).icsUrl || `https://quickcalai-dev-quickcaluploadsbucket-rkfdrxet.s3.amazonaws.com/ics/${uploadId}.ics`;
     const fileName = `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`;
@@ -99,6 +105,11 @@ export async function emailFile(uploadId: string, email: string) {
 
     if (!upload) {
       throw new Error('File not found');
+    }
+
+    // Manual events don't have downloadable ICS files
+    if (upload.fileType === 'manual') {
+      throw new Error('Manual events cannot be emailed as files');
     }
 
     // Get the ICS file content
@@ -160,6 +171,11 @@ export async function smsFile(uploadId: string, phoneNumber: string) {
 
     if (!upload) {
       throw new Error('File not found');
+    }
+
+    // Manual events don't have downloadable ICS files
+    if (upload.fileType === 'manual') {
+      throw new Error('Manual events cannot be shared via SMS');
     }
 
     // Send SMS with download link

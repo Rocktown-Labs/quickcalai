@@ -41,18 +41,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // Create a manual upload record
-    const uploadId = randomUUID();
-    await db.insert(uploads).values({
-      id: uploadId,
-      fileName: `${title}.manual`,
-      fileType: 'manual',
-      storageUrl: '', // No file for manual events
-      status: 'completed',
-      userId,
-    });
-
-    // Create the event
+    // Create the event directly (no upload record for manual events)
     const eventDateTime = time ? `${date}T${time}` : `${date}T00:00`;
     const startTime = new Date(eventDateTime);
 
@@ -69,8 +58,8 @@ export async function POST(request: Request) {
       description,
       startTime,
       icsContent,
-      uploadId,
       userId,
+      // No uploadId for manual events
     });
 
     // Return ICS file directly as downloadable attachment
