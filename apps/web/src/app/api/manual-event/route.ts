@@ -51,7 +51,9 @@ export async function POST(request: Request) {
       time: time || '',
       description: title + (description ? `\n\n${description}` : ''),
     };
+    console.log('Creating calendar event:', calendarEvent);
     const icsContent = generateICS([calendarEvent]);
+    console.log('Generated ICS content:', icsContent.substring(0, 200));
 
     await db.insert(events).values({
       title,
@@ -59,7 +61,7 @@ export async function POST(request: Request) {
       startTime,
       icsContent,
       userId,
-      // No uploadId for manual events
+      // uploadId omitted for manual events (optional field)
     });
 
     // Return ICS file directly as downloadable attachment

@@ -43,6 +43,13 @@
       "when": 1763592497373,
       "tag": "0005_windy_lady_mastermind",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1763600529297,
+      "tag": "0006_striped_secret_warriors",
+      "breakpoints": true
     }
   ]
 }

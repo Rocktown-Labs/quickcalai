@@ -293,12 +293,15 @@ export default function Uploader() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="time">Time</Label>
-                    <Input
-                      id="time"
-                      type="time"
-                      value={manualEvent.time}
-                      onChange={(e) => setManualEvent(prev => ({ ...prev, time: e.target.value }))}
-                    />
+                     <Input
+                       id="time"
+                       type="time"
+                       value={manualEvent.time}
+                       onChange={(e) => {
+                         console.log('Time changed to:', e.target.value);
+                         setManualEvent(prev => ({ ...prev, time: e.target.value }));
+                       }}
+                     />
                   </div>
                 </div>
                 <div className="space-y-2">

@@ -17,7 +17,8 @@ export function generateICS(events: CalendarEvent[]): string {
     }
 
     // If a specific time is provided, create a timed event with a 1-hour duration.
-    if (event.time) {
+    if (event.time && event.time.trim() !== '') {
+      console.log('Creating timed event for time:', event.time);
       const timeParts = event.time.split(":").map(Number);
       const [hour, minute] = timeParts;
 
@@ -31,6 +32,8 @@ export function generateICS(events: CalendarEvent[]): string {
         start: [year, month, day, hour, minute] as [number, number, number, number, number],
         duration: { hours: 1 },
       };
+    } else {
+      console.log('Creating all-day event, time was:', event.time);
     }
 
     // Otherwise, create an all-day event by specifying a 1-day duration.
