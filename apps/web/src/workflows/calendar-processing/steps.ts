@@ -104,14 +104,13 @@ export async function saveToDatabase(input: SaveToDatabaseInput): Promise<SaveTo
 
   // Create upload record
   await db.insert(uploads).values({
-    id: uploadId,
     fileName: input.fileName,
     fileType: input.fileType,
     storageUrl: input.storageUrl,
     icsUrl: icsUrl,
     status: 'completed',
     userId: input.userId,
-  });
+  } as any);
 
   // Create event records (only for events with valid dates)
   for (const event of input.events.filter(event => event.date && event.date.trim() !== '')) {

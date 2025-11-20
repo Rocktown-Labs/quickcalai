@@ -5,8 +5,8 @@
 - **Type checking**: `pnpm check-types` (turbo check-types with strict TS settings)
 - **Development**: `pnpm dev` (both apps), `pnpm dev:web`, `pnpm dev:native`
 - **Database**: `pnpm db:push`, `pnpm db:generate`, `pnpm db:studio`, `pnpm db:migrate`
-- **Linting**: No linting configured yet (turbo task exists but unused)
-- **Testing**: No test framework configured yet - add Jest/Vitest when implementing tests
+- **Linting**: ESLint not configured yet (turbo task exists but unused)
+- **Testing**: No test framework configured yet - add Jest/Vitest when implementing tests (no single test command available)
 
 ## Code Style Guidelines
 - **TypeScript**: Strict mode, ESNext target, verbatim module syntax, no unused locals/parameters, noUncheckedIndexedAccess

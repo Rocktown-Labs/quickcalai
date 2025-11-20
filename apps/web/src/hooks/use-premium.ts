@@ -43,12 +43,31 @@ export function usePremium() {
 
       const refreshedPremiumStatus = refreshedHasPremiumPlan || refreshedHasPremiumFeature || refreshedHasFileSharing;
 
-      logger.log('Premium status check (refreshed):', {
+      logger.log('Premium status check (refreshed Clerk):', {
         hasPremiumPlan: refreshedHasPremiumPlan,
         hasPremiumFeature: refreshedHasPremiumFeature,
         hasFileSharing: refreshedHasFileSharing,
         finalStatus: refreshedPremiumStatus
       });
+
+      // If Clerk still says not premium after refresh, check our database as fallback
+      if (!refreshedPremiumStatus) {
+        try {
+          logger.log('Checking database for premium status...');
+          const response = await fetch('/api/user/premium-status');
+          if (response.ok) {
+            const { isPremium: dbPremium } = await response.json();
+            logger.log('Premium status (Database):', { finalStatus: dbPremium });
+            setIsPremium(dbPremium);
+            setIsLoading(false);
+            return;
+          } else {
+            logger.error('Database premium check failed:', response.status);
+          }
+        } catch (dbError) {
+          logger.error('Database premium check error:', dbError);
+        }
+      }
 
       setIsPremium(refreshedPremiumStatus);
     } catch (error) {

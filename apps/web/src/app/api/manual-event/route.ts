@@ -61,7 +61,8 @@ export async function POST(request: Request) {
       startTime,
       icsContent,
       userId,
-      // uploadId omitted for manual events (optional field)
+      isAllDay: false, // Manual events are not all-day by default
+      uploadId: null as any, // Manual events don't have an associated upload
     });
 
     // Return ICS file directly as downloadable attachment

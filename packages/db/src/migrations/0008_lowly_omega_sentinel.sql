@@ -1,0 +1,1 @@
+ALTER TYPE "public"."subscription_status" RENAME TO "billing_status";
