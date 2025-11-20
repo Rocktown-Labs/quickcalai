@@ -52,7 +52,7 @@ export default function Pricing() {
                    <CardHeader className="text-center">
                      <CardTitle className="font-serif font-semibold text-2xl text-card-foreground">Premium</CardTitle>
                      <div className="mt-4">
-                       <span className="text-4xl font-bold text-foreground">$10.99</span>
+                        <span className="text-4xl font-bold text-foreground">$12.99</span>
                        <span className="text-muted-foreground">/month</span>
                      </div>
                      <CardDescription>AI powered calendar automation</CardDescription>
