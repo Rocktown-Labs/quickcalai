@@ -13,7 +13,7 @@ export function usePremium() {
     try {
       setIsLoading(true);
 
-      // First try to check Clerk directly (fastest)
+      // Check Clerk's billing status directly
       const hasPremiumPlan = has ? has({ plan: 'premium_user' }) : false;
       const hasPremiumFeature = has ? has({ feature: 'premium' }) : false;
       const hasFileSharing = has ? has({ feature: 'file_sharing' }) : false;
@@ -21,55 +21,36 @@ export function usePremium() {
       // User is premium if they have the premium plan OR premium features
       const clerkPremiumStatus = hasPremiumPlan || hasPremiumFeature || hasFileSharing;
 
-      // If Clerk says they're premium, trust it immediately
-      if (clerkPremiumStatus) {
-        logger.log('Premium status (Clerk):', {
-          hasPremiumPlan,
-          hasPremiumFeature,
-          hasFileSharing,
-          finalStatus: true
-        });
-        setIsPremium(true);
-        setIsLoading(false);
-        return;
-      }
-
-      // If Clerk says they're not premium, double-check by forcing token refresh
-      // This handles cases where Clerk's cache is stale
-      await getToken({ skipCache: true });
-      const refreshedHasPremiumPlan = has ? has({ plan: 'premium_user' }) : false;
-      const refreshedHasPremiumFeature = has ? has({ feature: 'premium' }) : false;
-      const refreshedHasFileSharing = has ? has({ feature: 'file_sharing' }) : false;
-
-      const refreshedPremiumStatus = refreshedHasPremiumPlan || refreshedHasPremiumFeature || refreshedHasFileSharing;
-
-      logger.log('Premium status check (refreshed Clerk):', {
-        hasPremiumPlan: refreshedHasPremiumPlan,
-        hasPremiumFeature: refreshedHasPremiumFeature,
-        hasFileSharing: refreshedHasFileSharing,
-        finalStatus: refreshedPremiumStatus
+      logger.log('Premium status check:', {
+        hasPremiumPlan,
+        hasPremiumFeature,
+        hasFileSharing,
+        hasAvailable: !!has,
+        userId: user?.id,
+        finalStatus: clerkPremiumStatus
       });
 
-      // If Clerk still says not premium after refresh, check our database as fallback
-      if (!refreshedPremiumStatus) {
-        try {
-          logger.log('Checking database for premium status...');
-          const response = await fetch('/api/user/premium-status');
-          if (response.ok) {
-            const { isPremium: dbPremium } = await response.json();
-            logger.log('Premium status (Database):', { finalStatus: dbPremium });
-            setIsPremium(dbPremium);
-            setIsLoading(false);
-            return;
-          } else {
-            logger.error('Database premium check failed:', response.status);
-          }
-        } catch (dbError) {
-          logger.error('Database premium check error:', dbError);
-        }
-      }
+      // If Clerk says not premium, force token refresh and try again
+      // This handles cases where Clerk's cache is stale
+      if (!clerkPremiumStatus) {
+        await getToken({ skipCache: true });
+        const refreshedHasPremiumPlan = has ? has({ plan: 'premium_user' }) : false;
+        const refreshedHasPremiumFeature = has ? has({ feature: 'premium' }) : false;
+        const refreshedHasFileSharing = has ? has({ feature: 'file_sharing' }) : false;
 
-      setIsPremium(refreshedPremiumStatus);
+        const refreshedPremiumStatus = refreshedHasPremiumPlan || refreshedHasPremiumFeature || refreshedHasFileSharing;
+
+        logger.log('Premium status check (refreshed):', {
+          hasPremiumPlan: refreshedHasPremiumPlan,
+          hasPremiumFeature: refreshedHasPremiumFeature,
+          hasFileSharing: refreshedHasFileSharing,
+          finalStatus: refreshedPremiumStatus
+        });
+
+        setIsPremium(refreshedPremiumStatus);
+      } else {
+        setIsPremium(clerkPremiumStatus);
+      }
     } catch (error) {
       logger.error('Error checking premium status:', error);
       setIsPremium(false);
