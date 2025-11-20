@@ -49,22 +49,54 @@ export async function POST(request: NextRequest) {
 
     // Handle billing/subscription events
     if (evt.type.startsWith('subscription') || evt.type.startsWith('subscriptionItem')) {
-      serverLogger.log(`Billing event received: ${evt.type}`);
+      const eventData = evt.data as any; // Type assertion for billing events
+
+      serverLogger.log(`Billing event received: ${evt.type}`, {
+        userId: eventData.user_id || eventData.payer?.user_id || eventData.customer?.id,
+        status: eventData.status,
+        subscriptionId: eventData.subscription_id || eventData.id,
+        planId: eventData.plan_id,
+        eventData: JSON.stringify(eventData, null, 2)
+      });
 
       try {
-        // Handle subscription item events (these contain the actual subscription details)
-        if (evt.type.startsWith('subscriptionItem')) {
-          const eventData = evt.data as any; // Type assertion for billing events
+        // Extract user ID from multiple possible fields (Clerk uses different structures)
+        const userId = eventData.user_id || eventData.payer?.user_id || eventData.customer?.id;
 
-          const userId = eventData.payer?.user_id;
-          if (!userId) {
-            serverLogger.error('No user ID found in subscription item event');
-            return new Response('No user ID in event', { status: 400 });
-          }
+        if (!userId) {
+          serverLogger.error('No user ID found in subscription event', {
+            eventType: evt.type,
+            availableFields: Object.keys(eventData)
+          });
+          return new Response('No user ID in event', { status: 400 });
+        }
 
-          // Map Clerk status to our enum
-          let status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'ended' | 'upcoming' | 'free' = 'free';
-          switch (eventData.status) {
+        // Map Clerk event types to our status enum
+        let status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'ended' | 'upcoming' | 'free' = 'free';
+
+        // Handle subscription-level events
+        if (evt.type === 'subscription.active') {
+          status = 'active';
+        } else if (evt.type === 'subscription.pastDue') {
+          status = 'past_due';
+        }
+        // Handle subscription item events
+        else if (evt.type === 'subscriptionItem.active') {
+          status = 'active';
+        } else if (evt.type === 'subscriptionItem.canceled') {
+          status = 'canceled';
+        } else if (evt.type === 'subscriptionItem.ended') {
+          status = 'ended';
+        } else if (evt.type === 'subscriptionItem.pastDue') {
+          status = 'past_due';
+        } else if (evt.type === 'subscriptionItem.incomplete') {
+          status = 'incomplete';
+        } else if (evt.type === 'subscriptionItem.upcoming') {
+          status = 'upcoming';
+        } else {
+          // For other events, try to extract status from eventData
+          const eventStatus = eventData.status;
+          switch (eventStatus) {
             case 'active':
               status = 'active';
               break;
@@ -86,8 +118,10 @@ export async function POST(request: NextRequest) {
             default:
               status = 'free';
           }
+        }
 
-          // Upsert subscription status
+        // Update subscription status table for subscriptionItem events
+        if (evt.type.startsWith('subscriptionItem')) {
           await db.insert(subscriptionStatus).values({
             userId,
             clerkSubscriptionId: eventData.subscription_id,
@@ -109,15 +143,15 @@ export async function POST(request: NextRequest) {
               updatedAt: new Date(),
             },
           });
-
-          // Update user's account type based on subscription
-          const accountType = status === 'active' ? 'premium' : 'free';
-          await db.update(users)
-            .set({ accountType })
-            .where(eq(users.id, userId));
-
-          serverLogger.log(`Updated subscription status for user ${userId}: ${status}`);
         }
+
+        // Update user's account type based on subscription status
+        const accountType = status === 'active' ? 'premium' : 'free';
+        await db.update(users)
+          .set({ accountType })
+          .where(eq(users.id, userId));
+
+        serverLogger.log(`Updated subscription status for user ${userId}: ${status} (${evt.type})`);
 
         return new Response('Subscription event processed', { status: 200 });
 
