@@ -7,6 +7,10 @@ import { Badge } from "@/components/ui/badge"
 import { Files, Calendar, CheckCircle, Download, FileImage } from "lucide-react"
 import Link from "next/link"
 
+// Force dynamic rendering to prevent stale data caching
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function DashboardPage() {
   const { isAuthenticated } = await auth()
 
