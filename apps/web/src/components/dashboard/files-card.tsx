@@ -150,19 +150,19 @@ export function FilesCard({ icsFile, events = [], isSelected, onSelect, isPremiu
       isSelected ? 'ring-2 ring-primary' : ''
     } ${icsFile.status === 'completed' ? 'border-green-500' : ''}`}>
       <CardHeader className="pb-3">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 min-w-0">
           <Checkbox
             checked={isSelected}
             onCheckedChange={onSelect}
-            className="mt-1"
+            className="mt-1 flex-shrink-0"
           />
           <div className="flex items-center space-x-2 flex-1 min-w-0">
             <Calendar className="w-5 h-5 text-green-500 flex-shrink-0" />
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 overflow-hidden">
               <h3 className="font-medium text-sm truncate" title={icsFile.fileName}>
                 {icsFile.fileName}
               </h3>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground truncate">
                 From: {icsFile.originalFileName}
               </p>
               <p className="text-xs text-muted-foreground">
