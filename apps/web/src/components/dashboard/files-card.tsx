@@ -150,32 +150,32 @@ export function FilesCard({ icsFile, events = [], isSelected, onSelect, isPremiu
       isSelected ? 'ring-2 ring-primary' : ''
     }`}>
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-3">
-            <Checkbox
-              checked={isSelected}
-              onCheckedChange={onSelect}
-              className="mt-1"
-            />
-            <div className="flex items-center space-x-2">
-              <Calendar className="w-5 h-5 text-green-500" />
-              <div>
-                <h3 className="font-medium text-sm truncate max-w-[200px]" title={icsFile.fileName}>
-                  {icsFile.fileName}
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  From: {icsFile.originalFileName}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {format(icsFile.createdAt, 'MMM d, yyyy')}
-                </p>
-              </div>
-            </div>
-          </div>
+        <div className="absolute top-3 right-3 z-10">
           <Badge variant="secondary" className={statusInfo.color}>
             <StatusIcon className={`w-3 h-3 mr-1 ${icsFile.status === 'processing' ? 'animate-spin' : ''}`} />
             {statusInfo.label}
           </Badge>
+        </div>
+        <div className="flex items-center space-x-3">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={onSelect}
+            className="mt-1"
+          />
+          <div className="flex items-center space-x-2">
+            <Calendar className="w-5 h-5 text-green-500" />
+            <div>
+              <h3 className="font-medium text-sm truncate max-w-[200px]" title={icsFile.fileName}>
+                {icsFile.fileName}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                From: {icsFile.originalFileName}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {format(icsFile.createdAt, 'MMM d, yyyy')}
+              </p>
+            </div>
+          </div>
         </div>
       </CardHeader>
 

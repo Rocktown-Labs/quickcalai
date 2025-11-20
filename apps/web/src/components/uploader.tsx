@@ -140,12 +140,24 @@ export default function Uploader() {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Manual event creation failed:', errorText);
         throw new Error('Failed to create event');
       }
 
-      const result = await response.json();
-      console.log('Manual event created successfully:', result);
-      toast.success('Event created successfully!');
+      // Manual events return ICS file directly for download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${manualEvent.title.replace(/[^a-zA-Z0-9\s]/g, '_').trim()}.ics`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      console.log('Manual event ICS file downloaded successfully');
+      toast.success('Event created and ICS file downloaded!');
       setManualEvent({ title: '', date: '', time: '', description: '' });
     } catch (error) {
       console.error('Manual event creation failed:', error);
