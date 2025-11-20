@@ -14,6 +14,20 @@ export async function POST(request: Request) {
 
     const { firstName, lastName, email, phone } = await request.json();
 
+    // Check if the email is already used by another user
+    if (email) {
+      const existingUser = await db.select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1);
+
+      if (existingUser[0] && existingUser[0].id !== userId) {
+        return NextResponse.json({
+          error: 'This email address is already in use by another account'
+        }, { status: 400 });
+      }
+    }
+
     // Update user information in our database
     await db.update(users)
       .set({

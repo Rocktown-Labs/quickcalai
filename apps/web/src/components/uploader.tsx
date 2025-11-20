@@ -159,13 +159,16 @@ export default function Uploader() {
         throw new Error('Failed to create event');
       }
 
-      // Manual events return ICS file directly for download
-      console.log('Processing successful response as blob');
-      const blob = await response.blob();
+      // Parse JSON response
+      const data = await response.json();
+      console.log('Manual event created successfully:', data);
+
+      // Create download from ICS content
+      const blob = new Blob([data.icsContent], { type: 'text/calendar; charset=utf-8' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${manualEvent.title.replace(/[^a-zA-Z0-9\s]/g, '_').trim()}.ics`;
+      link.download = data.fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
