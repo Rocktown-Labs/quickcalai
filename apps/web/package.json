@@ -6,7 +6,9 @@
     "dev": "next dev --port=3001",
     "build": "next build",
     "build:analyze": "ANALYZE=true next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "vitest",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.920.0",
@@ -46,12 +48,22 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^15.5.6",
+    "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4.1.10",
     "@tanstack/react-query-devtools": "^5.85.5",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/react-hooks": "^8.0.1",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
+    "@vitejs/plugin-react": "^5.1.1",
+    "jsdom": "^27.2.0",
     "tailwindcss": "^4.1.10",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "^7.2.4",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.0.12"
   }
 }
