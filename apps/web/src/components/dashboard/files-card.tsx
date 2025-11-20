@@ -150,7 +150,7 @@ export function FilesCard({ icsFile, events = [], isSelected, onSelect, isPremiu
       isSelected ? 'ring-2 ring-primary' : ''
     }`}>
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col space-y-2 lg:flex-row lg:items-start lg:justify-between lg:space-y-0">
           <div className="flex items-center space-x-3 flex-1">
             <Checkbox
               checked={isSelected}
@@ -172,7 +172,7 @@ export function FilesCard({ icsFile, events = [], isSelected, onSelect, isPremiu
               </div>
             </div>
           </div>
-          <div className="flex-shrink-0 ml-2">
+          <div className="flex justify-end lg:flex-shrink-0 lg:ml-2">
             <Badge variant="secondary" className={statusInfo.color}>
               <StatusIcon className={`w-3 h-3 mr-1 ${icsFile.status === 'processing' ? 'animate-spin' : ''}`} />
               {statusInfo.label}
