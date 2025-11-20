@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { usePremium } from "@/hooks/use-premium";
 
 const mobileNavItems = [
-  { name: "Home", href: "#hero", icon: Home, id: "hero" },
+  { name: "Home", href: "#", icon: Home, id: "hero", scrollToTop: true },
   { name: "Features", href: "#features", icon: Star, id: "features" },
   { name: "Pricing", href: "#pricing", icon: CreditCard, id: "pricing" },
   { name: "Reviews", href: "#testimonials", icon: MessageSquare, id: "testimonials" },
@@ -94,24 +94,31 @@ export default function Navbar() {
           {/* Mobile Bottom Navigation */}
           <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-md border-t border-border z-50">
             <div className="flex items-center justify-around h-16">
-              {mobileNavItems.map((item) => {
-                const isActive = activeSection === item.id;
-                return (
-                  <a
-                    key={item.name}
-                    href={item.href}
-                    className={cn(
-                      "flex flex-col items-center justify-center space-y-1 transition-all duration-200",
-                      isActive
-                        ? "text-primary"
-                        : "text-muted-foreground hover:text-primary"
-                    )}
-                  >
-                    <item.icon className={cn("w-5 h-5", isActive && "scale-110")} />
-                    <span className="text-xs">{item.name}</span>
-                  </a>
-                );
-              })}
+               {mobileNavItems.map((item) => {
+                 const isActive = activeSection === item.id;
+                 return (
+                   <a
+                     key={item.name}
+                     href={item.href}
+                     onClick={(e) => {
+                       if (item.scrollToTop) {
+                         e.preventDefault();
+                         window.scrollTo({ top: 0, behavior: 'smooth' });
+                         setActiveSection("hero");
+                       }
+                     }}
+                     className={cn(
+                       "flex flex-col items-center justify-center space-y-1 transition-all duration-200",
+                       isActive
+                         ? "text-primary"
+                         : "text-muted-foreground hover:text-primary"
+                     )}
+                   >
+                     <item.icon className={cn("w-5 h-5", isActive && "scale-110")} />
+                     <span className="text-xs">{item.name}</span>
+                   </a>
+                 );
+               })}
             </div>
           </nav>
 

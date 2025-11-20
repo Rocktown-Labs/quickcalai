@@ -96,9 +96,9 @@ export default function Pricing() {
                        <span className="text-4xl font-bold text-foreground">$71.88</span>
                        <span className="text-muted-foreground">/year</span>
                      </div>
-                     <CardDescription>
-                       Billed at $5.99/month
-                     </CardDescription>
+                      <CardDescription>
+                        Save 45% with annual billing
+                      </CardDescription>
                    </CardHeader>
                    <CardContent className="space-y-4">
                      <ul className="space-y-3">
