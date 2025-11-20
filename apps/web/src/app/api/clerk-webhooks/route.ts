@@ -2,7 +2,7 @@ import { verifyWebhook } from '@clerk/nextjs/webhooks';
 import { start } from 'workflow/api';
 import { userSyncWorkflow, type UserSyncInput } from '@/workflows/user-sync';
 import { db } from '@quickcalai/db';
-import { users } from '@quickcalai/db/schema';
+import { users, subscriptionStatus } from '@quickcalai/db/schema';
 import { eq } from 'drizzle-orm';
 import { serverLogger } from '@/lib/logger';
 import type { NextRequest } from 'next/server';
@@ -48,18 +48,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle billing/subscription events
-    if (evt.type === 'subscription.active' ||
-        evt.type === 'subscriptionItem.active' ||
-        evt.type === 'subscriptionItem.canceled' ||
-        evt.type === 'subscriptionItem.ended' ||
-        evt.type === 'subscriptionItem.upcoming') {
+    if (evt.type.startsWith('subscription') || evt.type.startsWith('subscriptionItem')) {
+      serverLogger.log(`Billing event received: ${evt.type}`, JSON.stringify(evt.data, null, 2));
 
-      serverLogger.log(`Billing event received: ${evt.type}`, evt.data);
+      try {
+        // For now, just log all billing events to understand the structure
+        // We'll implement proper handling once we see the actual webhook data
+        return new Response('Billing event logged', { status: 200 });
 
-      // For now, just log the billing events
-      // TODO: Implement database storage for subscription status
-      // The webhook data structure needs to be analyzed first
-      return new Response('Billing event logged', { status: 200 });
+      } catch (error) {
+        serverLogger.error('Error processing subscription event:', error);
+        return new Response('Error processing subscription event', { status: 500 });
+      }
     }
 
     return new Response('Event type not handled', { status: 200 });
