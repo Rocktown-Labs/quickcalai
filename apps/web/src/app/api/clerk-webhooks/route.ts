@@ -8,7 +8,7 @@ import type { NextRequest } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     // Verify the webhook
-    const evt = await verifyWebhook(request);
+    const evt = await verifyWebhook(request as any);
 
     serverLogger.log(`Received Clerk webhook: ${evt.type}`);
 
