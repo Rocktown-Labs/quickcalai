@@ -1,58 +1,74 @@
-import { Upload, Zap, Calendar, Download } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
+import { Upload, Zap, Calendar, Download, Shield, Globe } from "lucide-react";
+
+const features = [
+  {
+    icon: Upload,
+    title: "Smart Upload",
+    description:
+      "Drag and drop any image — screenshots, photos of whiteboards, PDFs, even handwritten notes with dates.",
+  },
+  {
+    icon: Zap,
+    title: "AI Extraction",
+    description:
+      "Powered by Google Gemini, our AI identifies dates, times, locations, and event names with exceptional accuracy.",
+  },
+  {
+    icon: Calendar,
+    title: "Editable Results",
+    description:
+      "Review extracted events in a clean table. Edit titles, adjust times, or remove entries before exporting.",
+  },
+  {
+    icon: Download,
+    title: "Instant Export",
+    description:
+      "Generate .ics files compatible with Google Calendar, Apple Calendar, Outlook, and every major calendar app.",
+  },
+  {
+    icon: Globe,
+    title: "Email & SMS Delivery",
+    description:
+      "Have your calendar files sent directly to your inbox or phone. Share schedules with your team effortlessly.",
+  },
+  {
+    icon: Shield,
+    title: "Private & Secure",
+    description:
+      "Your images are processed securely and never stored longer than needed. Your schedule data stays yours.",
+  },
+];
 
 export default function Features() {
   return (
-    <section id="features" className="py-16 bg-card">
-           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-             <div className="text-center mb-16">
-               <h2 className="font-serif font-bold text-3xl md:text-4xl text-foreground mb-4">Why Choose QuickCalAI?</h2>
-               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                 Experience the future of calendar management with cutting-edge AI technology
-               </p>
-             </div>
-             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-               {[
-                 {
-                   icon: Upload,
-                   title: "Smart Upload",
-                   description: "Upload any image with dates and times - screenshots, photos, documents",
-                 },
-                 {
-                   icon: Zap,
-                   title: "AI Extraction",
-                   description: "Advanced AI instantly identifies and extracts all dates, times, and events",
-                 },
-                 {
-                   icon: Calendar,
-                   title: "Editable Results",
-                   description: "Review and edit extracted data in an intuitive table format",
-                 },
-                 {
-                   icon: Download,
-                   title: "Instant Export",
-                   description: "Generate ICS files for email, download, or SMS in one click",
-                 },
-               ].map((feature, index) => (
-                 <Card
-                   key={index}
-                   className="border-border shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-card"
-                 >
-                   <CardHeader className="text-center">
-                     <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                       <feature.icon className="w-8 h-8 text-primary-foreground" />
-                     </div>
-                     <CardTitle className="font-serif font-semibold text-xl text-card-foreground">
-                       {feature.title}
-                     </CardTitle>
-                   </CardHeader>
-                   <CardContent>
-                     <p className="text-muted-foreground text-center">{feature.description}</p>
-                   </CardContent>
-                 </Card>
-               ))}
-             </div>
-           </div>
-         </section>
-  )
+    <section id="features" className="py-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16 max-w-xl mx-auto">
+          <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-3">
+            Features
+          </p>
+          <h2 className="font-serif text-3xl md:text-4xl tracking-tight">
+            Everything you need for effortless scheduling
+          </h2>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-border/50 rounded-xl overflow-hidden border border-border/50">
+          {features.map((feature) => (
+            <div
+              key={feature.title}
+              className="p-8 bg-background hover:bg-card transition-colors duration-200"
+            >
+              <feature.icon className="w-5 h-5 text-primary mb-4" />
+              <h3 className="text-sm font-semibold mb-2 text-foreground">
+                {feature.title}
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {feature.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }

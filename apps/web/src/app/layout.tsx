@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Instrument_Serif, Geist_Mono } from "next/font/google";
 import {Analytics} from "@vercel/analytics/next";
 import "../index.css";
 import Providers from "@/components/providers";
@@ -35,9 +35,17 @@ const structuredData = {
   "screenshot": "https://quickcalai.com/quickcalai-og.png"
 };
 
-const geistSans = Geist({
-	variable: "--font-geist-sans",
+const plusJakarta = Plus_Jakarta_Sans({
+	variable: "--font-plus-jakarta",
 	subsets: ["latin"],
+	display: "swap",
+	preload: true,
+});
+
+const instrumentSerif = Instrument_Serif({
+	variable: "--font-instrument-serif",
+	subsets: ["latin"],
+	weight: "400",
 	display: "swap",
 	preload: true,
 });
@@ -171,7 +179,7 @@ export default function RootLayout({
 				/>
 			</head>
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+				className={`${plusJakarta.variable} ${instrumentSerif.variable} ${geistMono.variable} antialiased`}
 			>
 				<Providers>
 					<div className="grid grid-rows-[auto_1fr] h-svh">
