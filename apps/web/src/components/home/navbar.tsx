@@ -1,30 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import Logo from "../logo";
 import { ThemeSwitcher } from "../theme-provider";
 import { Button } from "../ui/button";
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Home, Star, CreditCard, MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { usePremium } from "@/hooks/use-premium";
 
 const mobileNavItems = [
   { name: "Home", href: "#", icon: Home, id: "hero", scrollToTop: true },
   { name: "Features", href: "#features", icon: Star, id: "features" },
   { name: "Pricing", href: "#pricing", icon: CreditCard, id: "pricing" },
   { name: "Reviews", href: "#testimonials", icon: MessageSquare, id: "testimonials" },
- ];
+];
 
 export default function Navbar() {
   const [activeSection, setActiveSection] = useState("hero");
-  const { isPremium } = usePremium();
-
+  const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+
       const sections = mobileNavItems.map(item => item.id);
-      const scrollPosition = window.scrollY + 100; // Offset for navbar height
+      const scrollPosition = window.scrollY + 100;
 
       for (const sectionId of sections.reverse()) {
         const element = document.getElementById(sectionId);
@@ -36,120 +36,142 @@ export default function Navbar() {
     };
 
     window.addEventListener("scroll", handleScroll);
-    handleScroll(); // Check initial position
+    handleScroll();
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-      return (
-        <header>
-          {/* Desktop Navbar */}
-          <nav className="fixed top-0 w-full bg-background/90 backdrop-blur-md border-b border-border z-50">
-                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center">
-                          <Link href="/" className="flex items-center">
-                            {/*<Image src="/QuickCalAI.png" alt="QuickCalAI Logo" width={32} height={32} className="w-8 h-8 object-contain rounded" />*/}
-                            <span className="font-semibold">QuickCalAI</span>
-                          </Link>
-                        </div>
-                       <div className="hidden md:flex items-center space-x-8">
-                         <a href="#features" className="text-muted-foreground hover:text-primary transition-colors">
-                           Features
-                         </a>
-                         <a href="#pricing" className="text-muted-foreground hover:text-primary transition-colors">
-                           Pricing
-                         </a>
-                         <a href="#testimonials" className="text-muted-foreground hover:text-primary transition-colors">
-                           Reviews
-                         </a>
-                         <ThemeSwitcher/>
-                         <SignedOut>
-                           <SignInButton>
-                             <Button
-                               variant="outline"
-                               className="border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-transparent"
-                             >
-                               Sign In
-                             </Button>
-                           </SignInButton>
-                           <SignUpButton>
-                             <Button className="bg-primary text-primary-foreground hover:bg-primary/90 animate-pulse-glow">
-                               Get Started
-                             </Button>
-                           </SignUpButton>
-                         </SignedOut>
-                          <SignedIn>
-                            <Link href="/dashboard">
-                              <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-                                Dashboard
-                              </Button>
-                            </Link>
-                            <UserButton />
-                          </SignedIn>
-                       </div>
-                    </div>
-                  </div>
-                </nav>
 
-          {/* Mobile Bottom Navigation */}
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-md border-t border-border z-50">
-            <div className="flex items-center justify-around h-16">
-               {mobileNavItems.map((item) => {
-                 const isActive = activeSection === item.id;
-                 return (
-                   <a
-                     key={item.name}
-                     href={item.href}
-                     onClick={(e) => {
-                       if (item.scrollToTop) {
-                         e.preventDefault();
-                         window.scrollTo({ top: 0, behavior: 'smooth' });
-                         setActiveSection("hero");
-                       }
-                     }}
-                     className={cn(
-                       "flex flex-col items-center justify-center space-y-1 transition-all duration-200",
-                       isActive
-                         ? "text-primary"
-                         : "text-muted-foreground hover:text-primary"
-                     )}
-                   >
-                     <item.icon className={cn("w-5 h-5", isActive && "scale-110")} />
-                     <span className="text-xs">{item.name}</span>
-                   </a>
-                 );
-               })}
-            </div>
-          </nav>
-
-          {/* Mobile Top Bar */}
-          <div className="md:hidden fixed top-0 left-0 right-0 bg-background/90 backdrop-blur-md border-b border-border z-50">
-            <div className="flex items-center justify-between h-16 px-4">
-              <div className="flex items-center space-x-3">
-                <Link href="/" className="flex items-center space-x-2">
-                  <Image src="/QuickCalAI.png" alt="QuickCalAI Logo" width={24} height={24} className="w-6 h-6 object-contain rounded" />
-                  <span className="font-semibold text-sm">QuickCalAI</span>
-                </Link>
-              </div>
-              <div className="flex items-center space-x-2">
-                <ThemeSwitcher />
+  return (
+    <header>
+      {/* Desktop Navbar */}
+      <nav
+        className={cn(
+          "fixed top-0 w-full z-50 transition-all duration-300",
+          scrolled
+            ? "bg-background/80 backdrop-blur-xl border-b border-border/50"
+            : "bg-transparent"
+        )}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <Link href="/" className="flex items-center gap-2.5">
+              <Logo size={22} className="text-primary" />
+              <span className="text-sm font-semibold tracking-tight">QuickCalAI</span>
+            </Link>
+            <div className="hidden md:flex items-center gap-8">
+              <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Features
+              </a>
+              <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Pricing
+              </a>
+              <a href="#testimonials" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Reviews
+              </a>
+              <div className="w-px h-4 bg-border" />
+              <ThemeSwitcher />
+              <SignedOut>
                 <SignInButton>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-transparent"
+                    className="text-sm text-muted-foreground hover:text-foreground"
                   >
-                    Sign In
+                    Sign in
                   </Button>
                 </SignInButton>
                 <SignUpButton>
-                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 animate-pulse-glow">
+                  <Button
+                    size="sm"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
+                  >
                     Get Started
                   </Button>
                 </SignUpButton>
-              </div>
+              </SignedOut>
+              <SignedIn>
+                <Link href="/dashboard">
+                  <Button variant="outline" size="sm" className="text-sm">
+                    Dashboard
+                  </Button>
+                </Link>
+                <UserButton />
+              </SignedIn>
             </div>
           </div>
-        </header>
-      )
+        </div>
+      </nav>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-xl border-t border-border/50 z-50">
+        <div className="flex items-center justify-around h-16 px-2">
+          {mobileNavItems.map((item) => {
+            const isActive = activeSection === item.id;
+            return (
+              <a
+                key={item.name}
+                href={item.href}
+                onClick={(e) => {
+                  if (item.scrollToTop) {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    setActiveSection("hero");
+                  }
+                }}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-1 transition-colors rounded-lg px-3 py-1.5",
+                  isActive
+                    ? "text-primary"
+                    : "text-muted-foreground"
+                )}
+              >
+                <item.icon className="w-5 h-5" />
+                <span className="text-[10px] font-medium">{item.name}</span>
+              </a>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* Mobile Top Bar */}
+      <div
+        className={cn(
+          "md:hidden fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+          scrolled
+            ? "bg-background/80 backdrop-blur-xl border-b border-border/50"
+            : "bg-transparent"
+        )}
+      >
+        <div className="flex items-center justify-between h-14 px-4">
+          <Link href="/" className="flex items-center gap-2">
+            <Logo size={18} className="text-primary" />
+            <span className="text-sm font-semibold tracking-tight">QuickCalAI</span>
+          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeSwitcher />
+            <SignedOut>
+              <SignInButton>
+                <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+                  Sign in
+                </Button>
+              </SignInButton>
+              <SignUpButton>
+                <Button size="sm" className="text-xs bg-primary text-primary-foreground hover:bg-primary/90">
+                  Get Started
+                </Button>
+              </SignUpButton>
+            </SignedOut>
+            <SignedIn>
+              <Link href="/dashboard">
+                <Button variant="outline" size="sm" className="text-xs">
+                  Dashboard
+                </Button>
+              </Link>
+              <UserButton />
+            </SignedIn>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
 }

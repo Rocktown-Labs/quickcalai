@@ -6,54 +6,37 @@ import dynamic from "next/dynamic";
 import Hero from "@/components/home/hero";
 import Navbar from "@/components/home/navbar";
 
-// Non-critical components - lazy load with loading states
-const Features = dynamic(() => import("@/components/home/features"), {
-  loading: () => (
-    <div className="min-h-[50vh] flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-    </div>
-  )
-});
+// Non-critical components - lazy load
+const Stats = dynamic(() => import("@/components/home/stats"));
 
-const Pricing = dynamic(() => import("@/components/home/pricing"), {
-  loading: () => (
-    <div className="min-h-[50vh] flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-    </div>
-  )
-});
+const HowItWorks = dynamic(() => import("@/components/home/how-it-works"));
 
-const Testimonials = dynamic(() => import("@/components/home/testimonials"), {
-  loading: () => (
-    <div className="min-h-[50vh] flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-    </div>
-  )
-});
+const Features = dynamic(() => import("@/components/home/features"));
 
-const CTA = dynamic(() => import("@/components/home/cta"), {
-  loading: () => (
-    <div className="min-h-[30vh] flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-    </div>
-  )
-});
+const Pricing = dynamic(() => import("@/components/home/pricing"));
+
+const Testimonials = dynamic(() => import("@/components/home/testimonials"));
+
+const CTA = dynamic(() => import("@/components/home/cta"));
 
 const Footer = dynamic(() => import("@/components/home/footer"));
 
-
-
 export default function Home() {
-	return (
-		<div className="pb-16 md:pb-0">
-		<Navbar/>
-		<Hero/>
-		<Features />
-		<Pricing />
-		<Testimonials />
-		<CTA />
-		<Footer />
-		</div>
-
-	);
+  return (
+    <div className="pb-16 md:pb-0">
+      <Navbar />
+      <Hero />
+      <Stats />
+      <div className="section-divider" />
+      <HowItWorks />
+      <div className="section-divider" />
+      <Features />
+      <div className="section-divider" />
+      <Pricing />
+      <div className="section-divider" />
+      <Testimonials />
+      <CTA />
+      <Footer />
+    </div>
+  );
 }

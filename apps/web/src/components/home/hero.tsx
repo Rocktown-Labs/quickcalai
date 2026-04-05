@@ -1,74 +1,92 @@
-import { Zap, CheckCircle } from "lucide-react";
+"use client";
+
+import { ArrowRight, CheckCircle } from "lucide-react";
 import { Button } from "../ui/button";
 import { SignUpButton } from "@clerk/nextjs";
 import Image from "next/image";
+
 export default function Hero() {
   return (
-    <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="animate-slide-up">
+    <section id="hero" className="relative min-h-[90vh] flex items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20 w-full">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="space-y-8">
+            {/* Badge */}
+            <div className="animate-fade-in">
+              <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-medium tracking-wide uppercase bg-primary/10 text-primary border border-primary/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                AI-Powered Scheduling
+              </span>
+            </div>
 
-<span className="mb-">🚀 AI-Powered Scheduling Revolution
-</span>
+            {/* Heading — no gradients, just confident typography */}
+            <div className="animate-slide-up">
+              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] leading-[1.08] tracking-tight">
+                Image to calendar
+                <br />
+                in <span className="text-primary">seconds</span>
+              </h1>
+            </div>
 
+            {/* Subheading */}
+            <p className="text-lg text-muted-foreground max-w-md leading-relaxed animate-slide-up delay-100 opacity-0">
+              Upload a photo of any schedule. Our AI extracts every event and generates
+              calendar files you can import anywhere.
+            </p>
 
-                <h1 className="font-serif font-bold text-4xl md:text-6xl text-foreground mb-6 leading-tight">
-                  Transform Your Scheduling Experience with <span className="text-primary">QuickCalAI</span>
-                </h1>
-                <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-                  Extract, organize, and optimize your calendar instantly. Upload any image with dates and times, let our
-                  AI do the work, and get perfect calendar files in seconds.
-                </p>
-                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                   <SignUpButton>
-                      <Button
-                        size="lg"
-                        className="bg-primary text-primary-foreground hover:bg-primary/90 animate-pulse-glow text-lg px-8 py-4"
-                      >
-                        Get Started Now
-                        <Zap className="ml-2 w-5 h-5" />
-                      </Button>
-                   </SignUpButton>
-                   <Button
-                     size="lg"
-                     variant="outline"
-                     className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground text-lg px-8 py-4 bg-transparent"
-                     asChild
-                   >
-                     <a href="#features">Watch Demo</a>
-                   </Button>
-                 </div>
-                <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-                  <div className="flex items-center">
-                    <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                    No credit card required
-                  </div>
-                  <div className="flex items-center">
-                    <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                    Setup in 30 seconds
-                  </div>
-                </div>
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-3 animate-slide-up delay-200 opacity-0">
+              <SignUpButton>
+                <Button
+                  size="lg"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-6 h-11 text-sm font-semibold group"
+                >
+                  Get started free
+                  <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                </Button>
+              </SignUpButton>
+              <Button
+                size="lg"
+                variant="outline"
+                className="rounded-lg px-6 h-11 text-sm font-semibold border-border hover:bg-secondary"
+                asChild
+              >
+                <a href="#how-it-works">How it works</a>
+              </Button>
+            </div>
+
+            {/* Trust signals */}
+            <div className="flex items-center gap-5 text-sm text-muted-foreground animate-fade-in delay-300 opacity-0">
+              <div className="flex items-center gap-1.5">
+                <CheckCircle className="w-3.5 h-3.5 text-primary" />
+                No credit card required
               </div>
-                <div className="relative animate-float">
-                  <div className="relative z-10">
-                    <Image
-                      src="/quickcalai-hero-image.png"
-                      alt="QuickCalAI Interface - AI-powered calendar extraction from images and PDFs"
-                      width={800}
-                      height={600}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="rounded-2xl shadow-2xl w-full h-auto"
-                      priority
-                      placeholder="blur"
-                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
-                      quality={85}
-                    />
-                  </div>
-                  <div className="absolute -top-4 -right-4 w-full h-full bg-primary/20 rounded-2xl blur-xl"></div>
-                </div>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle className="w-3.5 h-3.5 text-primary" />
+                Setup in 30 seconds
+              </div>
             </div>
           </div>
-        </section>
-  )
+
+          {/* Hero image */}
+          <div className="relative animate-slide-up delay-200 opacity-0">
+            <div className="relative rounded-xl overflow-hidden border border-border/50 shadow-2xl shadow-black/20">
+              <Image
+                src="/quickcalai-hero-image.png"
+                alt="QuickCalAI Interface - AI-powered calendar extraction from images and PDFs"
+                width={800}
+                height={600}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className="w-full h-auto"
+                priority
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
+                quality={85}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
