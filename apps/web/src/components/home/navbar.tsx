@@ -8,7 +8,6 @@ import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@cl
 import { Home, Star, CreditCard, MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { usePremium } from "@/hooks/use-premium";
 
 const mobileNavItems = [
   { name: "Home", href: "#", icon: Home, id: "hero", scrollToTop: true },
@@ -20,8 +19,6 @@ const mobileNavItems = [
 export default function Navbar() {
   const [activeSection, setActiveSection] = useState("hero");
   const [scrolled, setScrolled] = useState(false);
-  const { isPremium } = usePremium();
-
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);

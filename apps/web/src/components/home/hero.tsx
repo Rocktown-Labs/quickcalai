@@ -1,3 +1,5 @@
+"use client";
+
 import { ArrowRight, CheckCircle } from "lucide-react";
 import { Button } from "../ui/button";
 import { SignUpButton } from "@clerk/nextjs";
