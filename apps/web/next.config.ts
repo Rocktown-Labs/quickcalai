@@ -2,10 +2,14 @@ import {withSentryConfig} from "@sentry/nextjs";
 import { withWorkflow } from 'workflow/next';
 import type { NextConfig } from "next";
 import withBundleAnalyzer from '@next/bundle-analyzer';
+import path from 'node:path';
 
 const nextConfig: NextConfig = {
 	typedRoutes: true,
 	reactCompiler: true,
+	turbopack: {
+		root: path.resolve(process.cwd(), '../..'),
+	},
 
 	// Performance optimizations
 	experimental: {
