@@ -34,6 +34,7 @@ jobs:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_ci_placeholder' }}
 
       - name: Deploy to Vercel Preview
+        if: ${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != '' }}
         uses: amondnet/vercel-action@v25
         id: vercel-deployment
         with:
@@ -45,7 +46,7 @@ jobs:
 
       - name: Comment PR with Preview URL
         uses: actions/github-script@v7
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && steps.vercel-deployment.outcome == 'success'
         with:
           script: |
             github.rest.issues.createComment({
