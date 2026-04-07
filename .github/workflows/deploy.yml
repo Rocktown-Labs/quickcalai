@@ -1,19 +1,15 @@
-name: Deploy to Vercel
+name: Production Build Check
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   workflow_dispatch:
 
 jobs:
-  deploy:
-    name: Deploy to Production
+  build:
+    name: Verify Production Build
     runs-on: ubuntu-latest
     environment: production
-    env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
       - name: Checkout code
@@ -37,13 +33,3 @@ jobs:
         run: pnpm build
         env:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_ci_placeholder' }}
-
-      - name: Deploy to Vercel
-        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ env.VERCEL_TOKEN }}
-          vercel-org-id: ${{ env.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ env.VERCEL_PROJECT_ID }}
-          working-directory: ./apps/web
-          vercel-args: '--prod'

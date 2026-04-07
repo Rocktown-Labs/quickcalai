@@ -1,18 +1,14 @@
-name: Preview Deployment
+name: Preview Build Check
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 jobs:
   preview:
-    name: Deploy Preview
+    name: Verify Preview Build
     runs-on: ubuntu-latest
     environment: preview
-    env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
       - name: Checkout code
@@ -36,26 +32,3 @@ jobs:
         run: pnpm build
         env:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_ci_placeholder' }}
-
-      - name: Deploy to Vercel Preview
-        if: ${{ env.VERCEL_TOKEN != '' && env.VERCEL_ORG_ID != '' && env.VERCEL_PROJECT_ID != '' }}
-        uses: amondnet/vercel-action@v25
-        id: vercel-deployment
-        with:
-          vercel-token: ${{ env.VERCEL_TOKEN }}
-          vercel-org-id: ${{ env.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ env.VERCEL_PROJECT_ID }}
-          working-directory: ./apps/web
-          vercel-args: '--prod=false'
-
-      - name: Comment PR with Preview URL
-        uses: actions/github-script@v7
-        if: github.event_name == 'pull_request' && steps.vercel-deployment.outcome == 'success'
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `🚀 **Preview Deployment Ready!**\n\nYour changes have been deployed to a preview environment:\n\n🔗 **Preview URL:** ${{ steps.vercel-deployment.outputs.preview-url }}\n\nThis preview will be automatically cleaned up when the PR is closed.`
-            })
