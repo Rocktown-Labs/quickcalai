@@ -34,6 +34,14 @@ export default async function DashboardPage() {
           </p>
         </div>
 
+        {stats.hasDataError && (
+          <Card className="border-yellow-300 bg-yellow-50/60 dark:border-yellow-900 dark:bg-yellow-950/20">
+            <CardContent className="py-3 text-sm text-yellow-900 dark:text-yellow-200">
+              Some dashboard stats are temporarily unavailable. You can still upload files and use the app normally.
+            </CardContent>
+          </Card>
+        )}
+
         {/* Metrics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>

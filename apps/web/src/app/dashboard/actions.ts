@@ -1,7 +1,32 @@
 'use server';
 
 import { auth } from '@clerk/nextjs/server';
-import { getUserUploads, getUserEvents } from '@quickcalai/db';
+import * as Sentry from '@sentry/nextjs';
+import { db } from '@quickcalai/db';
+import { events, uploads } from '@quickcalai/db/schema';
+import { and, desc, eq, sql } from 'drizzle-orm';
+
+type DashboardStats = {
+  totalUploads: number;
+  totalEvents: number;
+  completedUploads: number;
+  recentUploads: Array<{
+    id: string;
+    fileName: string;
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    createdAt: Date;
+    eventCount: number;
+  }>;
+  hasDataError: boolean;
+};
+
+const EMPTY_DASHBOARD_STATS: DashboardStats = {
+  totalUploads: 0,
+  totalEvents: 0,
+  completedUploads: 0,
+  recentUploads: [],
+  hasDataError: true,
+};
 
 export async function getDashboardStats() {
   const { userId } = await auth();
@@ -11,31 +36,63 @@ export async function getDashboardStats() {
   }
 
   try {
-    const [uploads, events] = await Promise.all([
-      getUserUploads(userId),
-      getUserEvents(userId)
+    const [allUploads, allEvents, completedUploads, recentUploads] = await Promise.all([
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(uploads)
+        .where(eq(uploads.userId, userId)),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(events)
+        .where(eq(events.userId, userId)),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(uploads)
+        .where(and(eq(uploads.userId, userId), eq(uploads.status, 'completed'))),
+      db
+        .select({
+          id: uploads.id,
+          fileName: uploads.fileName,
+          status: uploads.status,
+          createdAt: uploads.createdAt,
+          eventCount: sql<number>`count(${events.id})::int`,
+        })
+        .from(uploads)
+        .leftJoin(
+          events,
+          and(eq(events.uploadId, uploads.id), eq(events.userId, userId))
+        )
+        .where(eq(uploads.userId, userId))
+        .groupBy(uploads.id, uploads.fileName, uploads.status, uploads.createdAt)
+        .orderBy(desc(uploads.createdAt))
+        .limit(5),
     ]);
 
-    // Calculate stats
-    const totalUploads = uploads.length;
-    const totalEvents = events.length;
-    const completedUploads = uploads.filter(upload => upload.status === 'completed').length;
-    const recentUploads = uploads.slice(0, 5); // Last 5 uploads
-
     return {
-      totalUploads,
-      totalEvents,
-      completedUploads,
-      recentUploads: recentUploads.map(upload => ({
+      totalUploads: allUploads[0]?.count ?? 0,
+      totalEvents: allEvents[0]?.count ?? 0,
+      completedUploads: completedUploads[0]?.count ?? 0,
+      recentUploads: recentUploads.map((upload) => ({
         id: upload.id,
         fileName: upload.fileName,
         status: upload.status,
         createdAt: upload.createdAt,
-        eventCount: events.filter(event => event.uploadId === upload.id).length
-      }))
+        eventCount: upload.eventCount,
+      })),
+      hasDataError: false,
     };
   } catch (error) {
+    Sentry.captureException(error, {
+      tags: {
+        action: 'getDashboardStats',
+        route: '/dashboard',
+      },
+      extra: {
+        userId,
+      },
+    });
+
     console.error('Failed to fetch dashboard stats:', error);
-    throw new Error('Failed to load dashboard data');
+    return EMPTY_DASHBOARD_STATS;
   }
 }
