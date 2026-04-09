@@ -1,6 +1,6 @@
-import { db } from '../index';
-import { users, uploads, events } from '../schema';
-import { eq, desc } from 'drizzle-orm';
+import { db } from "../index";
+import { users, uploads, events } from "../schema";
+import { eq, desc } from "drizzle-orm";
 
 export async function getUserById(userId: string) {
   return await db.select().from(users).where(eq(users.id, userId)).limit(1);
@@ -26,10 +26,10 @@ export async function getUserUploads(userId: string) {
       .orderBy(desc(uploads.createdAt));
   } catch (error) {
     const maybeMessage =
-      error instanceof Error ? error.message.toLowerCase() : '';
+      error instanceof Error ? error.message.toLowerCase() : "";
 
     // Handle older/fresh schemas that don't have optional upload columns yet.
-    if (!maybeMessage.includes('does not exist')) {
+    if (!maybeMessage.includes("does not exist")) {
       throw error;
     }
 

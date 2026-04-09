@@ -1,16 +1,16 @@
 const RECOVERABLE_SCHEMA_SQLSTATE_CODES = new Set([
-  '42P01', // undefined_table
-  '42703', // undefined_column
-  '42704', // undefined_object
+  "42P01", // undefined_table
+  "42703", // undefined_column
+  "42704", // undefined_object
 ]);
 
 function getErrorMessage(value: unknown): string | undefined {
-  if (!value || typeof value !== 'object') {
+  if (!value || typeof value !== "object") {
     return undefined;
   }
 
   const maybeMessage = (value as { message?: unknown }).message;
-  if (typeof maybeMessage === 'string') {
+  if (typeof maybeMessage === "string") {
     return maybeMessage;
   }
 
@@ -18,12 +18,12 @@ function getErrorMessage(value: unknown): string | undefined {
 }
 
 function getErrorCode(value: unknown): string | undefined {
-  if (!value || typeof value !== 'object') {
+  if (!value || typeof value !== "object") {
     return undefined;
   }
 
   const maybeCode = (value as { code?: unknown }).code;
-  if (typeof maybeCode === 'string') {
+  if (typeof maybeCode === "string") {
     return maybeCode;
   }
 
@@ -31,7 +31,7 @@ function getErrorCode(value: unknown): string | undefined {
 }
 
 function getErrorCause(value: unknown): unknown {
-  if (!value || typeof value !== 'object') {
+  if (!value || typeof value !== "object") {
     return undefined;
   }
 
@@ -49,7 +49,7 @@ export function isRecoverableFreshDatabaseError(error: unknown): boolean {
     }
 
     const message = getErrorMessage(current)?.toLowerCase();
-    if (message?.includes('does not exist')) {
+    if (message?.includes("does not exist")) {
       return true;
     }
 
