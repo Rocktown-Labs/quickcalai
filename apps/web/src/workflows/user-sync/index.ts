@@ -1,4 +1,5 @@
 import { upsertUser } from "./steps";
+import { serverLogger } from '@/lib/logger';
 
 export interface UserSyncInput {
   clerkUserId: string;
@@ -10,9 +11,14 @@ export interface UserSyncInput {
 export async function userSyncWorkflow(input: UserSyncInput) {
   "use workflow";
 
-  console.log("Starting user sync workflow for:", input.clerkUserId);
+  const logger = serverLogger.child({
+    workflow: 'user-sync',
+    clerkUserId: input.clerkUserId,
+  });
+
+  logger.info('Starting user sync workflow');
 
   await upsertUser(input);
 
-  console.log("User sync completed");
+  logger.info('User sync completed');
 }

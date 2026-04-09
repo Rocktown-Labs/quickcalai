@@ -1,22 +1,20 @@
 import { auth, clerkClient } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
 import { db } from '@quickcalai/db';
 import { users } from '@quickcalai/db/schema';
 import { eq } from 'drizzle-orm';
+import { createRouteContext, handleRouteError, jsonError, jsonSuccess, parseJsonBody } from '@/lib/server/route';
+import { onboardingSchema } from '@/lib/validators';
 
 export async function POST(request: Request) {
+  const { isAuthenticated, userId } = await auth();
+  const context = createRouteContext('/api/onboarding', request, { userId: userId ?? undefined });
+
   try {
-    const { isAuthenticated, userId } = await auth();
-
     if (!isAuthenticated || !userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return jsonError(context, 401, 'Unauthorized');
     }
 
-    const { email, phone, accountType } = await request.json();
-
-    if (!email || !phone || !accountType) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
+    const { email, phone, accountType } = await parseJsonBody(request, onboardingSchema);
 
     // Determine premium status based on account type
     const isPremiumUser = accountType === 'premium';
@@ -41,9 +39,8 @@ export async function POST(request: Request) {
       })
       .where(eq(users.id, userId));
 
-    return NextResponse.json({ success: true });
+    return jsonSuccess(context, { success: true });
   } catch (error) {
-    console.error('Onboarding error:', error);
-    return NextResponse.json({ error: 'Failed to complete onboarding' }, { status: 500 });
+    return handleRouteError(error, context, 'Failed to complete onboarding');
   }
 }

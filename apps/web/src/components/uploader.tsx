@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { usePremium } from "@/hooks/use-premium";
+import { logger } from "@/lib/logger";
 
 export default function Uploader() {
   const [activeTab, setActiveTab] = useState<'ai' | 'manual'>('ai');
@@ -83,7 +84,8 @@ export default function Uploader() {
       });
 
       if (!response.ok) {
-        throw new Error('Upload failed');
+        const errorPayload = await response.json().catch(() => null);
+        throw new Error(errorPayload?.error || 'Upload failed');
       }
 
       const { runId: workflowRunId } = await response.json();
@@ -93,8 +95,10 @@ export default function Uploader() {
       pollWorkflowStatus(workflowRunId);
 
     } catch (error) {
-      console.error('Processing failed:', error, { runId, userId: user?.id });
-      toast.error(`Processing failed. ${runId ? `Reference ID: ${runId.substring(0, 8)}` : ''}`);
+      logger.error('Processing failed', { error, runId, userId: user?.id });
+      toast.error(
+        `${error instanceof Error ? error.message : 'Processing failed.'} ${runId ? `Reference ID: ${runId.substring(0, 8)}` : ''}`.trim()
+      );
       setIsProcessing(false);
     }
   };
@@ -103,7 +107,8 @@ export default function Uploader() {
     try {
       const response = await fetch(`/api/workflow/status/${workflowRunId}`);
       if (!response.ok) {
-        throw new Error('Failed to get workflow status');
+        const errorPayload = await response.json().catch(() => null);
+        throw new Error(errorPayload?.error || 'Failed to get workflow status');
       }
 
       const status = await response.json();
@@ -116,15 +121,23 @@ export default function Uploader() {
          setUploadedFile(null);
          // Revalidate the files page to show new cards
          router.refresh();
+         toast.success(`Done. Extracted ${status.eventCount || 0} event${status.eventCount === 1 ? '' : 's'}.`);
+       } else if (status.status === 'no_events') {
+        setIsProcessing(false);
+        setUploadedFile(null);
+        router.refresh();
+        toast.error(status.failureReason || 'No calendar events were found in that document.');
        } else if (status.status === 'failed') {
-        throw new Error('Workflow failed');
+        throw new Error(status.failureReason || 'Workflow failed');
       } else {
         // Still processing, poll again in 2 seconds
         setTimeout(() => pollWorkflowStatus(workflowRunId), 2000);
       }
     } catch (error) {
-      console.error('Status check failed:', error, { runId });
-      toast.error(`Status check failed. ${runId ? `Reference ID: ${runId.substring(0, 8)}` : ''}`);
+      logger.error('Status check failed', { error, runId: workflowRunId });
+      toast.error(
+        `${error instanceof Error ? error.message : 'Status check failed.'} ${runId ? `Reference ID: ${runId.substring(0, 8)}` : ''}`.trim()
+      );
       setIsProcessing(false);
     }
   };
@@ -151,17 +164,13 @@ export default function Uploader() {
         }),
       });
 
-      console.log('Manual event response status:', response.status, response.ok);
-
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Manual event creation failed:', errorText);
-        throw new Error('Failed to create event');
+        const errorPayload = await response.json().catch(() => null);
+        throw new Error(errorPayload?.error || 'Failed to create event');
       }
 
       // Parse JSON response
       const data = await response.json();
-      console.log('Manual event created successfully:', data);
 
       // Create download from ICS content
       const blob = new Blob([data.icsContent], { type: 'text/calendar; charset=utf-8' });
@@ -174,12 +183,11 @@ export default function Uploader() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      console.log('Manual event ICS file downloaded successfully');
       toast.success('Event created and ICS file downloaded!');
       setManualEvent({ title: '', date: '', time: '', description: '' });
     } catch (error) {
-      console.error('Manual event creation failed:', error);
-      toast.error('Failed to create event. Please try again.');
+      logger.error('Manual event creation failed', { error, userId: user?.id });
+      toast.error(error instanceof Error ? error.message : 'Failed to create event. Please try again.');
     }
   };
 
@@ -355,7 +363,6 @@ export default function Uploader() {
                        value={manualEvent.time}
                        onChange={(e) => {
                          const newTime = e.target.value;
-                         console.log('Time changed from', manualEvent.time, 'to:', newTime);
                          setManualEvent(prev => ({ ...prev, time: newTime }));
                        }}
                        onClick={(e) => {

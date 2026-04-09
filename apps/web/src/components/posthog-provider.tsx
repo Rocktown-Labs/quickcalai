@@ -5,6 +5,7 @@ import { useEffect } from "react"
 
 import posthog from 'posthog-js'
 import { PostHogProvider as PHProvider } from 'posthog-js/react'
+import { logger } from '@/lib/logger'
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -12,8 +13,10 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
       api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
       person_profiles: 'always',
       // Performance optimizations
-      loaded: (posthog) => {
-        if (process.env.NODE_ENV === 'development') console.log('PostHog loaded');
+      loaded: () => {
+        if (process.env.NODE_ENV === 'development') {
+          logger.debug('PostHog loaded');
+        }
       },
       // Reduce network requests
       capture_pageview: true,

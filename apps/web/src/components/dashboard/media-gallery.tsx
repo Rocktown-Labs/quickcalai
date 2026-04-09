@@ -8,13 +8,15 @@ import { Trash2 } from "lucide-react";
 import { MediaCard } from "./media-card";
 import { getUserMedia, deleteMediaFile, deleteMultipleMediaFiles } from "@/app/dashboard/media/actions";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 interface Upload {
   id: string;
   fileName: string;
   fileType: string;
   storageUrl: string;
-  status: "pending" | "processing" | "completed" | "failed";
+  status: "pending" | "processing" | "completed" | "failed" | "no_events";
+  failureReason?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,7 +38,7 @@ export function MediaGallery() {
       const userUploads = await getUserMedia();
       setUploads(userUploads);
     } catch (error) {
-      console.error('Failed to load uploads:', error);
+      logger.error('Failed to load uploads', { error });
       toast.error('Failed to load media files');
     } finally {
       setLoading(false);
@@ -70,7 +72,7 @@ export function MediaGallery() {
       setSelectedUploads(new Set());
       toast.success(`Deleted ${selectedUploads.size} file${selectedUploads.size > 1 ? 's' : ''}`);
     } catch (error) {
-      console.error('Failed to delete uploads:', error);
+      logger.error('Failed to delete uploads', { error, count: selectedUploads.size });
       toast.error('Failed to delete files');
     }
   };
@@ -86,7 +88,7 @@ export function MediaGallery() {
       });
       toast.success('File deleted successfully');
     } catch (error) {
-      console.error('Failed to delete upload:', error);
+      logger.error('Failed to delete upload', { error, uploadId });
       toast.error('Failed to delete file');
     }
   };

@@ -1,29 +1,33 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
 import { db } from '@quickcalai/db';
-import { users, uploads, events } from '@quickcalai/db/schema';
+import { users, events } from '@quickcalai/db/schema';
 import { generateICSForManual } from '@/lib/ics';
-import { randomUUID } from 'crypto';
 import { eq } from 'drizzle-orm';
+import { createRouteContext, handleRouteError, jsonError, jsonSuccess, parseJsonBody } from '@/lib/server/route';
+import { manualEventSchema } from '@/lib/validators';
+import { serverLogger } from '@/lib/logger';
 
 export async function POST(request: Request) {
+  const { userId } = await auth();
+  const context = createRouteContext('/api/manual-event', request, { userId: userId ?? undefined });
+
   try {
-    const { userId } = await auth();
-
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return jsonError(context, 401, 'Unauthorized');
     }
 
-    const { title, date, time, description, timezone } = await request.json();
-
-    if (!title || !date) {
-      return NextResponse.json({ error: 'Title and date are required' }, { status: 400 });
-    }
+    const { title, date, time, description, timezone } = await parseJsonBody(request, manualEventSchema);
 
     // Ensure user exists in database
     const clerkUser = await currentUser();
     if (!clerkUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return jsonError(context, 404, 'User not found');
+    }
+
+    const email = clerkUser.emailAddresses[0]?.emailAddress?.trim();
+
+    if (!email) {
+      return jsonError(context, 400, 'Authenticated user is missing an email address');
     }
 
     // Check if user exists, if not create them
@@ -33,7 +37,7 @@ export async function POST(request: Request) {
       // Create user in database
       await db.insert(users).values({
         id: userId,
-        email: clerkUser.emailAddresses?.[0]?.emailAddress || '',
+        email,
         name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || undefined,
         imageUrl: clerkUser.imageUrl,
         phoneNumber: clerkUser.phoneNumbers?.[0]?.phoneNumber,
@@ -59,9 +63,13 @@ export async function POST(request: Request) {
       description: title + (description ? `\n\n${description}` : ''),
       timezone, // Pass timezone for proper ICS generation
     };
-    console.log('Creating calendar event:', calendarEvent, 'in timezone:', timezone);
+    serverLogger.info('Creating manual calendar event', {
+      ...context,
+      timezone,
+      date,
+      hasTime: Boolean(time),
+    });
     const icsContent = generateICSForManual([calendarEvent]);
-    console.log('Generated ICS content:', icsContent.substring(0, 200));
 
     await db.insert(events).values({
       title,
@@ -70,19 +78,18 @@ export async function POST(request: Request) {
       icsContent,
       userId,
       isAllDay: false, // Manual events are not all-day by default
-      uploadId: null as any, // Manual events don't have an associated upload
+      uploadId: null, // Manual events don't have an associated upload
     });
 
     // Return JSON response with ICS content for frontend to handle
     const fileName = `${title.replace(/[^a-zA-Z0-9\s]/g, '_').trim()}.ics`;
-    return NextResponse.json({
+    return jsonSuccess(context, {
       success: true,
       icsContent,
       fileName,
-      message: 'Event created successfully'
+      message: 'Event created successfully',
     });
   } catch (error) {
-    console.error('Manual event creation error:', error);
-    return NextResponse.json({ error: 'Failed to create event' }, { status: 500 });
+    return handleRouteError(error, context, 'Failed to create event');
   }
 }

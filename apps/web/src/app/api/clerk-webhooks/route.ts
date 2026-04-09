@@ -3,14 +3,22 @@ import { db } from '@quickcalai/db';
 import { users, subscriptionStatus } from '@quickcalai/db/schema';
 import { eq } from 'drizzle-orm';
 import { serverLogger } from '@/lib/logger';
+import { createRouteContext, captureRouteError } from '@/lib/server/route';
 import type { NextRequest } from 'next/server';
 
 export async function POST(request: NextRequest) {
+  const context = createRouteContext('/api/clerk-webhooks', request);
+
   try {
     // Verify the webhook
     const evt = await verifyWebhook(request as any);
 
-    serverLogger.log(`Received Clerk webhook: ${evt.type}`);
+    const logger = serverLogger.child({
+      ...context,
+      eventType: evt.type,
+    });
+
+    logger.info('Received Clerk webhook');
 
     // Handle different event types
     if (evt.type === 'user.created' || evt.type === 'user.updated') {
@@ -32,10 +40,13 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        serverLogger.log(`User synced to database: ${user.id}`);
+        logger.info('User synced to database', { syncedUserId: user.id });
         return new Response('User synced to database', { status: 200 });
       } catch (error) {
-        serverLogger.error('Error syncing user to database:', error);
+        captureRouteError(error, context, {
+          eventType: evt.type,
+          syncedUserId: user.id,
+        });
         return new Response('Error syncing user', { status: 500 });
       }
     }
@@ -44,13 +55,13 @@ export async function POST(request: NextRequest) {
       const userId = evt.data.id;
 
       if (!userId) {
-        console.error('User ID missing in delete event');
+        logger.warn('User ID missing in delete event');
         return new Response('User ID missing', { status: 400 });
       }
 
       // Delete user from our database
       await db.delete(users).where(eq(users.id, userId));
-      serverLogger.log(`User deleted from database: ${userId}`);
+      logger.info('User deleted from database', { syncedUserId: userId });
 
       return new Response('User deleted from database', { status: 200 });
     }
@@ -59,12 +70,12 @@ export async function POST(request: NextRequest) {
     if (evt.type.startsWith('subscription') || evt.type.startsWith('subscriptionItem')) {
       const eventData = evt.data as any; // Type assertion for billing events
 
-      serverLogger.log(`Billing event received: ${evt.type}`, {
+      logger.info('Billing event received', {
         userId: eventData.user_id || eventData.payer?.user_id || eventData.customer?.id,
         status: eventData.status,
         subscriptionId: eventData.subscription_id || eventData.id,
         planId: eventData.plan_id,
-        eventData: JSON.stringify(eventData, null, 2)
+        eventData,
       });
 
       try {
@@ -72,9 +83,9 @@ export async function POST(request: NextRequest) {
         const userId = eventData.user_id || eventData.payer?.user_id || eventData.customer?.id;
 
         if (!userId) {
-          serverLogger.error('No user ID found in subscription event', {
+          logger.error('No user ID found in subscription event', {
             eventType: evt.type,
-            availableFields: Object.keys(eventData)
+            availableFields: Object.keys(eventData),
           });
           return new Response('No user ID in event', { status: 400 });
         }
@@ -130,7 +141,13 @@ export async function POST(request: NextRequest) {
 
         // Update subscription status table for subscriptionItem events
         if (evt.type.startsWith('subscriptionItem')) {
-          await db.insert(subscriptionStatus).values({
+          const existingSubscriptionItem = await db
+            .select({ id: subscriptionStatus.id })
+            .from(subscriptionStatus)
+            .where(eq(subscriptionStatus.clerkSubscriptionItemId, eventData.id))
+            .limit(1);
+
+          const subscriptionValues = {
             userId,
             clerkSubscriptionId: eventData.subscription_id,
             clerkSubscriptionItemId: eventData.id,
@@ -140,17 +157,18 @@ export async function POST(request: NextRequest) {
             periodStart: eventData.period_start ? new Date(eventData.period_start * 1000) : null,
             periodEnd: eventData.period_end ? new Date(eventData.period_end * 1000) : null,
             canceledAt: eventData.canceled_at ? new Date(eventData.canceled_at * 1000) : null,
-          }).onConflictDoUpdate({
-            target: [subscriptionStatus.clerkSubscriptionItemId],
-            set: {
-              status,
-              isActive: status === 'active',
-              periodStart: eventData.period_start ? new Date(eventData.period_start * 1000) : null,
-              periodEnd: eventData.period_end ? new Date(eventData.period_end * 1000) : null,
-              canceledAt: eventData.canceled_at ? new Date(eventData.canceled_at * 1000) : null,
-              updatedAt: new Date(),
-            },
-          });
+          };
+
+          if (existingSubscriptionItem[0]) {
+            await db.update(subscriptionStatus)
+              .set({
+                ...subscriptionValues,
+                updatedAt: new Date(),
+              })
+              .where(eq(subscriptionStatus.id, existingSubscriptionItem[0].id));
+          } else {
+            await db.insert(subscriptionStatus).values(subscriptionValues);
+          }
         }
 
         // Update user's premium status based on subscription status
@@ -159,12 +177,18 @@ export async function POST(request: NextRequest) {
           .set({ isPremiumUser })
           .where(eq(users.id, userId));
 
-        serverLogger.log(`Updated subscription status for user ${userId}: ${status} (${evt.type})`);
+        logger.info('Updated subscription status', {
+          userId,
+          status,
+          eventType: evt.type,
+        });
 
         return new Response('Subscription event processed', { status: 200 });
 
       } catch (error) {
-        serverLogger.error('Error processing subscription event:', error);
+        captureRouteError(error, context, {
+          eventType: evt.type,
+        });
         return new Response('Error processing subscription event', { status: 500 });
       }
     }
@@ -172,7 +196,7 @@ export async function POST(request: NextRequest) {
     return new Response('Event type not handled', { status: 200 });
 
   } catch (error) {
-    console.error('Error processing Clerk webhook:', error);
+    captureRouteError(error, context);
     return new Response('Error processing webhook', { status: 400 });
   }
 }

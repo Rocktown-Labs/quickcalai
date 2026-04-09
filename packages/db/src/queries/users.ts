@@ -14,6 +14,8 @@ export async function getUserUploads(userId: string) {
       fileType: uploads.fileType,
       storageUrl: uploads.storageUrl,
       icsUrl: uploads.icsUrl,
+      workflowRunId: uploads.workflowRunId,
+      failureReason: uploads.failureReason,
       status: uploads.status,
       createdAt: uploads.createdAt,
       updatedAt: uploads.updatedAt,

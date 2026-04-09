@@ -1,15 +1,41 @@
 import { put } from '@vercel/blob';
 import { start } from 'workflow/api';
 import { calendarProcessingWorkflow, type CalendarProcessingInput } from '@/workflows/calendar-processing';
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
+import { createUploadRecord, db, updateUploadRecord } from '@quickcalai/db';
+import { users } from '@quickcalai/db/schema';
+import { createRouteContext, handleRouteError, jsonError, jsonSuccess } from '@/lib/server/route';
+import { MAX_UPLOAD_FILE_SIZE_BYTES, isAllowedUploadMimeType } from '@/lib/validators';
 
 export async function POST(request: Request) {
-  try {
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
+  const { userId } = await auth();
+  const context = createRouteContext('/api/upload', request, { userId: userId ?? undefined });
 
-    if (!file) {
-      return Response.json({ error: 'No file provided' }, { status: 400 });
+  try {
+    if (!userId) {
+      return jsonError(context, 401, 'Unauthorized');
+    }
+
+    const formData = await request.formData();
+    const file = formData.get('file');
+
+    if (!(file instanceof File)) {
+      return jsonError(context, 400, 'No file provided');
+    }
+
+    if (!isAllowedUploadMimeType(file.type)) {
+      return jsonError(context, 400, 'Unsupported file type');
+    }
+
+    if (file.size > MAX_UPLOAD_FILE_SIZE_BYTES) {
+      return jsonError(context, 413, 'File exceeds 10MB limit');
+    }
+
+    const clerkUser = await currentUser();
+    const email = clerkUser?.emailAddresses[0]?.emailAddress?.trim();
+
+    if (!clerkUser || !email) {
+      return jsonError(context, 400, 'Authenticated user is missing an email address');
     }
 
     // Upload file to Vercel Blob
@@ -19,27 +45,67 @@ export async function POST(request: Request) {
     });
     const blobUrl = blob.url;
 
-    // Get user ID from auth
-    const { userId } = await auth();
+    await db.insert(users)
+      .values({
+        id: userId,
+        email,
+        name: [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || null,
+        imageUrl: clerkUser.imageUrl,
+        phoneNumber: clerkUser.phoneNumbers[0]?.phoneNumber,
+      })
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          email,
+          name: [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || null,
+          imageUrl: clerkUser.imageUrl,
+          phoneNumber: clerkUser.phoneNumbers[0]?.phoneNumber,
+        },
+      });
+
+    const upload = await createUploadRecord({
+      fileName: file.name,
+      fileType: file.type,
+      storageUrl: blobUrl,
+      userId,
+      status: 'pending',
+    });
 
     // Start the calendar processing workflow
     const workflowInput: CalendarProcessingInput = {
+      uploadId: upload.id,
       blobUrl: blobUrl,
       fileName: file.name,
       fileType: file.type,
-      userId: userId || 'anonymous',
+      userId,
+      userEmail: email,
+      userName: [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || undefined,
+      userImageUrl: clerkUser.imageUrl || undefined,
     };
 
-    const run = await start(calendarProcessingWorkflow, [workflowInput]);
+    try {
+      const run = await start(calendarProcessingWorkflow, [workflowInput]);
 
-    // For now, don't return webhook URL - the client will need to handle this differently
-    return Response.json({
-      message: 'Upload processing started',
-      runId: run.runId
-    });
+      await updateUploadRecord(upload.id, {
+        workflowRunId: run.runId,
+        status: 'processing',
+        failureReason: null,
+      });
 
+      return jsonSuccess(context, {
+        message: 'Upload processing started',
+        runId: run.runId,
+        uploadId: upload.id,
+      });
+    } catch (error) {
+      await updateUploadRecord(upload.id, {
+        status: 'failed',
+        failureReason: 'Failed to start calendar processing workflow.',
+      });
+
+      throw error;
+    }
   } catch (error) {
-    console.error('Upload API error:', error);
-    return Response.json({ error: 'Failed to start processing' }, { status: 500 });
+    return handleRouteError(error, context, 'Failed to start processing');
   }
 }

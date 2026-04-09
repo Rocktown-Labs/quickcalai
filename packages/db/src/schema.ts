@@ -9,12 +9,17 @@ import {
 import { relations } from "drizzle-orm";
 
 
-export const uploadStatusEnum = pgEnum("upload_status", [
+export const uploadStatusValues = [
   "pending", // File uploaded, waiting for workflow to start
   "processing", // AI is analyzing the file
   "completed", // AI finished, one or more events extracted
-  "failed", // AI failed to process or no event found
-]);
+  "failed", // AI failed during processing
+  "no_events", // Document was valid, but no events were found
+] as const;
+
+export type UploadStatus = (typeof uploadStatusValues)[number];
+
+export const uploadStatusEnum = pgEnum("upload_status", uploadStatusValues);
 
 export const subscriptionStatusEnum = pgEnum("billing_status", [
   "active",
@@ -59,6 +64,8 @@ export const uploads = pgTable("uploads", {
   fileType: text("file_type").notNull(), // e.g., 'image/png', 'application/pdf'
   storageUrl: text("storage_url").notNull(), // URL from Vercel Blob, S3, etc.
   icsUrl: text("ics_url"), // URL to the combined ICS file for all events
+  workflowRunId: text("workflow_run_id").unique(),
+  failureReason: text("failure_reason"),
 
   // The status is updated by your Vercel Workflow at each step of the process.
   status: uploadStatusEnum("status").default("pending").notNull(),

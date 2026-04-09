@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, User, Mail, Phone } from 'lucide-react';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface SettingsFormProps {
   user: any;
@@ -45,7 +46,7 @@ export default function SettingsForm({ user }: SettingsFormProps) {
       toast.success('Settings updated successfully!');
       router.refresh();
     } catch (error) {
-      console.error('Settings update error:', error);
+      logger.error('Settings update error', { error });
       toast.error('Failed to update settings');
     } finally {
       setIsLoading(false);

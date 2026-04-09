@@ -22,6 +22,7 @@ import { format } from "date-fns";
 import { downloadFile, emailFile, smsFile } from "@/app/dashboard/files/actions";
 import { toast } from "sonner";
 import Link from "next/link";
+import { logger } from "@/lib/logger";
 
 interface FilesCardProps {
   icsFile: {
@@ -29,7 +30,7 @@ interface FilesCardProps {
     fileName: string;
     originalFileName: string;
     icsUrl: string;
-    status: "pending" | "processing" | "completed" | "failed";
+    status: "pending" | "processing" | "completed" | "failed" | "no_events";
     createdAt: Date;
     updatedAt: Date;
   };
@@ -71,6 +72,11 @@ const statusConfig = {
     label: "Failed",
     color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
     icon: XCircle
+  },
+  no_events: {
+    label: "No Events",
+    color: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300",
+    icon: Calendar
   }
 };
 
@@ -98,8 +104,8 @@ export function FilesCard({ icsFile, events = [], isSelected, onSelect, isPremiu
       document.body.removeChild(link);
       toast.success('ICS file downloaded successfully');
     } catch (error) {
-      console.error('Failed to download file:', error);
-      toast.error('Failed to download file');
+      logger.error('Failed to download file', { error, uploadId: icsFile.id });
+      toast.error(error instanceof Error ? error.message : 'Failed to download file');
     } finally {
       setIsDownloading(false);
     }
@@ -118,7 +124,7 @@ export function FilesCard({ icsFile, events = [], isSelected, onSelect, isPremiu
       setShowEmailForm(false);
       setEmail("");
     } catch (error) {
-      console.error('Failed to email file:', error);
+      logger.error('Failed to email file', { error, uploadId: icsFile.id });
       toast.error(error instanceof Error ? error.message : 'Failed to send email');
     } finally {
       setIsEmailing(false);
@@ -138,7 +144,7 @@ export function FilesCard({ icsFile, events = [], isSelected, onSelect, isPremiu
       setShowSmsForm(false);
       setPhoneNumber("");
     } catch (error) {
-      console.error('Failed to send SMS:', error);
+      logger.error('Failed to send SMS', { error, uploadId: icsFile.id });
       toast.error(error instanceof Error ? error.message : 'Failed to send SMS');
     } finally {
       setIsSmsing(false);

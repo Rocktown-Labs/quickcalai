@@ -1,25 +1,26 @@
 import { db } from '@quickcalai/db';
 import { users } from '@quickcalai/db/schema';
 import type { UserSyncInput } from './index';
+import { serverLogger } from '@/lib/logger';
 
 export async function upsertUser(input: UserSyncInput) {
   "use step";
 
-  console.log("Upserting user:", input.clerkUserId);
+  serverLogger.info('Upserting user from workflow', { clerkUserId: input.clerkUserId });
 
   await db.insert(users).values({
     id: input.clerkUserId,
-    email: input.email || `${input.clerkUserId}@placeholder.com`,
+    email: input.email || `${input.clerkUserId}@clerk.local`,
     name: input.name,
     imageUrl: input.imageUrl,
   }).onConflictDoUpdate({
     target: users.id,
     set: {
-      email: input.email || `${input.clerkUserId}@placeholder.com`,
+      email: input.email || `${input.clerkUserId}@clerk.local`,
       name: input.name,
       imageUrl: input.imageUrl,
     },
   });
 
-  console.log("User upsert completed");
+  serverLogger.info('User upsert completed', { clerkUserId: input.clerkUserId });
 }

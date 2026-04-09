@@ -2,6 +2,7 @@
 
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { revalidatePath } from 'next/cache'
+import { serverLogger } from '@/lib/logger'
 
 export const completeOnboarding = async (formData: FormData) => {
   const { isAuthenticated, userId } = await auth()
@@ -48,7 +49,7 @@ export const completeOnboarding = async (formData: FormData) => {
     revalidatePath('/dashboard')
     return { message: 'Onboarding completed successfully' }
   } catch (err) {
-    console.error('Onboarding error:', err)
+    serverLogger.error('Onboarding action failed', { error: err, userId })
     return { error: 'There was an error completing onboarding.' }
   }
 }

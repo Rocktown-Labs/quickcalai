@@ -10,6 +10,7 @@ vi.mock('@clerk/nextjs', () => ({
     userId: 'test-user-id',
     isLoaded: true,
     has: mockHas,
+    getToken: vi.fn().mockResolvedValue('test-token'),
   }),
   useUser: () => ({
     user: {

@@ -2,14 +2,15 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@quickcalai/db';
 import { users } from '@quickcalai/db/schema';
 import { eq } from 'drizzle-orm';
-import { NextResponse } from 'next/server';
+import { createRouteContext, handleRouteError, jsonError, jsonSuccess } from '@/lib/server/route';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { userId } = await auth();
+  const context = createRouteContext('/api/user/premium-status', request, { userId: userId ?? undefined });
+
   try {
-    const { userId } = await auth();
-
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return jsonError(context, 401, 'Unauthorized');
     }
 
     // Get user premium status from database
@@ -20,14 +21,13 @@ export async function GET() {
       .limit(1);
 
     if (!dbUser[0]) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return jsonError(context, 404, 'User not found');
     }
 
     const isPremium = dbUser[0].isPremiumUser;
 
-    return NextResponse.json({ isPremium });
+    return jsonSuccess(context, { isPremium });
   } catch (error) {
-    console.error('Error checking premium status:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleRouteError(error, context, 'Internal server error');
   }
 }

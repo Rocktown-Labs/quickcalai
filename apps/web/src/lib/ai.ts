@@ -1,8 +1,10 @@
 import { generateText } from "ai"
   ;
+import { serverLogger } from '@/lib/logger';
+
 export async function isDocumentCalendar(fileBuffer: Buffer, fileType: string): Promise<boolean> {
   try {
-    console.log("Performing pre-flight check on document type...");
+    serverLogger.info('Performing pre-flight check on document type', { fileType });
 
     // For PDFs, convert to base64 data URL format that Gemini can handle
     const base64Data = fileBuffer.toString('base64');
@@ -28,11 +30,11 @@ export async function isDocumentCalendar(fileBuffer: Buffer, fileType: string): 
     });
 
     const result = text?.trim().toLowerCase();
-    console.log(`Document type check result: ${result}`);
+    serverLogger.info('Document type check completed', { fileType, result });
     return result === 'yes';
 
   } catch (error) {
-    console.error("Error during document type check:", error);
+    serverLogger.error('Error during document type check', { fileType, error });
     return false;
   }
 }
@@ -49,7 +51,7 @@ export async function extractEventsFromDocument(
   fileType: string,
 ): Promise<ExtractedEvent[]> {
   try {
-    console.log("Calling Gemini API to extract events from document...");
+    serverLogger.info('Calling model to extract events from document', { fileType });
 
     // Convert buffer to base64 data URL
     const base64Data = fileBuffer.toString('base64');
@@ -75,34 +77,34 @@ export async function extractEventsFromDocument(
     });
 
     if (text === undefined) {
-      console.warn("Gemini API returned no text context. Returning empty array.");
+      serverLogger.warn('Model returned no text content for extraction', { fileType });
       return [];
     }
 
     const cleanedText = text.trim().replace(/^```json\s*/, "").replace(/\s*```$/, "");
-    console.log('Cleaned Gemini API response:', cleanedText);
+    serverLogger.debug('Received cleaned extraction response', {
+      fileType,
+      responseLength: cleanedText.length,
+    });
 
     if (cleanedText === "") {
       return [];
     }
 
     const parsedData: Omit<ExtractedEvent, "id">[] = JSON.parse(cleanedText);
-    console.log("Parsed data:", parsedData);
 
     const eventsWithIds = parsedData.map((item, index) => ({
       ...item,
       id: Date.now() + index,
     }));
 
-    console.log("Events with IDs:", eventsWithIds);
+    serverLogger.info('Parsed extracted events', {
+      fileType,
+      extractedEventCount: eventsWithIds.length,
+    });
     return eventsWithIds;
   } catch (error) {
-    console.error("Error calling Gemini API:", error);
-    console.error("Error details:", {
-      name: error instanceof Error ? error.name : "Unknown",
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : "No stack trace",
-    });
+    serverLogger.error('Error calling model for event extraction', { fileType, error });
 
     if (error instanceof Error) {
       throw new Error(`Failed to extract data from document: ${error.message}`);

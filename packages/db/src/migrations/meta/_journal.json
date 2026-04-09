@@ -78,6 +78,13 @@
       "when": 1763659111148,
       "tag": "0010_jazzy_texas_twister",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1775750400000,
+      "tag": "0011_swanky_mobile_readiness",
+      "breakpoints": true
     }
   ]
 }

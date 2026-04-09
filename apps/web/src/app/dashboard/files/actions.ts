@@ -4,12 +4,12 @@ import { auth } from '@clerk/nextjs/server';
 import { getUserUploads, getUploadEvents, db } from '@quickcalai/db';
 import { users } from '@quickcalai/db/schema';
 import { eq } from 'drizzle-orm';
-import { revalidatePath } from 'next/cache';
-import { Resend } from 'resend';
-import { Twilio } from 'twilio';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-const twilio = new Twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+import { serverLogger } from '@/lib/logger';
+import {
+  NotificationConfigurationError,
+  sendCalendarFileEmail,
+  sendCalendarFileSms,
+} from '@/lib/server/notifications';
 
 export async function getUserFiles() {
   const { userId } = await auth();
@@ -25,14 +25,22 @@ export async function getUserFiles() {
     // Exclude manual events since they don't have downloadable ICS files
     const icsFiles = await Promise.all(
       uploads
-        .filter(upload => upload.status === 'completed' && upload.fileType !== 'manual')
+        .filter(
+          (
+            upload
+          ): upload is typeof upload & { icsUrl: string } =>
+            upload.status === 'completed' &&
+            upload.fileType !== 'manual' &&
+            typeof upload.icsUrl === 'string' &&
+            upload.icsUrl.length > 0
+        )
         .map(async (upload) => {
           const events = await getUploadEvents(upload.id);
           return {
             id: upload.id,
             fileName: `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`, // Replace extension with .ics
             originalFileName: upload.fileName,
-            icsUrl: (upload as any).icsUrl,
+            icsUrl: upload.icsUrl,
             status: upload.status,
             createdAt: upload.createdAt,
             updatedAt: upload.updatedAt,
@@ -47,7 +55,7 @@ export async function getUserFiles() {
 
     return icsFiles;
   } catch (error) {
-    console.error('Failed to fetch user files:', error);
+    serverLogger.error('Failed to fetch user files', { userId, error });
     throw new Error('Failed to load files');
   }
 }
@@ -74,12 +82,16 @@ export async function downloadFile(uploadId: string) {
     }
 
     // Return the ICS file URL
-    const icsUrl = (upload as any).icsUrl;
+    const icsUrl = upload.icsUrl;
     const fileName = `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`;
+
+    if (!icsUrl) {
+      throw new Error('File is not ready for download');
+    }
 
     return { storageUrl: icsUrl, fileName };
   } catch (error) {
-    console.error('Failed to get download URL:', error);
+    serverLogger.error('Failed to get download URL', { userId, uploadId, error });
     throw new Error('Failed to download file');
   }
 }
@@ -113,39 +125,33 @@ export async function emailFile(uploadId: string, email: string) {
     }
 
     // Get the ICS file content
-    const icsUrl = (upload as any).icsUrl;
+    const icsUrl = upload.icsUrl;
     const icsFileName = `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`;
 
+    if (!icsUrl) {
+      throw new Error('File is not ready for sharing');
+    }
+
     try {
-      // Send email with ICS file attachment
-      await resend.emails.send({
-        from: 'QuickCalAI <noreply@extractions.quickcalai.com>',
+      await sendCalendarFileEmail({
+        uploadId,
+        userId,
         to: email,
-        subject: `Your Calendar Events - ${icsFileName}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">Your Calendar Events are Ready!</h2>
-            <p>Hi there,</p>
-            <p>Your calendar events have been extracted and are attached to this email as an ICS file.</p>
-            <p>You can import this file into any calendar application (Google Calendar, Outlook, Apple Calendar, etc.).</p>
-            <p>Best regards,<br>The QuickCal AI Team</p>
-          </div>
-        `,
-        attachments: [
-          {
-            filename: icsFileName,
-            path: icsUrl,
-          },
-        ],
+        fileName: icsFileName,
+        icsUrl,
       });
 
       return { success: true, message: `ICS file sent to ${email}` };
     } catch (emailError) {
-      console.error('Email sending failed:', emailError);
+      if (emailError instanceof NotificationConfigurationError) {
+        throw new Error(emailError.message);
+      }
+
+      serverLogger.error('Email sending failed', { userId, uploadId, email, error: emailError });
       throw new Error('Failed to send email');
     }
   } catch (error) {
-    console.error('Failed to email file:', error);
+    serverLogger.error('Failed to email file', { userId, uploadId, email, error });
     throw new Error('Failed to send email');
   }
 }
@@ -179,23 +185,36 @@ export async function smsFile(uploadId: string, phoneNumber: string) {
     }
 
     // Send SMS with download link
-    const icsUrl = (upload as any).icsUrl;
-    const icsFileName = `${upload.fileName.replace(/\.[^/.]+$/, '')}.ics`;
+    const icsUrl = upload.icsUrl;
+
+    if (!icsUrl) {
+      throw new Error('File is not ready for sharing');
+    }
 
     try {
-      await twilio.messages.create({
-        body: `Your calendar events are ready! Download your ICS file: ${icsUrl}`,
-        from: process.env.TWILIO_PHONE_NUMBER,
+      await sendCalendarFileSms({
+        uploadId,
+        userId,
         to: phoneNumber,
+        icsUrl,
       });
 
       return { success: true, message: `Download link sent to ${phoneNumber}` };
     } catch (smsError) {
-      console.error('SMS sending failed:', smsError);
+      if (smsError instanceof NotificationConfigurationError) {
+        throw new Error(smsError.message);
+      }
+
+      serverLogger.error('SMS sending failed', {
+        userId,
+        uploadId,
+        phoneNumber,
+        error: smsError,
+      });
       throw new Error('Failed to send SMS');
     }
   } catch (error) {
-    console.error('Failed to send SMS:', error);
+    serverLogger.error('Failed to send SMS', { userId, uploadId, phoneNumber, error });
     throw new Error('Failed to send SMS');
   }
 }
@@ -226,7 +245,7 @@ export async function getUserContactInfo() {
       phoneNumber: user[0]?.phoneNumber || ''
     };
   } catch (error) {
-    console.error('Failed to fetch user contact info:', error);
+    serverLogger.error('Failed to fetch user contact info', { userId, error });
     throw new Error('Failed to load contact information');
   }
 }

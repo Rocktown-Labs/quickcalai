@@ -8,13 +8,14 @@ import { Crown } from "lucide-react";
 import { FilesCard } from "./files-card";
 import { getUserFiles, getUserContactInfo } from "@/app/dashboard/files/actions";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 interface IcsFile {
   id: string;
   fileName: string;
   originalFileName: string;
   icsUrl: string;
-  status: "pending" | "processing" | "completed" | "failed";
+  status: "pending" | "processing" | "completed" | "failed" | "no_events";
   createdAt: Date;
   updatedAt: Date;
   events?: Array<{
@@ -51,7 +52,7 @@ export function FilesGallery() {
       setIcsFiles(filesData);
       setUserContactInfo(contactInfo);
     } catch (error) {
-      console.error('Failed to load data:', error);
+      logger.error('Failed to load files data', { error });
       toast.error('Failed to load files');
     } finally {
       setLoading(false);

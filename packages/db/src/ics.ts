@@ -9,7 +9,6 @@ export interface CalendarEvent {
 
 // For AI-extracted events - treat times as document local time
 export function generateICSForAI(events: CalendarEvent[]): string {
-  console.log('Generating ICS for AI-extracted events (document local time)');
   const icsEvents: EventAttributes[] = events.map((event) => {
     const dateParts = event.date.split("-").map(Number);
     const [year, month, day] = dateParts;
@@ -21,7 +20,6 @@ export function generateICSForAI(events: CalendarEvent[]): string {
 
     // If a specific time is provided, create a timed event with a 1-hour duration.
     if (event.time && event.time.trim() !== '') {
-      console.log('Creating AI timed event for time:', event.time);
       const timeParts = event.time.split(":").map(Number);
       const [hour, minute] = timeParts;
 
@@ -35,8 +33,6 @@ export function generateICSForAI(events: CalendarEvent[]): string {
         start: [year, month, day, hour, minute] as [number, number, number, number, number],
         duration: { hours: 1 },
       };
-    } else {
-      console.log('Creating AI all-day event, time was:', event.time);
     }
 
     // Otherwise, create an all-day event by specifying a 1-day duration.
@@ -59,7 +55,6 @@ export function generateICSForAI(events: CalendarEvent[]): string {
 
 // For manual events - respect user's timezone
 export function generateICSForManual(events: CalendarEvent[]): string {
-  console.log('Generating ICS for manual events (user timezone aware)');
   const icsEvents: EventAttributes[] = events.map((event) => {
     const dateParts = event.date.split("-").map(Number);
     const [year, month, day] = dateParts;
@@ -69,14 +64,8 @@ export function generateICSForManual(events: CalendarEvent[]): string {
       throw new Error(`Invalid date format: ${event.date}`);
     }
 
-    // Log timezone information for debugging
-    if (event.timezone) {
-      console.log(`Generating manual ICS event in timezone: ${event.timezone}`);
-    }
-
     // If a specific time is provided, create a timed event with a 1-hour duration.
     if (event.time && event.time.trim() !== '') {
-      console.log('Creating manual timed event for time:', event.time);
       const timeParts = event.time.split(":").map(Number);
       const [hour, minute] = timeParts;
 
@@ -90,8 +79,6 @@ export function generateICSForManual(events: CalendarEvent[]): string {
         start: [year, month, day, hour, minute] as [number, number, number, number, number],
         duration: { hours: 1 },
       };
-    } else {
-      console.log('Creating manual all-day event, time was:', event.time);
     }
 
     // Otherwise, create an all-day event by specifying a 1-day duration.

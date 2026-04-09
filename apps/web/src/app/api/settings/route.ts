@@ -1,18 +1,20 @@
 import { auth } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
 import { db } from '@quickcalai/db';
 import { users } from '@quickcalai/db/schema';
 import { eq } from 'drizzle-orm';
+import { createRouteContext, handleRouteError, jsonError, jsonSuccess, parseJsonBody } from '@/lib/server/route';
+import { settingsSchema } from '@/lib/validators';
 
 export async function POST(request: Request) {
-  try {
-    const { userId } = await auth();
+  const { userId } = await auth();
+  const context = createRouteContext('/api/settings', request, { userId: userId ?? undefined });
 
+  try {
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return jsonError(context, 401, 'Unauthorized');
     }
 
-    const { firstName, lastName, email, phone } = await request.json();
+    const { firstName, lastName, email, phone } = await parseJsonBody(request, settingsSchema);
 
     // Check if the email is already used by another user
     if (email) {
@@ -22,24 +24,22 @@ export async function POST(request: Request) {
         .limit(1);
 
       if (existingUser[0] && existingUser[0].id !== userId) {
-        return NextResponse.json({
-          error: 'This email address is already in use by another account'
-        }, { status: 400 });
+        return jsonError(context, 400, 'This email address is already in use by another account');
       }
     }
 
-    // Update user information in our database
+    const name = `${firstName} ${lastName}`.trim();
+
     await db.update(users)
       .set({
         email,
-        name: `${firstName} ${lastName}`.trim(),
-        phoneNumber: phone,
+        name: name || null,
+        phoneNumber: phone || null,
       })
       .where(eq(users.id, userId));
 
-    return NextResponse.json({ success: true });
+    return jsonSuccess(context, { success: true });
   } catch (error) {
-    console.error('Settings update error:', error);
-    return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 });
+    return handleRouteError(error, context, 'Failed to update settings');
   }
 }

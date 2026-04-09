@@ -23,7 +23,8 @@ interface MediaCardProps {
     fileName: string;
     fileType: string;
     storageUrl: string;
-    status: "pending" | "processing" | "completed" | "failed";
+    status: "pending" | "processing" | "completed" | "failed" | "no_events";
+    failureReason?: string | null;
     createdAt: Date;
     updatedAt: Date;
   };
@@ -53,6 +54,11 @@ const statusConfig = {
     label: "Failed",
     color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
     icon: XCircle
+  },
+  no_events: {
+    label: "No Events",
+    color: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300",
+    icon: Calendar
   }
 };
 
@@ -120,12 +126,24 @@ export function MediaCard({ upload, isSelected, onSelect, onDelete, onDownload }
 
 
 
+        <div className="mb-4 flex items-center justify-between">
+          <Badge className={statusInfo.color}>
+            <StatusIcon className={`w-3 h-3 mr-1 ${upload.status === 'processing' ? 'animate-spin' : ''}`} />
+            {statusInfo.label}
+          </Badge>
+        </div>
+
+        {upload.failureReason ? (
+          <p className="mb-4 text-xs text-muted-foreground">{upload.failureReason}</p>
+        ) : null}
+
         <div className="flex space-x-2">
           <Button
             variant="outline"
             size="sm"
             onClick={onDownload}
             className="flex-1"
+            disabled={upload.status !== 'completed'}
           >
             <Download className="w-4 h-4 mr-1" />
             Download

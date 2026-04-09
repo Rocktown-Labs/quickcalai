@@ -5,6 +5,7 @@ import * as Sentry from '@sentry/nextjs';
 import { db } from '@quickcalai/db';
 import { events, uploads } from '@quickcalai/db/schema';
 import { and, desc, eq, sql } from 'drizzle-orm';
+import { serverLogger } from '@/lib/logger';
 
 type DashboardStats = {
   totalUploads: number;
@@ -13,7 +14,8 @@ type DashboardStats = {
   recentUploads: Array<{
     id: string;
     fileName: string;
-    status: 'pending' | 'processing' | 'completed' | 'failed';
+    status: 'pending' | 'processing' | 'completed' | 'failed' | 'no_events';
+    failureReason: string | null;
     createdAt: Date;
     eventCount: number;
   }>;
@@ -54,6 +56,7 @@ export async function getDashboardStats() {
           id: uploads.id,
           fileName: uploads.fileName,
           status: uploads.status,
+          failureReason: uploads.failureReason,
           createdAt: uploads.createdAt,
           eventCount: sql<number>`count(${events.id})::int`,
         })
@@ -63,7 +66,7 @@ export async function getDashboardStats() {
           and(eq(events.uploadId, uploads.id), eq(events.userId, userId))
         )
         .where(eq(uploads.userId, userId))
-        .groupBy(uploads.id, uploads.fileName, uploads.status, uploads.createdAt)
+        .groupBy(uploads.id, uploads.fileName, uploads.status, uploads.failureReason, uploads.createdAt)
         .orderBy(desc(uploads.createdAt))
         .limit(5),
     ]);
@@ -76,6 +79,7 @@ export async function getDashboardStats() {
         id: upload.id,
         fileName: upload.fileName,
         status: upload.status,
+        failureReason: upload.failureReason,
         createdAt: upload.createdAt,
         eventCount: upload.eventCount,
       })),
@@ -92,7 +96,7 @@ export async function getDashboardStats() {
       },
     });
 
-    console.error('Failed to fetch dashboard stats:', error);
+    serverLogger.error('Failed to fetch dashboard stats', { userId, error });
     return EMPTY_DASHBOARD_STATS;
   }
 }

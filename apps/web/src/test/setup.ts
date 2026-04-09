@@ -1,4 +1,3 @@
-import '@testing-library/jest-dom'
 import { expect, afterEach, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import * as matchers from '@testing-library/jest-dom/matchers'
@@ -47,6 +46,7 @@ vi.mock('@clerk/nextjs', () => ({
     userId: 'test-user-id',
     isLoaded: true,
     has: vi.fn(() => false),
+    getToken: vi.fn().mockResolvedValue('test-token'),
   }),
 }))
 

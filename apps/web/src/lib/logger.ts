@@ -1,67 +1,119 @@
-// Simple logger utility for development logging
-// Logs are only shown in development mode
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-export const logger = {
-  log: (...args: any[]) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(...args);
-    }
-  },
+export type LogContext = Record<string, unknown>;
 
-  error: (...args: any[]) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(...args);
-    }
-  },
+function serializeError(error: Error) {
+  return {
+    name: error.name,
+    message: error.message,
+    stack: error.stack,
+  };
+}
 
-  warn: (...args: any[]) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn(...args);
-    }
-  },
+function normalizeValue(value: unknown): unknown {
+  if (value instanceof Error) {
+    return serializeError(value);
+  }
 
-  info: (...args: any[]) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.info(...args);
-    }
-  },
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
 
-  debug: (...args: any[]) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug(...args);
-    }
-  },
-};
+  if (Array.isArray(value)) {
+    return value.map(normalizeValue);
+  }
 
-// For server-side logging (API routes, etc.)
-export const serverLogger = {
-  log: (...args: any[]) => {
-    if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
-      console.log(...args);
-    }
-  },
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [key, normalizeValue(entry)])
+    );
+  }
 
-  error: (...args: any[]) => {
-    if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
-      console.error(...args);
-    }
-  },
+  return value;
+}
 
-  warn: (...args: any[]) => {
-    if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
-      console.warn(...args);
-    }
-  },
+function normalizeContext(context?: LogContext) {
+  if (!context) {
+    return {};
+  }
 
-  info: (...args: any[]) => {
-    if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
-      console.info(...args);
-    }
-  },
+  return Object.fromEntries(
+    Object.entries(context).map(([key, value]) => [key, normalizeValue(value)])
+  );
+}
 
-  debug: (...args: any[]) => {
-    if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
-      console.debug(...args);
-    }
-  },
-};
+function writeLog(level: LogLevel, message: string, context: LogContext) {
+  if (process.env.NODE_ENV === 'test' && level === 'debug') {
+    return;
+  }
+
+  const payload = {
+    timestamp: new Date().toISOString(),
+    level,
+    ...context,
+  };
+  const prefix = `[quickcalai:${level}] ${message}`;
+
+  switch (level) {
+    case 'debug':
+      console.debug(prefix, payload);
+      break;
+    case 'info':
+      console.info(prefix, payload);
+      break;
+    case 'warn':
+      console.warn(prefix, payload);
+      break;
+    case 'error':
+      console.error(prefix, payload);
+      break;
+  }
+}
+
+export function toErrorDetails(error: unknown): LogContext {
+  if (error instanceof Error) {
+    return serializeError(error);
+  }
+
+  return {
+    error: typeof error === 'string' ? error : 'Unknown error',
+  };
+}
+
+export function createLogger(baseContext: LogContext = {}) {
+  const normalizedBaseContext = normalizeContext(baseContext);
+
+  const logWithLevel = (level: LogLevel, message: string, context?: LogContext) => {
+    writeLog(level, message, {
+      ...normalizedBaseContext,
+      ...normalizeContext(context),
+    });
+  };
+
+  return {
+    child(childContext: LogContext) {
+      return createLogger({
+        ...normalizedBaseContext,
+        ...normalizeContext(childContext),
+      });
+    },
+    log(message: string, context?: LogContext) {
+      logWithLevel('info', message, context);
+    },
+    info(message: string, context?: LogContext) {
+      logWithLevel('info', message, context);
+    },
+    warn(message: string, context?: LogContext) {
+      logWithLevel('warn', message, context);
+    },
+    error(message: string, context?: LogContext) {
+      logWithLevel('error', message, context);
+    },
+    debug(message: string, context?: LogContext) {
+      logWithLevel('debug', message, context);
+    },
+  };
+}
+
+export const logger = createLogger({ runtime: 'client' });
+export const serverLogger = createLogger({ runtime: 'server' });

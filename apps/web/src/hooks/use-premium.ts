@@ -52,7 +52,7 @@ export function usePremium() {
         setIsPremium(clerkPremiumStatus);
       }
     } catch (error) {
-      logger.error('Error checking premium status:', error);
+      logger.error('Error checking premium status', { error });
       setIsPremium(false);
     } finally {
       setIsLoading(false);
