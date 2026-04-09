@@ -54,6 +54,14 @@ export async function getUserFiles() {
 
     return icsFiles;
   } catch (error) {
+    if (isRecoverableFreshDatabaseError(error)) {
+      serverLogger.warn("Files unavailable during schema bootstrap", {
+        userId,
+        error,
+      });
+      return [];
+    }
+
     serverLogger.error("Failed to fetch user files", { userId, error });
     throw new Error("Failed to load files");
   }

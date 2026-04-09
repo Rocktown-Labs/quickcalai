@@ -4,6 +4,12 @@ const RECOVERABLE_SCHEMA_SQLSTATE_CODES = new Set([
   "42704", // undefined_object
 ]);
 
+const RECOVERABLE_QUERY_TARGETS = [
+  'from "uploads"',
+  'from "events"',
+  'from "users"',
+];
+
 function getErrorMessage(value: unknown): string | undefined {
   if (!value || typeof value !== "object") {
     return undefined;
@@ -50,6 +56,14 @@ export function isRecoverableFreshDatabaseError(error: unknown): boolean {
 
     const message = getErrorMessage(current)?.toLowerCase();
     if (message?.includes("does not exist")) {
+      return true;
+    }
+
+    // Drizzle often wraps schema errors in a generic "Failed query" message.
+    if (
+      message?.includes("failed query:") &&
+      RECOVERABLE_QUERY_TARGETS.some((target) => message.includes(target))
+    ) {
       return true;
     }
 
