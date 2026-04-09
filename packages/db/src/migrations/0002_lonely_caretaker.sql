@@ -1,11 +1,11 @@
-CREATE TYPE "public"."subscription_status" AS ENUM('active', 'canceled', 'past_due', 'incomplete', 'ended', 'upcoming', 'free');--> statement-breakpoint
+CREATE TYPE "public"."billing_status" AS ENUM('active', 'canceled', 'past_due', 'incomplete', 'ended', 'upcoming', 'free');--> statement-breakpoint
 CREATE TABLE "subscription_status" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" text NOT NULL,
 	"clerk_subscription_id" text,
 	"clerk_subscription_item_id" text,
 	"plan_id" text,
-	"status" "subscription_status" NOT NULL,
+	"status" "billing_status" NOT NULL,
 	"is_active" boolean DEFAULT false NOT NULL,
 	"period_start" timestamp,
 	"period_end" timestamp,
