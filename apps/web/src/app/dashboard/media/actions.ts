@@ -4,6 +4,7 @@ import { auth } from '@clerk/nextjs/server';
 import { getUserUploads, deleteUpload } from '@quickcalai/db';
 import { revalidatePath } from 'next/cache';
 import { serverLogger } from '@/lib/logger';
+import { isRecoverableFreshDatabaseError } from '@/lib/server/db-errors';
 
 export async function getUserMedia() {
   const { userId } = await auth();
@@ -16,6 +17,14 @@ export async function getUserMedia() {
     const uploads = await getUserUploads(userId);
     return uploads;
   } catch (error) {
+    if (isRecoverableFreshDatabaseError(error)) {
+      serverLogger.warn('Media unavailable during schema bootstrap', {
+        userId,
+        error,
+      });
+      return [];
+    }
+
     serverLogger.error('Failed to fetch user media', { userId, error });
     throw new Error('Failed to load media files');
   }

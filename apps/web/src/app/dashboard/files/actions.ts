@@ -5,6 +5,7 @@ import { getUserUploads, getUploadEvents, db } from '@quickcalai/db';
 import { users } from '@quickcalai/db/schema';
 import { eq } from 'drizzle-orm';
 import { serverLogger } from '@/lib/logger';
+import { isRecoverableFreshDatabaseError } from '@/lib/server/db-errors';
 import {
   NotificationConfigurationError,
   sendCalendarFileEmail,
@@ -245,6 +246,17 @@ export async function getUserContactInfo() {
       phoneNumber: user[0]?.phoneNumber || ''
     };
   } catch (error) {
+    if (isRecoverableFreshDatabaseError(error)) {
+      serverLogger.warn('Contact info unavailable during schema bootstrap', {
+        userId,
+        error,
+      });
+      return {
+        email: '',
+        phoneNumber: '',
+      };
+    }
+
     serverLogger.error('Failed to fetch user contact info', { userId, error });
     throw new Error('Failed to load contact information');
   }

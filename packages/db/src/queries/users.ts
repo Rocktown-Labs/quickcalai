@@ -7,22 +7,53 @@ export async function getUserById(userId: string) {
 }
 
 export async function getUserUploads(userId: string) {
-  return await db
-    .select({
-      id: uploads.id,
-      fileName: uploads.fileName,
-      fileType: uploads.fileType,
-      storageUrl: uploads.storageUrl,
-      icsUrl: uploads.icsUrl,
-      workflowRunId: uploads.workflowRunId,
-      failureReason: uploads.failureReason,
-      status: uploads.status,
-      createdAt: uploads.createdAt,
-      updatedAt: uploads.updatedAt,
-    })
-    .from(uploads)
-    .where(eq(uploads.userId, userId))
-    .orderBy(desc(uploads.createdAt));
+  try {
+    return await db
+      .select({
+        id: uploads.id,
+        fileName: uploads.fileName,
+        fileType: uploads.fileType,
+        storageUrl: uploads.storageUrl,
+        icsUrl: uploads.icsUrl,
+        workflowRunId: uploads.workflowRunId,
+        failureReason: uploads.failureReason,
+        status: uploads.status,
+        createdAt: uploads.createdAt,
+        updatedAt: uploads.updatedAt,
+      })
+      .from(uploads)
+      .where(eq(uploads.userId, userId))
+      .orderBy(desc(uploads.createdAt));
+  } catch (error) {
+    const maybeMessage =
+      error instanceof Error ? error.message.toLowerCase() : '';
+
+    // Handle older/fresh schemas that don't have optional upload columns yet.
+    if (!maybeMessage.includes('does not exist')) {
+      throw error;
+    }
+
+    const legacyUploads = await db
+      .select({
+        id: uploads.id,
+        fileName: uploads.fileName,
+        fileType: uploads.fileType,
+        storageUrl: uploads.storageUrl,
+        status: uploads.status,
+        createdAt: uploads.createdAt,
+        updatedAt: uploads.updatedAt,
+      })
+      .from(uploads)
+      .where(eq(uploads.userId, userId))
+      .orderBy(desc(uploads.createdAt));
+
+    return legacyUploads.map((upload) => ({
+      ...upload,
+      icsUrl: null,
+      workflowRunId: null,
+      failureReason: null,
+    }));
+  }
 }
 
 export async function getUserEvents(userId: string) {
