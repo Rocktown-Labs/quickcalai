@@ -1,10 +1,9 @@
 // Service Worker for caching and performance
-const CACHE_NAME = 'quickcalai-v1';
-const STATIC_CACHE = 'quickcalai-static-v1';
+const CACHE_NAME = 'quickcalai-v2';
+const STATIC_CACHE = 'quickcalai-static-v2';
 
 // Resources to cache immediately
 const STATIC_ASSETS = [
-  '/',
   '/manifest.json',
   '/favicon.ico',
   '/apple-icon.png',
@@ -30,10 +29,13 @@ self.addEventListener('activate', (event) => {
           if (cacheName !== STATIC_CACHE && cacheName !== CACHE_NAME) {
             return caches.delete(cacheName);
           }
+
+          return Promise.resolve(false);
         })
       );
     })
   );
+  self.clients.claim();
 });
 
 // Fetch event - serve from cache when possible
@@ -43,6 +45,16 @@ self.addEventListener('fetch', (event) => {
 
   // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) return;
+
+  const url = new URL(event.request.url);
+
+  // Avoid caching navigations and application routes to prevent stale HTML shells.
+  if (event.request.mode === 'navigate') return;
+
+  // Skip API and dev-tool style paths.
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/@') || url.pathname.startsWith('/src/')) {
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request)
@@ -66,9 +78,6 @@ self.addEventListener('fetch', (event) => {
           return response;
         });
       })
-      .catch(() => {
-        // Return offline fallback if available
-        return caches.match('/');
-      })
+      .catch(() => fetch(event.request))
   );
 });

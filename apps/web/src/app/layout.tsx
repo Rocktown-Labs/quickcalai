@@ -57,6 +57,11 @@ const geistMono = Geist_Mono({
 	preload: true,
 });
 
+const serviceWorkerScriptSrc =
+	process.env.NODE_ENV === "production"
+		? "/sw-register.js"
+		: "/sw-dev-cleanup.js";
+
 export const metadata: Metadata = {
 	title: {
 		default: "QuickCalAI - AI-Powered Calendar Extraction",
@@ -161,16 +166,8 @@ export default function RootLayout({
 					}}
 				/>
 				<script
-					dangerouslySetInnerHTML={{
-						__html: `
-							if ('serviceWorker' in navigator) {
-								window.addEventListener('load', function() {
-									navigator.serviceWorker.register('/sw.js')
-										.catch(function() {});
-								});
-							}
-						`,
-					}}
+					src={serviceWorkerScriptSrc}
+					defer
 				/>
 			</head>
 			<body
