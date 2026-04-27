@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>QuickCalAI Promo</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: oklch(0.09 0 0);
+      }
+      .scene {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        visibility: hidden;
+      }
+      .scene.active {
+        opacity: 1;
+        visibility: visible;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="18"
+      data-width="1080"
+      data-height="1920"
+    >
+      <!-- Hook Scene -->
+      <div
+        id="scene-hook"
+        class="scene"
+        data-composition-id="hook"
+        data-composition-src="compositions/hook.html"
+        data-start="0"
+        data-duration="3"
+        data-track-index="1"
+        data-width="1080"
+        data-height="1920"
+      ></div>
+
+      <!-- Upload Scene -->
+      <div
+        id="scene-upload"
+        class="scene"
+        data-composition-id="upload"
+        data-composition-src="compositions/upload.html"
+        data-start="3"
+        data-duration="4"
+        data-track-index="1"
+        data-width="1080"
+        data-height="1920"
+      ></div>
+
+      <!-- Magic Scene -->
+      <div
+        id="scene-magic"
+        class="scene"
+        data-composition-id="magic"
+        data-composition-src="compositions/magic.html"
+        data-start="7"
+        data-duration="4"
+        data-track-index="1"
+        data-width="1080"
+        data-height="1920"
+      ></div>
+
+      <!-- Result Scene -->
+      <div
+        id="scene-result"
+        class="scene"
+        data-composition-id="result"
+        data-composition-src="compositions/result.html"
+        data-start="11"
+        data-duration="3.5"
+        data-track-index="1"
+        data-width="1080"
+        data-height="1920"
+      ></div>
+
+      <!-- CTA Scene -->
+      <div
+        id="scene-cta"
+        class="scene"
+        data-composition-id="cta"
+        data-composition-src="compositions/cta.html"
+        data-start="14.5"
+        data-duration="3.5"
+        data-track-index="1"
+        data-width="1080"
+        data-height="1920"
+      ></div>
+    </div>
+
+    <script>
+      (function() {
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        // Simple crossfade transitions between scenes
+        const scenes = ["#scene-hook", "#scene-upload", "#scene-magic", "#scene-result", "#scene-cta"];
+        const timings = [0, 3, 7, 11, 14.5];
+
+        scenes.forEach((selector, i) => {
+          const start = timings[i];
+          // Show scene
+          tl.set(selector, { visibility: "visible", opacity: 1 }, start);
+          
+          // Hide previous scene if not the first
+          if (i > 0) {
+            tl.to(scenes[i-1], { opacity: 0, duration: 0.5, ease: "power2.inOut" }, start);
+            tl.set(scenes[i-1], { visibility: "hidden" }, start + 0.5);
+          }
+        });
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>

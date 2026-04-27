@@ -1,0 +1,104 @@
+<template id="result-template">
+  <div data-composition-id="result" data-width="1080" data-height="1920" data-start="0">
+    <div class="scene-content">
+      <div class="text-top">
+        <h2 class="subtitle">Download your .ics and you're done.</h2>
+      </div>
+
+      <div class="success-card">
+        <div class="success-header">
+          <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="oklch(0.58 0.22 25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span class="success-title">Processing Complete!</span>
+        </div>
+        <p class="success-text">Successfully extracted 12 calendar events!</p>
+        <div class="button-group">
+          <div class="btn primary-btn">View Extracted Events</div>
+          <div class="btn outline-btn">Download .ics</div>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      [data-composition-id="result"] {
+        background: oklch(0.09 0 0);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        color: oklch(0.95 0 0);
+      }
+      .scene-content {
+        width: 100%;
+        height: 100%;
+        padding: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      .text-top {
+        margin-bottom: 80px;
+        text-align: center;
+      }
+      .subtitle {
+        font-size: 72px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .success-card {
+        width: 100%;
+        background: oklch(0.13 0 0);
+        padding: 80px 60px;
+        border-radius: 40px;
+        border: 2px solid oklch(0.58 0.22 25 / 0.2);
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 32px;
+        box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+      }
+      .success-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+      }
+      .success-title { font-size: 56px; font-weight: 800; }
+      .success-text { font-size: 32px; color: oklch(0.55 0 0); }
+      .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        width: 100%;
+        margin-top: 40px;
+      }
+      .btn {
+        padding: 32px;
+        border-radius: 20px;
+        font-size: 32px;
+        font-weight: 600;
+      }
+      .primary-btn {
+        background: oklch(0.58 0.22 25);
+        color: white;
+      }
+      .outline-btn {
+        border: 2px solid oklch(0.2 0 0);
+        color: oklch(0.95 0 0);
+      }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      (function() {
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        tl.from(".subtitle", { y: -40, opacity: 0, duration: 0.8, ease: "power3.out" }, 0.2);
+        tl.from(".success-card", { scale: 0.9, opacity: 0, duration: 1.2, ease: "expo.out" }, 0.4);
+        tl.from(".success-header svg", { scale: 0, rotation: -90, duration: 1, ease: "back.out(2)" }, 0.8);
+        tl.from(".btn", { y: 20, opacity: 0, duration: 0.6, stagger: 0.2, ease: "power2.out" }, 1.2);
+
+        window.__timelines["result"] = tl;
+      })();
+    </script>
+  </div>
+</template>

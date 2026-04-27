@@ -1,0 +1,124 @@
+<template id="upload-template">
+  <div data-composition-id="upload" data-width="1080" data-height="1920" data-start="0">
+    <div class="scene-content">
+      <div class="text-top">
+        <h2 class="subtitle">Upload any image or PDF.</h2>
+      </div>
+
+      <div class="uploader-card">
+        <div class="card-header">
+          <div class="icon-sparkles">✨</div>
+          <span class="card-title">Create Calendar Events</span>
+        </div>
+        <div class="upload-area">
+          <div class="upload-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-upload"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+          </div>
+          <p class="upload-text">Drop your document here</p>
+          <p class="upload-subtext">Supports JPEG, PNG, WebP, and PDF</p>
+        </div>
+      </div>
+
+      <div class="cursor">🖱️</div>
+    </div>
+
+    <style>
+      [data-composition-id="upload"] {
+        background: oklch(0.09 0 0);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        color: oklch(0.95 0 0);
+      }
+      .scene-content {
+        width: 100%;
+        height: 100%;
+        padding: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      .text-top {
+        margin-bottom: 80px;
+        text-align: center;
+      }
+      .subtitle {
+        font-size: 72px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .uploader-card {
+        width: 100%;
+        background: oklch(0.13 0 0);
+        border: 4px dashed oklch(0.2 0 0);
+        border-radius: 40px;
+        padding: 60px;
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+      }
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .icon-sparkles { font-size: 40px; }
+      .card-title { font-size: 32px; font-weight: 600; }
+      .upload-area {
+        border: 4px dashed oklch(0.2 0 0);
+        border-radius: 24px;
+        padding: 80px 40px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+      }
+      .upload-icon { color: oklch(0.55 0 0); }
+      .upload-text { font-size: 36px; font-weight: 500; }
+      .upload-subtext { font-size: 24px; color: oklch(0.55 0 0); }
+      .cursor {
+        position: absolute;
+        font-size: 64px;
+        pointer-events: none;
+        z-index: 10;
+        top: 70%;
+        left: 80%;
+      }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      (function() {
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        tl.from(".subtitle", { y: -40, opacity: 0, duration: 0.8, ease: "power3.out" }, 0.2);
+        tl.from(".uploader-card", { scale: 0.9, opacity: 0, duration: 1, ease: "expo.out" }, 0.4);
+
+        // Animate cursor moving to click
+        tl.from(".cursor", {
+          x: 200,
+          y: 200,
+          opacity: 0,
+          duration: 1,
+          ease: "power2.out"
+        }, 0.8);
+
+        tl.to(".cursor", {
+          x: -300,
+          y: -200,
+          duration: 1.2,
+          ease: "power1.inOut"
+        }, 1.8);
+
+        tl.to(".uploader-card", {
+          borderColor: "oklch(0.58 0.22 25)",
+          backgroundColor: "oklch(0.58 0.22 25 / 0.05)",
+          duration: 0.3
+        }, 3.0);
+
+        window.__timelines["upload"] = tl;
+      })();
+    </script>
+  </div>
+</template>
