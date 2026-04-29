@@ -13,12 +13,7 @@ import { loadFont as loadInstrumentSerif } from "@remotion/google-fonts/Instrume
 const { fontFamily } = loadPlusJakartaSans();
 const { fontFamily: serifFamily } = loadInstrumentSerif();
 
-const COLORS = {
-  background: "#161616", // oklch(0.09 0 0)
-  foreground: "#efefef", // oklch(0.95 0 0)
-  primary: "#c23326",    // oklch(0.58 0.22 25)
-  card: "#212121",       // oklch(0.13 0 0)
-};
+
 
 const Hook: React.FC = () => {
   const frame = useCurrentFrame();
@@ -77,7 +72,6 @@ const UploadScene: React.FC = () => {
 
 const MagicScene: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
 
   const progress = interpolate(frame, [30, 120], [0, 100], {
     extrapolateLeft: "clamp",
@@ -155,7 +149,7 @@ const CTAScene: React.FC = () => {
       </div>
 
       <div style={{ opacity: urlEntrance, transform: `scale(${urlEntrance})` }} className="bg-[#c23326] text-white px-20 py-10 rounded-full text-5xl font-black shadow-2xl">
-        quickcalai.com
+        QuickCalAI.com
       </div>
     </AbsoluteFill>
   );
