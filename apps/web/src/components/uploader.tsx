@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from "react";
+import { Activity } from "react";
 import { Upload, FileImage, Zap, CheckCircle, Calendar, PenTool, Crown, Sparkles } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -274,7 +275,7 @@ export default function Uploader() {
             </div>
 
             {/* AI Upload Tab */}
-            <div className={activeTab === 'ai' ? 'block' : 'hidden'}>
+            <Activity mode={activeTab === 'ai' ? 'visible' : 'hidden'}>
               {isPremium ? (
                 <div
                   className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
@@ -342,10 +343,10 @@ export default function Uploader() {
                   </Link>
                 </div>
               )}
-            </div>
+            </Activity>
 
             {/* Manual Input Tab */}
-            <div className={activeTab === 'manual' ? 'block' : 'hidden'}>
+            <Activity mode={activeTab === 'manual' ? 'visible' : 'hidden'}>
               {userTimezone && (
                 <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg mb-4">
                   <p className="text-sm text-blue-700 dark:text-blue-300">
@@ -419,11 +420,11 @@ export default function Uploader() {
                   />
                 </div>
               </div>
-            </div>
+            </Activity>
           </CardContent>
 
           {/* Action Buttons */}
-          <div className={activeTab === 'ai' ? 'block' : 'hidden'}>
+          <Activity mode={activeTab === 'ai' ? 'visible' : 'hidden'}>
             {isPremium && uploadedFile && !processingComplete && (
               <div className="mt-6">
                 <Button
@@ -480,9 +481,9 @@ export default function Uploader() {
                  </div>
                </div>
              )}
-          </div>
+          </Activity>
 
-          <div className={activeTab === 'manual' ? 'block' : 'hidden'}>
+          <Activity mode={activeTab === 'manual' ? 'visible' : 'hidden'}>
             <div className="mt-6">
               <Button
                 onClick={handleManualEventSubmit}
@@ -498,7 +499,7 @@ export default function Uploader() {
                 </p>
               )}
             </div>
-          </div>
+          </Activity>
         </Card>
       </div>
     </div>
