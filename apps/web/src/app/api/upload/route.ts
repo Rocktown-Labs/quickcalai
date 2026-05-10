@@ -6,6 +6,7 @@ import { createUploadRecord, db, updateUploadRecord } from '@quickcalai/db';
 import { users } from '@quickcalai/db/schema';
 import { createRouteContext, handleRouteError, jsonError, jsonSuccess } from '@/lib/server/route';
 import { MAX_UPLOAD_FILE_SIZE_BYTES, isAllowedUploadMimeType } from '@/lib/validators';
+import { getPostHogClient } from '@/lib/posthog-server';
 
 export async function POST(request: Request) {
   const { userId } = await auth();
@@ -90,6 +91,19 @@ export async function POST(request: Request) {
         workflowRunId: run.runId,
         status: 'processing',
         failureReason: null,
+      });
+
+      const posthog = getPostHogClient();
+      posthog.identify({ distinctId: userId, properties: { email } });
+      posthog.capture({
+        distinctId: userId,
+        event: 'file_upload_received',
+        properties: {
+          file_type: file.type,
+          file_size_bytes: file.size,
+          upload_id: upload.id,
+          run_id: run.runId,
+        },
       });
 
       return jsonSuccess(context, {

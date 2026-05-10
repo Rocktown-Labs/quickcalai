@@ -1,6 +1,3 @@
-
-"use client"
-
 "use client";
 
 import Link from "next/link"
@@ -9,7 +6,7 @@ import { Upload, ImageIcon, FileText, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import type { Route } from "next"
-import { UserButton, SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs"
+import { UserButton, Show, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { ThemeSwitcher } from "../theme-provider"
 import { usePremium } from "@/hooks/use-premium"
 
@@ -33,7 +30,6 @@ export function DashboardNav() {
           <span className="font-serif font-bold text-xl text-foreground">QuickCalAI</span>
         </Link>
       </div>
-
       <nav className="flex-1 p-6">
         <ul className="space-y-2">
           {navigation.map((item) => {
@@ -55,20 +51,19 @@ export function DashboardNav() {
           })}
         </ul>
       </nav>
-
       {/* User button at bottom */}
       <div className="p-6 border-t border-border">
         <div className="flex items-center justify-center space-x-4">
           <ThemeSwitcher />
-          <SignedOut>
+          <Show when="signed-out">
             <SignInButton />
             <SignUpButton>
               <button className="bg-[#6c47ff] text-white rounded-full font-medium text-sm px-4 py-2 cursor-pointer">
                 Sign Up
               </button>
             </SignUpButton>
-          </SignedOut>
-          <SignedIn>
+          </Show>
+          <Show when="signed-in">
             <UserButton
               appearance={{
                 elements: {
@@ -76,9 +71,9 @@ export function DashboardNav() {
                 },
               }}
             />
-          </SignedIn>
+          </Show>
         </div>
       </div>
     </div>
-  )
+  );
 }

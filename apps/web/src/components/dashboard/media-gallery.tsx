@@ -9,6 +9,7 @@ import { MediaCard } from "./media-card";
 import { getUserMedia, deleteMediaFile, deleteMultipleMediaFiles } from "@/app/dashboard/media/actions";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
+import posthog from "posthog-js";
 
 interface Upload {
   id: string;
@@ -66,13 +67,15 @@ export function MediaGallery() {
   const handleDeleteSelected = async () => {
     if (selectedUploads.size === 0) return;
 
+    const count = selectedUploads.size;
     try {
       await deleteMultipleMediaFiles(Array.from(selectedUploads));
       setUploads(prev => prev.filter(upload => !selectedUploads.has(upload.id)));
       setSelectedUploads(new Set());
-      toast.success(`Deleted ${selectedUploads.size} file${selectedUploads.size > 1 ? 's' : ''}`);
+      posthog.capture('media_file_deleted', { file_count: count, bulk: true });
+      toast.success(`Deleted ${count} file${count > 1 ? 's' : ''}`);
     } catch (error) {
-      logger.error('Failed to delete uploads', { error, count: selectedUploads.size });
+      logger.error('Failed to delete uploads', { error, count });
       toast.error('Failed to delete files');
     }
   };
@@ -86,6 +89,7 @@ export function MediaGallery() {
         newSelected.delete(uploadId);
         return newSelected;
       });
+      posthog.capture('media_file_deleted', { file_count: 1, bulk: false });
       toast.success('File deleted successfully');
     } catch (error) {
       logger.error('Failed to delete upload', { error, uploadId });
@@ -94,6 +98,7 @@ export function MediaGallery() {
   };
 
   const handleDownload = (upload: Upload) => {
+    posthog.capture('media_file_downloaded', { file_type: upload.fileType });
     // Create a temporary link to download the file
     const link = document.createElement('a');
     link.href = upload.storageUrl;

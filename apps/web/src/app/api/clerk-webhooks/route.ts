@@ -4,6 +4,7 @@ import { users, subscriptionStatus } from '@quickcalai/db/schema';
 import { eq } from 'drizzle-orm';
 import { serverLogger } from '@/lib/logger';
 import { createRouteContext, captureRouteError } from '@/lib/server/route';
+import { getPostHogClient } from '@/lib/posthog-server';
 import type { NextRequest } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -41,6 +42,24 @@ export async function POST(request: NextRequest) {
         });
 
         logger.info('User synced to database', { syncedUserId: user.id });
+
+        if (evt.type === 'user.created') {
+          const posthog = getPostHogClient();
+          const userEmail = user.email_addresses?.[0]?.email_address;
+          posthog.identify({
+            distinctId: user.id,
+            properties: {
+              email: userEmail,
+              name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || undefined,
+            },
+          });
+          posthog.capture({
+            distinctId: user.id,
+            event: 'user_created',
+            properties: { email: userEmail },
+          });
+        }
+
         return new Response('User synced to database', { status: 200 });
       } catch (error) {
         captureRouteError(error, context, {
@@ -181,6 +200,18 @@ export async function POST(request: NextRequest) {
           userId,
           status,
           eventType: evt.type,
+        });
+
+        const posthog = getPostHogClient();
+        posthog.capture({
+          distinctId: userId,
+          event: 'subscription_status_changed',
+          properties: {
+            status,
+            event_type: evt.type,
+            plan_id: eventData.plan_id,
+            is_premium: status === 'active',
+          },
         });
 
         return new Response('Subscription event processed', { status: 200 });

@@ -23,6 +23,7 @@ import { downloadFile, emailFile, smsFile } from "@/app/dashboard/files/actions"
 import { toast } from "sonner";
 import Link from "next/link";
 import { logger } from "@/lib/logger";
+import posthog from "posthog-js";
 
 interface FilesCardProps {
   icsFile: {
@@ -102,9 +103,11 @@ export function FilesCard({ icsFile, events = [], isSelected, onSelect, isPremiu
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      posthog.capture('ics_file_downloaded', { upload_id: icsFile.id, file_name: icsFile.fileName });
       toast.success('ICS file downloaded successfully');
     } catch (error) {
       logger.error('Failed to download file', { error, uploadId: icsFile.id });
+      posthog.captureException(error);
       toast.error(error instanceof Error ? error.message : 'Failed to download file');
     } finally {
       setIsDownloading(false);
@@ -120,11 +123,13 @@ export function FilesCard({ icsFile, events = [], isSelected, onSelect, isPremiu
     setIsEmailing(true);
     try {
       const result = await emailFile(icsFile.id, email);
+      posthog.capture('ics_file_emailed', { upload_id: icsFile.id, file_name: icsFile.fileName });
       toast.success(result.message);
       setShowEmailForm(false);
       setEmail("");
     } catch (error) {
       logger.error('Failed to email file', { error, uploadId: icsFile.id });
+      posthog.captureException(error);
       toast.error(error instanceof Error ? error.message : 'Failed to send email');
     } finally {
       setIsEmailing(false);
@@ -140,11 +145,13 @@ export function FilesCard({ icsFile, events = [], isSelected, onSelect, isPremiu
     setIsSmsing(true);
     try {
       const result = await smsFile(icsFile.id, phoneNumber);
+      posthog.capture('ics_file_sms_sent', { upload_id: icsFile.id, file_name: icsFile.fileName });
       toast.success(result.message);
       setShowSmsForm(false);
       setPhoneNumber("");
     } catch (error) {
       logger.error('Failed to send SMS', { error, uploadId: icsFile.id });
+      posthog.captureException(error);
       toast.error(error instanceof Error ? error.message : 'Failed to send SMS');
     } finally {
       setIsSmsing(false);
@@ -341,7 +348,7 @@ export function FilesCard({ icsFile, events = [], isSelected, onSelect, isPremiu
                 Upgrade to Premium for Email & SMS sharing
               </p>
               <Button variant="outline" size="sm" className="w-full text-xs" asChild>
-                <Link href={'/dashboard/settings'}>Upgrade to Premium</Link>
+                <Link href={'/dashboard/settings'} onClick={() => posthog.capture('upgrade_to_premium_clicked', { source: 'files_card' })}>Upgrade to Premium</Link>
               </Button>
             </div>
           )}

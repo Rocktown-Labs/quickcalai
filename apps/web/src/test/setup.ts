@@ -26,7 +26,7 @@ vi.mock('next/navigation', () => ({
 
 // Mock Clerk
 vi.mock('@clerk/nextjs', () => ({
-  auth: () => ({ userId: 'test-user-id' }),
+  auth: () => Promise.resolve({ userId: 'test-user-id' }),
   currentUser: () => Promise.resolve({
     id: 'test-user-id',
     firstName: 'Test',

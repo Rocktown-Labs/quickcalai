@@ -1,6 +1,5 @@
 'use client';
 import { useState, useRef, useEffect } from "react";
-import { Activity } from "react";
 import { Upload, FileImage, Zap, CheckCircle, Calendar, PenTool, Crown, Sparkles } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { usePremium } from "@/hooks/use-premium";
 import { logger } from "@/lib/logger";
+import posthog from "posthog-js";
 
 export default function Uploader() {
   const [activeTab, setActiveTab] = useState<'ai' | 'manual'>('ai');
@@ -72,6 +72,11 @@ export default function Uploader() {
 
     setIsProcessing(true);
 
+    posthog.capture('file_upload_started', {
+      file_type: uploadedFile.type,
+      file_size_bytes: uploadedFile.size,
+    });
+
     try {
       // Create form data for upload
       const formData = new FormData();
@@ -96,6 +101,10 @@ export default function Uploader() {
 
     } catch (error) {
       logger.error('Processing failed', { error, runId, userId: user?.id });
+      posthog.capture('file_processing_failed', {
+        reason: error instanceof Error ? error.message : 'Unknown error',
+        stage: 'upload',
+      });
       toast.error(
         `${error instanceof Error ? error.message : 'Processing failed.'} ${runId ? `Reference ID: ${runId.substring(0, 8)}` : ''}`.trim()
       );
@@ -117,6 +126,9 @@ export default function Uploader() {
          setProcessingComplete(true);
          setIsProcessing(false);
          setEventCount(status.eventCount || 0);
+         posthog.capture('file_processing_completed', {
+           event_count: status.eventCount || 0,
+         });
          // Reset file
          setUploadedFile(null);
          // Revalidate the files page to show new cards
@@ -125,6 +137,10 @@ export default function Uploader() {
        } else if (status.status === 'no_events') {
         setIsProcessing(false);
         setUploadedFile(null);
+        posthog.capture('file_processing_failed', {
+          reason: status.failureReason || 'No calendar events found',
+          stage: 'processing',
+        });
         router.refresh();
         toast.error(status.failureReason || 'No calendar events were found in that document.');
        } else if (status.status === 'failed') {
@@ -135,6 +151,10 @@ export default function Uploader() {
       }
     } catch (error) {
       logger.error('Status check failed', { error, runId: workflowRunId });
+      posthog.capture('file_processing_failed', {
+        reason: error instanceof Error ? error.message : 'Unknown error',
+        stage: 'status_check',
+      });
       toast.error(
         `${error instanceof Error ? error.message : 'Status check failed.'} ${runId ? `Reference ID: ${runId.substring(0, 8)}` : ''}`.trim()
       );
@@ -183,10 +203,15 @@ export default function Uploader() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
+      posthog.capture('manual_event_created', {
+        has_time: !!manualEvent.time,
+        has_description: !!manualEvent.description,
+      });
       toast.success('Event created and ICS file downloaded!');
       setManualEvent({ title: '', date: '', time: '', description: '' });
     } catch (error) {
       logger.error('Manual event creation failed', { error, userId: user?.id });
+      posthog.captureException(error);
       toast.error(error instanceof Error ? error.message : 'Failed to create event. Please try again.');
     }
   };
@@ -249,7 +274,7 @@ export default function Uploader() {
             </div>
 
             {/* AI Upload Tab */}
-            <Activity mode={activeTab === 'ai' ? 'visible' : 'hidden'}>
+            <div className={activeTab === 'ai' ? 'block' : 'hidden'}>
               {isPremium ? (
                 <div
                   className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
@@ -313,14 +338,14 @@ export default function Uploader() {
                     Unlock AI-powered calendar extraction with our Premium plan
                   </p>
                   <Link href={'/dashboard/settings'}>
-                    <Button>Upgrade to Premium</Button>
+                    <Button onClick={() => posthog.capture('upgrade_to_premium_clicked', { source: 'uploader' })}>Upgrade to Premium</Button>
                   </Link>
                 </div>
               )}
-            </Activity>
+            </div>
 
             {/* Manual Input Tab */}
-            <Activity mode={activeTab === 'manual' ? 'visible' : 'hidden'}>
+            <div className={activeTab === 'manual' ? 'block' : 'hidden'}>
               {userTimezone && (
                 <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg mb-4">
                   <p className="text-sm text-blue-700 dark:text-blue-300">
@@ -394,11 +419,11 @@ export default function Uploader() {
                   />
                 </div>
               </div>
-            </Activity>
+            </div>
           </CardContent>
 
           {/* Action Buttons */}
-          <Activity mode={activeTab === 'ai' ? 'visible' : 'hidden'}>
+          <div className={activeTab === 'ai' ? 'block' : 'hidden'}>
             {isPremium && uploadedFile && !processingComplete && (
               <div className="mt-6">
                 <Button
@@ -455,9 +480,9 @@ export default function Uploader() {
                  </div>
                </div>
              )}
-          </Activity>
+          </div>
 
-          <Activity mode={activeTab === 'manual' ? 'visible' : 'hidden'}>
+          <div className={activeTab === 'manual' ? 'block' : 'hidden'}>
             <div className="mt-6">
               <Button
                 onClick={handleManualEventSubmit}
@@ -473,7 +498,7 @@ export default function Uploader() {
                 </p>
               )}
             </div>
-          </Activity>
+          </div>
         </Card>
       </div>
     </div>

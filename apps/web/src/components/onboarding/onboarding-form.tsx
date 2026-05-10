@@ -11,6 +11,7 @@ import { Loader2, Mail, Phone, CreditCard, ArrowLeft, ArrowRight } from 'lucide-
 import { toast } from 'sonner';
 import { completeOnboarding } from '@/app/onboarding/_actions';
 import { PricingTable } from '@clerk/nextjs';
+import posthog from 'posthog-js';
 
 interface OnboardingFormProps {
   user: {
@@ -83,6 +84,13 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
     if (res?.message) {
       // Reload the user's data from Clerk to get updated metadata
       await clerkUser?.reload();
+      posthog.identify(user.id, {
+        email: formData.email,
+        name: [user.firstName, user.lastName].filter(Boolean).join(' ') || undefined,
+      });
+      posthog.capture('onboarding_completed', {
+        has_phone: !!formData.phone,
+      });
       toast.success('Welcome to QuickCal AI! Complete your subscription to unlock premium features.');
       router.push('/dashboard');
     }
@@ -146,18 +154,16 @@ export default function OnboardingForm({ user }: OnboardingFormProps) {
               <h2 className="text-xl font-semibold mb-2">Choose Your Plan</h2>
               <p className="text-muted-foreground">Select a subscription plan to unlock premium features</p>
             </div>
-
             <div className="max-w-4xl mx-auto">
               <PricingTable
                 appearance={{
-                  baseTheme: undefined,
+                  theme: undefined,
                   variables: {
                     colorPrimary: '#3b82f6',
                   },
                 }}
               />
             </div>
-
             <div className="text-center text-sm text-muted-foreground">
               <p>You can change your plan anytime from your account settings.</p>
             </div>

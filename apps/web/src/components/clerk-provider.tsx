@@ -1,5 +1,5 @@
 import { ClerkProvider as ClerkNextJSProvider } from '@clerk/nextjs';
-import { shadcn } from '@clerk/themes';
+import { shadcn } from "@clerk/ui/themes";
 
 type ClerkProviderProps = React.ComponentProps<typeof ClerkNextJSProvider>;
 

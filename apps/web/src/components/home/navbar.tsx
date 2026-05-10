@@ -4,10 +4,11 @@ import Link from "next/link";
 import Logo from "../logo";
 import { ThemeSwitcher } from "../theme-provider";
 import { Button } from "../ui/button";
-import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignInButton, SignUpButton, Show, UserButton } from "@clerk/nextjs";
 import { Home, Star, CreditCard, MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import posthog from "posthog-js";
 
 const mobileNavItems = [
   { name: "Home", href: "#", icon: Home, id: "hero", scrollToTop: true },
@@ -70,12 +71,13 @@ export default function Navbar() {
               </a>
               <div className="w-px h-4 bg-border" />
               <ThemeSwitcher />
-              <SignedOut>
+              <Show when="signed-out">
                 <SignInButton>
                   <Button
                     variant="ghost"
                     size="sm"
                     className="text-sm text-muted-foreground hover:text-foreground"
+                    onClick={() => posthog.capture('sign_in_clicked', { source: 'navbar' })}
                   >
                     Sign in
                   </Button>
@@ -84,24 +86,24 @@ export default function Navbar() {
                   <Button
                     size="sm"
                     className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
+                    onClick={() => posthog.capture('sign_up_clicked', { source: 'navbar' })}
                   >
                     Get Started
                   </Button>
                 </SignUpButton>
-              </SignedOut>
-              <SignedIn>
+              </Show>
+              <Show when="signed-in">
                 <Link href="/dashboard">
                   <Button variant="outline" size="sm" className="text-sm">
                     Dashboard
                   </Button>
                 </Link>
                 <UserButton />
-              </SignedIn>
+              </Show>
             </div>
           </div>
         </div>
       </nav>
-
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-xl border-t border-border/50 z-50">
         <div className="flex items-center justify-around h-16 px-2">
@@ -132,7 +134,6 @@ export default function Navbar() {
           })}
         </div>
       </nav>
-
       {/* Mobile Top Bar */}
       <div
         className={cn(
@@ -149,26 +150,26 @@ export default function Navbar() {
           </Link>
           <div className="flex items-center gap-2">
             <ThemeSwitcher />
-            <SignedOut>
+            <Show when="signed-out">
               <SignInButton>
-                <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+                <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => posthog.capture('sign_in_clicked', { source: 'navbar' })}>
                   Sign in
                 </Button>
               </SignInButton>
               <SignUpButton>
-                <Button size="sm" className="text-xs bg-primary text-primary-foreground hover:bg-primary/90">
+                <Button size="sm" className="text-xs bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => posthog.capture('sign_up_clicked', { source: 'navbar' })}>
                   Get Started
                 </Button>
               </SignUpButton>
-            </SignedOut>
-            <SignedIn>
+            </Show>
+            <Show when="signed-in">
               <Link href="/dashboard">
                 <Button variant="outline" size="sm" className="text-xs">
                   Dashboard
                 </Button>
               </Link>
               <UserButton />
-            </SignedIn>
+            </Show>
           </div>
         </div>
       </div>

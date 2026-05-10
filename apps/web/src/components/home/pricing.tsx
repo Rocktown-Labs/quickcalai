@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../ui/card";
 import { SignUpButton } from "@clerk/nextjs";
+import posthog from "posthog-js";
 
 const plans = [
   {
@@ -115,6 +116,7 @@ export default function Pricing() {
                     }`}
                     variant={plan.featured ? "default" : "outline"}
                     size="sm"
+                    onClick={() => posthog.capture('sign_up_clicked', { source: 'pricing', plan: plan.name.toLowerCase() })}
                   >
                     Get Started
                   </Button>

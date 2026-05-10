@@ -9,6 +9,7 @@ import { FilesCard } from "./files-card";
 import { getUserFiles, getUserContactInfo } from "@/app/dashboard/files/actions";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
+import posthog from "posthog-js";
 
 interface IcsFile {
   id: string;
@@ -129,7 +130,7 @@ export function FilesGallery() {
               </p>
             </div>
             <Button asChild className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
-              <a href="/dashboard/settings#subscription">Upgrade Now</a>
+              <a href="/dashboard/settings#subscription" onClick={() => posthog.capture('upgrade_to_premium_clicked', { source: 'files_banner' })}>Upgrade Now</a>
             </Button>
           </div>
         </div>

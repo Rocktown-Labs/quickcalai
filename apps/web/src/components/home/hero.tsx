@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle } from "lucide-react";
 import { Button } from "../ui/button";
 import { SignUpButton } from "@clerk/nextjs";
 import Image from "next/image";
+import posthog from "posthog-js";
 
 export default function Hero() {
   return (
@@ -40,6 +41,7 @@ export default function Hero() {
                 <Button
                   size="lg"
                   className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-6 h-11 text-sm font-semibold group"
+                  onClick={() => posthog.capture('sign_up_clicked', { source: 'hero' })}
                 >
                   Get started free
                   <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-0.5" />

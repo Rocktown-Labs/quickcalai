@@ -3,6 +3,7 @@
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SignUpButton } from "@clerk/nextjs";
+import posthog from "posthog-js";
 
 export default function CTA() {
   return (
@@ -21,6 +22,7 @@ export default function CTA() {
             <Button
               size="lg"
               className="bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-6 text-sm font-semibold group"
+              onClick={() => posthog.capture('sign_up_clicked', { source: 'cta' })}
             >
               Get started free
               <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-0.5" />

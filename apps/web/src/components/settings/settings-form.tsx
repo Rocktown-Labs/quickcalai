@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2, User, Mail, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import posthog from 'posthog-js';
 
 interface SettingsFormProps {
   user: any;
@@ -43,10 +44,12 @@ export default function SettingsForm({ user }: SettingsFormProps) {
         throw new Error('Failed to update settings');
       }
 
+      posthog.capture('settings_updated', { has_phone: !!formData.phone });
       toast.success('Settings updated successfully!');
       router.refresh();
     } catch (error) {
       logger.error('Settings update error', { error });
+      posthog.captureException(error);
       toast.error('Failed to update settings');
     } finally {
       setIsLoading(false);
