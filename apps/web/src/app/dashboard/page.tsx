@@ -34,10 +34,12 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        {stats.hasDataError && (
-          <Card className="border-yellow-300 bg-yellow-50/60 dark:border-yellow-900 dark:bg-yellow-950/20">
-            <CardContent className="py-3 text-sm text-yellow-900 dark:text-yellow-200">
-              Some dashboard stats are temporarily unavailable. You can still upload files and use the app normally.
+        {(stats.hasDataError || stats.totalUploads === 0) && (
+          <Card className="border-amber-300 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/20">
+            <CardContent className="py-3 text-sm text-amber-900 dark:text-amber-200">
+              {stats.hasDataError 
+                ? "We're having trouble loading your recent stats, but you can still upload new files below."
+                : "Welcome! Upload your first image or PDF to get started with calendar extraction."}
             </CardContent>
           </Card>
         )}

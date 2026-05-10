@@ -10,6 +10,19 @@ function getDb(): DbInstance {
     if (!databaseUrl) {
       throw new Error('DATABASE_URL is required for database access');
     }
+
+    try {
+      const url = new URL(databaseUrl);
+      if (url.hostname === 'base') {
+        throw new Error('DATABASE_URL contains a placeholder hostname ("base"). Please configure a valid PostgreSQL connection string.');
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('placeholder hostname')) {
+        throw error;
+      }
+      throw new Error('DATABASE_URL is not a valid URL. Please check your environment configuration.');
+    }
+
     _db = drizzle(databaseUrl);
   }
   return _db;
