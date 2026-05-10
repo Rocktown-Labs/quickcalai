@@ -8,8 +8,12 @@ const isPublicRoute = createRouteMatcher(['/']);
 export default clerkMiddleware(async (auth, req) => {
   const { isAuthenticated, sessionClaims, redirectToSignIn } = await auth();
 
-  // For users visiting /onboarding, don't try to redirect
+  // For users visiting /onboarding, check if they're already onboarded
   if (isAuthenticated && isOnboardingRoute(req)) {
+    if (sessionClaims?.metadata?.onboardingComplete) {
+      const dashboardUrl = new URL('/dashboard', req.url);
+      return NextResponse.redirect(dashboardUrl);
+    }
     return NextResponse.next();
   }
 
