@@ -1,7 +1,7 @@
 import { verifyWebhook } from '@clerk/nextjs/webhooks';
 import { db } from '@quickcalai/db';
 import { users, subscriptionStatus } from '@quickcalai/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and, ne, count } from 'drizzle-orm';
 import { serverLogger } from '@/lib/logger';
 import { createRouteContext, captureRouteError } from '@/lib/server/route';
 import { getPostHogClient } from '@/lib/posthog-server';
@@ -144,6 +144,7 @@ export async function POST(request: NextRequest) {
           const eventStatus = eventData.status;
           switch (eventStatus) {
             case 'active':
+            case 'trialing': // Free trials are treated as active/premium
               status = 'active';
               break;
             case 'canceled':
@@ -199,7 +200,28 @@ export async function POST(request: NextRequest) {
         }
 
         // Update user's premium status based on subscription status
-        const isPremiumUser = status === 'active';
+        // CRITICAL: For deactivation events, check if user has ANY other active
+        // subscriptions before setting isPremiumUser = false. This prevents race
+        // conditions where an old subscription's webhook arrives after a new one.
+        let isPremiumUser: boolean;
+        if (status === 'active') {
+          isPremiumUser = true;
+        } else {
+          // Check for any other active subscriptions before deactivating
+          const otherActiveResult = await db
+            .select({ value: count() })
+            .from(subscriptionStatus)
+            .where(
+              and(
+                eq(subscriptionStatus.userId, userId),
+                eq(subscriptionStatus.isActive, true),
+                ne(subscriptionStatus.clerkSubscriptionItemId, eventData.id)
+              )
+            );
+          const otherActiveCount = otherActiveResult[0]?.value ?? 0;
+          isPremiumUser = otherActiveCount > 0;
+        }
+
         await db.update(users)
           .set({ isPremiumUser })
           .where(eq(users.id, userId));
