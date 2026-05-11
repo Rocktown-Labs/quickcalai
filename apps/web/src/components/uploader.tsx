@@ -308,11 +308,11 @@ export default function Uploader() {
     const progressPercentage = Math.min(Math.round(((activeStepIndex + 1) / PROCESSING_STEPS.length) * 100), 99);
 
     return (
-      <div className="flex flex-col items-center justify-center font-sans w-full animate-in fade-in zoom-in-95 duration-500">
-        <h2 className="text-[#efefef] text-xl font-bold text-center mb-4">AI extracts details instantly</h2>
+      <div className="flex flex-col font-sans w-full animate-in fade-in zoom-in-95 duration-500">
+        <h2 className="text-[#efefef] text-xl font-bold mb-4">AI extracts details instantly</h2>
 
         {/* File Card */}
-        <div className="w-full max-w-xl bg-[#212121] p-4 rounded-xl border border-[#333333] mb-4 flex items-center gap-4 shadow-lg">
+        <div className="w-full bg-[#212121] p-4 rounded-xl border border-[#333333] mb-4 flex items-center gap-4 shadow-lg">
           <div className="w-10 h-10 bg-[#c23326] rounded-lg flex items-center justify-center shrink-0">
             <FileImage size={20} color="#efefef" />
           </div>
@@ -330,7 +330,7 @@ export default function Uploader() {
         </div>
 
         {/* AI Processing Banner */}
-        <div className="w-full max-w-xl bg-[#c23326] text-[#efefef] p-3 rounded-xl flex items-center justify-center gap-2 mb-4 shadow-[0_4px_20px_rgba(194,51,38,0.3)]">
+        <div className="w-full bg-[#c23326] text-[#efefef] p-3 rounded-xl flex items-center justify-center gap-2 mb-4 shadow-[0_4px_20px_rgba(194,51,38,0.3)]">
           <Zap size={16} color="#efefef" className="animate-pulse" />
           <span className="font-sans text-sm font-bold">
             AI Processing in Progress
@@ -338,7 +338,7 @@ export default function Uploader() {
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full max-w-xl mb-4">
+        <div className="w-full mb-4">
           <div className="flex justify-between mb-1 px-1">
             <span className="font-sans text-xs text-[#888888]">Processing...</span>
             <span className="font-sans text-xs font-semibold text-[#c23326]">{progressPercentage}%</span>
@@ -352,7 +352,7 @@ export default function Uploader() {
         </div>
 
         {/* Processing Steps */}
-        <div className="w-full max-w-xl flex flex-col gap-2 mb-4">
+        <div className="w-full flex flex-col gap-2 mb-4">
           {PROCESSING_STEPS.map((step, index) => {
             const isComplete = index < activeStepIndex;
             const isCurrent = index === activeStepIndex;
@@ -387,7 +387,7 @@ export default function Uploader() {
         </div>
 
         {/* Event Counter */}
-        <div className="w-full max-w-xl bg-[#212121] p-6 rounded-xl text-center border border-[#333333] shadow-lg">
+        <div className="w-full bg-[#212121] p-6 rounded-xl text-center border border-[#333333] shadow-lg">
           <div className="font-sans text-6xl font-black text-[#c23326] leading-none animate-pulse">
             ...
           </div>
@@ -403,8 +403,8 @@ export default function Uploader() {
     const isNoEvents = hasNoEvents;
 
     return (
-      <div className="flex flex-col items-center justify-center font-sans w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="w-full max-w-xl bg-[#212121] p-6 rounded-2xl border border-[#333333] text-center shadow-lg">
+      <div className="flex flex-col font-sans w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="w-full bg-[#212121] p-6 rounded-2xl border border-[#333333] text-center shadow-lg">
           <div className={`w-12 h-12 mx-auto rounded-xl flex items-center justify-center mb-4 ${isNoEvents ? 'bg-[#c23326]/15' : 'bg-red-500/15'}`}>
             <AlertCircle size={24} className={isNoEvents ? 'text-[#c23326]' : 'text-red-400'} />
           </div>
@@ -439,11 +439,11 @@ export default function Uploader() {
     ];
 
     return (
-      <div className="flex flex-col items-center justify-center font-sans w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <h2 className="text-[#efefef] text-xl font-bold text-center mb-4">Download your .ics and you're done</h2>
+      <div className="flex flex-col font-sans w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <h2 className="text-[#efefef] text-xl font-bold mb-4">Download your .ics and you're done</h2>
 
         {/* Success Banner */}
-        <div className="w-full max-w-xl bg-[#22c55e]/10 p-4 rounded-xl border border-[#22c55e]/30 mb-4 flex items-center gap-4 shadow-lg">
+        <div className="w-full bg-[#22c55e]/10 p-4 rounded-xl border border-[#22c55e]/30 mb-4 flex items-center gap-4 shadow-lg">
           <div className="w-10 h-10 bg-[#22c55e] rounded-lg flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
             <CheckCircle size={20} color="#efefef" />
           </div>
@@ -454,7 +454,7 @@ export default function Uploader() {
         </div>
 
         {/* Export Options Grid */}
-        <div className="w-full max-w-xl grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-3">
           {exportOptions.map((option, index) => {
             const OptionIcon = option.icon;
             return (
@@ -490,7 +490,7 @@ export default function Uploader() {
         </div>
 
         {/* File Preview Card */}
-        <div className="w-full max-w-xl mt-6 bg-[#212121] p-4 rounded-xl border border-[#333333] flex items-center gap-4 shadow-lg">
+        <div className="w-full mt-6 bg-[#212121] p-4 rounded-xl border border-[#333333] flex items-center gap-4 shadow-lg">
           <div className="w-10 h-10 bg-[#c23326] rounded-lg flex items-center justify-center shrink-0">
             <Calendar size={20} color="#efefef" />
           </div>
@@ -515,7 +515,7 @@ export default function Uploader() {
 
   // 3. Initial State (Upload Dropzone / Manual Form)
   return (
-    <div className="space-y-6 max-w-xl mx-auto">
+    <div className="space-y-6 w-full">
       <div>
         <div className="mb-6 text-center md:text-left flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
@@ -533,10 +533,10 @@ export default function Uploader() {
             </p>
           </div>
 
-          <div className="flex bg-[#212121] p-1 rounded-xl border border-[#333333]">
+          <div className="flex w-fit mx-auto md:mx-0 bg-[#212121] p-1 rounded-xl border border-[#333333]">
             <button
               onClick={() => setActiveTab('ai')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
                 activeTab === 'ai'
                   ? 'bg-[#c23326] text-[#efefef] shadow-md'
                   : 'text-[#888888] hover:text-[#efefef]'
@@ -547,7 +547,7 @@ export default function Uploader() {
             </button>
             <button
               onClick={() => setActiveTab('manual')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
                 activeTab === 'manual'
                   ? 'bg-[#c23326] text-[#efefef] shadow-md'
                   : 'text-[#888888] hover:text-[#efefef]'
@@ -565,7 +565,7 @@ export default function Uploader() {
               <>
               {isPremium ? (
                 <div
-                  className={`relative border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-500 ${
+                  className={`relative border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-500 w-full ${
                     dragActive ? "border-[#c23326] bg-[#c23326]/5 scale-[1.02] shadow-[0_0_30px_rgba(194,51,38,0.1)]" : "border-[#333333] hover:border-[#c23326]/40 bg-[#1a1a1a]"
                   }`}
                   onDragEnter={handleDrag}
