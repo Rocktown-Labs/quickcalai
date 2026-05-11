@@ -235,6 +235,12 @@
       "source": "heygen-com/hyperframes",
       "sourceType": "github",
       "computedHash": "ba394648536c11b33e36bff57d730af9d5f3b123959e837e033cb54f72e93ac4"
+    },
+    "workflow-init": {
+      "source": "vercel/workflow",
+      "sourceType": "github",
+      "skillPath": "skills/workflow-init/SKILL.md",
+      "computedHash": "e74ed0468589670865a7dc1dcf4f8cd21c3dce164e5caa66d74c5800d70dfe68"
     }
   }
 }

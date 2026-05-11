@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { NextRequest } from 'next/server';
 import { createRouteContext, handleRouteError, jsonError, jsonSuccess } from '@/lib/server/route';
 import { resolveOwnedWorkflowStatus } from '@/lib/server/workflow-status';
+import { serverLogger } from '@/lib/logger';
 
 export async function GET(
   request: NextRequest,
@@ -9,6 +10,7 @@ export async function GET(
 ) {
   const { userId } = await auth();
   const context = createRouteContext('/api/workflow/status/[runId]', request, { userId: userId ?? undefined });
+  const logger = serverLogger.child({ ...context, route: '/api/workflow/status/[runId]' });
 
   try {
     if (!userId) {
@@ -16,11 +18,20 @@ export async function GET(
     }
 
     const { runId } = await params;
+    logger.info('Resolving workflow status', { runId, userId });
+
     const workflowStatus = await resolveOwnedWorkflowStatus(userId, runId);
 
     if (!workflowStatus) {
+      logger.warn('Workflow status not found', { runId, userId });
       return jsonError(context, 404, 'Workflow not found');
     }
+
+    logger.info('Workflow status resolved', {
+      runId,
+      status: workflowStatus.status,
+      eventCount: workflowStatus.eventCount,
+    });
 
     return jsonSuccess(context, {
       status: workflowStatus.status,
@@ -30,6 +41,7 @@ export async function GET(
       uploadId: workflowStatus.uploadId,
     });
   } catch (error) {
+    logger.error('Failed to get workflow status', { error, runId: params });
     return handleRouteError(error, context, 'Failed to get workflow status');
   }
 }
