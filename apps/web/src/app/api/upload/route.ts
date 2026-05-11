@@ -7,6 +7,7 @@ import { users } from '@quickcalai/db/schema';
 import { createRouteContext, handleRouteError, jsonError, jsonSuccess } from '@/lib/server/route';
 import { MAX_UPLOAD_FILE_SIZE_BYTES, isAllowedUploadMimeType } from '@/lib/validators';
 import { getPostHogClient } from '@/lib/posthog-server';
+import { eq } from 'drizzle-orm';
 
 export async function POST(request: Request) {
   const { userId } = await auth();
@@ -37,6 +38,18 @@ export async function POST(request: Request) {
 
     if (!clerkUser || !email) {
       return jsonError(context, 400, 'Authenticated user is missing an email address');
+    }
+
+    // Check premium status from database (source of truth)
+    const dbUser = await db.select({ isPremiumUser: users.isPremiumUser })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    const isPremium = dbUser[0]?.isPremiumUser ?? false;
+
+    if (!isPremium) {
+      return jsonError(context, 403, 'AI upload is a premium feature. Please upgrade your subscription.');
     }
 
     // Upload file to Vercel Blob

@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from "react";
-import { Activity } from "react";
+
 import { Upload, FileImage, Zap, CheckCircle, Calendar, PenTool, Crown, Sparkles } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -243,7 +243,7 @@ export default function Uploader() {
               <span>Create Calendar Events</span>
             </CardTitle>
             <CardDescription>
-              Choose how you'd like to create your calendar events
+              Choose how you&apos;d like to create your calendar events
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -275,216 +275,220 @@ export default function Uploader() {
             </div>
 
             {/* AI Upload Tab */}
-            <Activity mode={activeTab === 'ai' ? 'visible' : 'hidden'}>
-              {isPremium ? (
-                <div
-                  className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                    dragActive ? "border-primary bg-primary/5" : "border-border hover:border-primary"
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*,application/pdf"
-                    onChange={handleFileInput}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
+            {activeTab === 'ai' && (
+              <>
+                {isPremium ? (
+                  <div
+                    className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                      dragActive ? "border-primary bg-primary/5" : "border-border hover:border-primary"
+                    }`}
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*,application/pdf"
+                      onChange={handleFileInput}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
 
-                  {uploadedFile ? (
-                    <div className="space-y-4">
-                      <FileImage className="w-12 h-12 text-primary mx-auto" />
-                      <div>
-                        <p className="font-medium text-foreground">{uploadedFile.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </div>
-                      <Button onClick={() => setUploadedFile(null)} variant="outline" size="sm">
-                        Remove
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <Upload className="w-12 h-12 text-muted-foreground mx-auto" />
-                      <div>
-                        <p className="text-lg font-medium text-foreground">Drop your document here</p>
-                        <p className="text-muted-foreground">or click to browse files</p>
-                      </div>
-                      <p className="text-sm text-muted-foreground">Supports JPEG, PNG, WebP, and PDF up to 10MB</p>
-                      {!isPremium && (
-                        <div className="flex items-center justify-center space-x-2 mt-4">
-                          <span className="text-sm text-muted-foreground">Status seems off?</span>
-                          <Button
-                            onClick={refreshStatus}
-                            variant="outline"
-                            size="sm"
-                            disabled={isProcessing}
-                          >
-                            Refresh Status
-                          </Button>
+                    {uploadedFile ? (
+                      <div className="space-y-4">
+                        <FileImage className="w-12 h-12 text-primary mx-auto" />
+                        <div>
+                          <p className="font-medium text-foreground">{uploadedFile.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
                         </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Crown className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Premium Feature</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Unlock AI-powered calendar extraction with our Premium plan
-                  </p>
-                  <Link href={'/dashboard/settings'}>
-                    <Button onClick={() => posthog.capture('upgrade_to_premium_clicked', { source: 'uploader' })}>Upgrade to Premium</Button>
-                  </Link>
-                </div>
-              )}
-            </Activity>
+                        <Button onClick={() => setUploadedFile(null)} variant="outline" size="sm">
+                          Remove
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <Upload className="w-12 h-12 text-muted-foreground mx-auto" />
+                        <div>
+                          <p className="text-lg font-medium text-foreground">Drop your document here</p>
+                          <p className="text-muted-foreground">or click to browse files</p>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Supports JPEG, PNG, WebP, and PDF up to 10MB</p>
+                        {!isPremium && (
+                          <div className="flex items-center justify-center space-x-2 mt-4">
+                            <span className="text-sm text-muted-foreground">Status seems off?</span>
+                            <Button
+                              onClick={refreshStatus}
+                              variant="outline"
+                              size="sm"
+                              disabled={isProcessing}
+                            >
+                              Refresh Status
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Crown className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Premium Feature</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Unlock AI-powered calendar extraction with our Premium plan
+                    </p>
+                    <Link href={'/dashboard/settings'}>
+                      <Button onClick={() => posthog.capture('upgrade_to_premium_clicked', { source: 'uploader' })}>Upgrade to Premium</Button>
+                    </Link>
+                  </div>
+                )}
+              </>
+            )}
 
             {/* Manual Input Tab */}
-            <Activity mode={activeTab === 'manual' ? 'visible' : 'hidden'}>
-              {userTimezone && (
-                <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg mb-4">
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
-                    📅 Events will be created in your local timezone: <strong>{userTimezone}</strong>
-                  </p>
-                </div>
-              )}
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {activeTab === 'manual' && (
+              <>
+                {userTimezone && (
+                  <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg mb-4">
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      📅 Events will be created in your local timezone: <strong>{userTimezone}</strong>
+                    </p>
+                  </div>
+                )}
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="title">Event Title *</Label>
+                      <Input
+                        id="title"
+                        placeholder="Meeting with John"
+                        value={manualEvent.title}
+                        onChange={(e) => setManualEvent(prev => ({ ...prev, title: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="date">Date *</Label>
+                      <Input
+                        id="date"
+                        type="date"
+                        value={manualEvent.date}
+                        onChange={(e) => setManualEvent(prev => ({ ...prev, date: e.target.value }))}
+                        onClick={(e) => {
+                          e.currentTarget.focus();
+                        }}
+                        className="cursor-text"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="time">Time (optional - format: HH:MM)</Label>
+                      <Input
+                        id="time"
+                        type="time"
+                        value={manualEvent.time}
+                        onChange={(e) => {
+                          const newTime = e.target.value;
+                          setManualEvent(prev => ({ ...prev, time: newTime }));
+                        }}
+                        onClick={(e) => {
+                          e.currentTarget.focus();
+                        }}
+                        step="60"
+                        className="cursor-text"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Use the time picker above, or manually enter time in HH:MM format
+                      </p>
+                      {manualEvent.time && (
+                        <p className="text-sm text-primary font-medium">
+                          ✓ Selected time: {manualEvent.time}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                   <div className="space-y-2">
-                    <Label htmlFor="title">Event Title *</Label>
-                    <Input
-                      id="title"
-                      placeholder="Meeting with John"
-                      value={manualEvent.title}
-                      onChange={(e) => setManualEvent(prev => ({ ...prev, title: e.target.value }))}
+                    <Label htmlFor="description">Description</Label>
+                    <textarea
+                      id="description"
+                      placeholder="Event details..."
+                      value={manualEvent.description}
+                      onChange={(e) => setManualEvent(prev => ({ ...prev, description: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      rows={3}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="date">Date *</Label>
-                     <Input
-                       id="date"
-                       type="date"
-                       value={manualEvent.date}
-                       onChange={(e) => setManualEvent(prev => ({ ...prev, date: e.target.value }))}
-                       onClick={(e) => {
-                         // Ensure the input gets focus when clicked anywhere
-                         e.currentTarget.focus();
-                       }}
-                       className="cursor-text"
-                     />
-                  </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                   <div className="space-y-2">
-                     <Label htmlFor="time">Time (optional - format: HH:MM)</Label>
-                     <Input
-                       id="time"
-                       type="time"
-                       value={manualEvent.time}
-                       onChange={(e) => {
-                         const newTime = e.target.value;
-                         setManualEvent(prev => ({ ...prev, time: newTime }));
-                       }}
-                       onClick={(e) => {
-                         // Ensure the input gets focus when clicked anywhere
-                         e.currentTarget.focus();
-                       }}
-                       step="60"
-                       className="cursor-text"
-                     />
-                     <p className="text-xs text-muted-foreground">
-                       Use the time picker above, or manually enter time in HH:MM format
-                     </p>
-                     {manualEvent.time && (
-                       <p className="text-sm text-primary font-medium">
-                         ✓ Selected time: {manualEvent.time}
-                       </p>
-                     )}
-                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <textarea
-                    id="description"
-                    placeholder="Event details..."
-                    value={manualEvent.description}
-                    onChange={(e) => setManualEvent(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                    rows={3}
-                  />
-                </div>
-              </div>
-            </Activity>
+              </>
+            )}
           </CardContent>
 
           {/* Action Buttons */}
-          <Activity mode={activeTab === 'ai' ? 'visible' : 'hidden'}>
-            {isPremium && uploadedFile && !processingComplete && (
-              <div className="mt-6">
-                <Button
-                  onClick={handleProcess}
-                  disabled={isProcessing || !user}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                >
-                  {isProcessing ? (
-                   <>
-                     <Zap className="w-4 h-4 mr-2 animate-spin" />
-                     Processing document with AI...
-                   </>
-                  ) : (
-                    <>
-                      <Zap className="w-4 h-4 mr-2 animate-spin" />
-                      Processing document with AI...
-                      {runId && (
-                        <span className="text-xs text-muted-foreground ml-2">
-                          (ID: {runId.substring(0, 8)})
-                        </span>
-                      )}
-                    </>
-                  )}
-               </Button>
-             </div>
-           )}
+          {activeTab === 'ai' && (
+            <>
+              {isPremium && uploadedFile && !processingComplete && (
+                <div className="mt-6 px-6 pb-6">
+                  <Button
+                    onClick={handleProcess}
+                    disabled={isProcessing || !user}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Zap className="w-4 h-4 mr-2 animate-spin" />
+                        Processing document with AI...
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-4 h-4 mr-2 animate-spin" />
+                        Processing document with AI...
+                        {runId && (
+                          <span className="text-xs text-muted-foreground ml-2">
+                            (ID: {runId.substring(0, 8)})
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
 
-             {isPremium && processingComplete && (
-               <div className="mt-6 p-6 bg-muted/50 border border-primary/20 rounded-lg text-center">
-                 <div className="flex items-center justify-center space-x-2 text-foreground mb-2">
-                   <CheckCircle className="w-6 h-6 text-primary" />
-                   <span className="font-semibold text-lg">Processing Complete!</span>
-                 </div>
-                 <p className="text-muted-foreground mb-4">
-                   Successfully extracted {eventCount} calendar events!
-                 </p>
-                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                   <Link href="/dashboard/files">
-                     <Button variant="outline" className="w-full sm:w-auto">
-                       View Extracted Events
-                     </Button>
-                   </Link>
-                   <Button
-                     onClick={() => {
-                       setProcessingComplete(false);
-                       setRunId(null);
-                       setEventCount(0);
-                     }}
-                     variant="outline"
-                     className="w-full sm:w-auto"
-                   >
-                     Process Another File
-                   </Button>
-                 </div>
-               </div>
-             )}
-          </Activity>
+              {isPremium && processingComplete && (
+                <div className="mt-6 mx-6 mb-6 p-6 bg-muted/50 border border-primary/20 rounded-lg text-center">
+                  <div className="flex items-center justify-center space-x-2 text-foreground mb-2">
+                    <CheckCircle className="w-6 h-6 text-primary" />
+                    <span className="font-semibold text-lg">Processing Complete!</span>
+                  </div>
+                  <p className="text-muted-foreground mb-4">
+                    Successfully extracted {eventCount} calendar events!
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Link href="/dashboard/files">
+                      <Button variant="outline" className="w-full sm:w-auto">
+                        View Extracted Events
+                      </Button>
+                    </Link>
+                    <Button
+                      onClick={() => {
+                        setProcessingComplete(false);
+                        setRunId(null);
+                        setEventCount(0);
+                      }}
+                      variant="outline"
+                      className="w-full sm:w-auto"
+                    >
+                      Process Another File
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
 
-          <Activity mode={activeTab === 'manual' ? 'visible' : 'hidden'}>
-            <div className="mt-6">
+          {activeTab === 'manual' && (
+            <div className="mt-6 px-6 pb-6">
               <Button
                 onClick={handleManualEventSubmit}
                 disabled={!manualEvent.title || !manualEvent.date}
@@ -499,7 +503,7 @@ export default function Uploader() {
                 </p>
               )}
             </div>
-          </Activity>
+          )}
         </Card>
       </div>
     </div>

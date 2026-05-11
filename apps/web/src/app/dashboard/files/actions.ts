@@ -114,11 +114,19 @@ export async function emailFile(uploadId: string, email: string) {
     throw new Error("Unauthorized");
   }
 
-  // Check if user has premium access
-  const hasPremium =
+  // Check if user has premium access (Clerk entitlements + database source of truth)
+  const clerkPremium =
     has({ plan: "premium_user" }) || has({ feature: "file_sharing" });
 
-  if (!hasPremium) {
+  const dbUser = await db
+    .select({ isPremiumUser: users.isPremiumUser })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  const dbPremium = dbUser[0]?.isPremiumUser ?? false;
+
+  if (!clerkPremium && !dbPremium) {
     throw new Error("Premium feature required");
   }
 
@@ -185,11 +193,19 @@ export async function smsFile(uploadId: string, phoneNumber: string) {
     throw new Error("Unauthorized");
   }
 
-  // Check if user has premium access
-  const hasPremium =
+  // Check if user has premium access (Clerk entitlements + database source of truth)
+  const clerkPremium =
     has({ plan: "premium_user" }) || has({ feature: "file_sharing" });
 
-  if (!hasPremium) {
+  const dbUser = await db
+    .select({ isPremiumUser: users.isPremiumUser })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  const dbPremium = dbUser[0]?.isPremiumUser ?? false;
+
+  if (!clerkPremium && !dbPremium) {
     throw new Error("Premium feature required");
   }
 
@@ -248,12 +264,26 @@ export async function smsFile(uploadId: string, phoneNumber: string) {
 }
 
 export async function checkPremiumStatus() {
-  const { has } = await auth();
+  const { userId, has } = await auth();
 
-  const hasPremium =
+  if (!userId) {
+    return { isPremium: false };
+  }
+
+  // Check Clerk's client-side entitlements
+  const clerkPremium =
     has({ plan: "premium_user" }) || has({ feature: "file_sharing" });
 
-  return { isPremium: hasPremium };
+  // Check database as source of truth (webhooks write here)
+  const dbUser = await db
+    .select({ isPremiumUser: users.isPremiumUser })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  const dbPremium = dbUser[0]?.isPremiumUser ?? false;
+
+  return { isPremium: clerkPremium || dbPremium };
 }
 
 export async function getUserContactInfo() {

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Crown } from "lucide-react";
@@ -10,6 +9,7 @@ import { getUserFiles, getUserContactInfo } from "@/app/dashboard/files/actions"
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
 import posthog from "posthog-js";
+import { usePremium } from "@/hooks/use-premium";
 
 interface IcsFile {
   id: string;
@@ -35,9 +35,7 @@ export function FilesGallery() {
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [userContactInfo, setUserContactInfo] = useState<{ email: string; phoneNumber: string } | null>(null);
-  const { has } = useAuth();
-
-  const isPremium = has ? has({ plan: 'premium_user' }) : false;
+  const { isPremium } = usePremium();
 
   useEffect(() => {
     loadData();
