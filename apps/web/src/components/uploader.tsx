@@ -309,41 +309,41 @@ export default function Uploader() {
 
     return (
       <div className="flex flex-col items-center justify-center font-sans w-full animate-in fade-in zoom-in-95 duration-500">
-        <h2 className="text-[#efefef] text-3xl font-bold text-center mb-10">AI extracts details instantly</h2>
+        <h2 className="text-[#efefef] text-xl font-bold text-center mb-4">AI extracts details instantly</h2>
 
         {/* File Card */}
-        <div className="w-full max-w-[800px] bg-[#212121] p-8 rounded-[24px] border-2 border-[#333333] mb-10 flex items-center gap-8 shadow-2xl">
-          <div className="w-20 h-20 bg-[#c23326] rounded-xl flex items-center justify-center shrink-0">
-            <FileImage size={40} color="#efefef" />
+        <div className="w-full max-w-xl bg-[#212121] p-4 rounded-xl border border-[#333333] mb-4 flex items-center gap-4 shadow-lg">
+          <div className="w-10 h-10 bg-[#c23326] rounded-lg flex items-center justify-center shrink-0">
+            <FileImage size={20} color="#efefef" />
           </div>
-          <div className="flex-1">
-            <div className="font-sans text-2xl font-semibold text-[#efefef] mb-1">
+          <div className="flex-1 min-w-0">
+            <div className="font-sans text-sm font-semibold text-[#efefef] truncate">
               {uploadedFile.name}
             </div>
-            <div className="font-sans text-lg text-[#888888]">
+            <div className="font-sans text-xs text-[#888888]">
               {uploadMutation.isPending ? 'Uploading securely...' : 'Processing with AI...'}
             </div>
           </div>
           <div className="animate-pulse">
-            <Loader2 size={32} color="#c23326" className="animate-spin" />
+            <Loader2 size={20} color="#c23326" className="animate-spin" />
           </div>
         </div>
 
         {/* AI Processing Banner */}
-        <div className="w-full max-w-[800px] bg-[#c23326] text-[#efefef] p-6 rounded-2xl flex items-center justify-center gap-4 mb-8 shadow-[0_10px_40px_rgba(194,51,38,0.3)]">
-          <Zap size={28} color="#efefef" className="animate-pulse" />
-          <span className="font-sans text-2xl font-bold">
+        <div className="w-full max-w-xl bg-[#c23326] text-[#efefef] p-3 rounded-xl flex items-center justify-center gap-2 mb-4 shadow-[0_4px_20px_rgba(194,51,38,0.3)]">
+          <Zap size={16} color="#efefef" className="animate-pulse" />
+          <span className="font-sans text-sm font-bold">
             AI Processing in Progress
           </span>
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full max-w-[800px] mb-10">
-          <div className="flex justify-between mb-3 px-1">
-            <span className="font-sans text-lg text-[#888888]">Processing...</span>
-            <span className="font-sans text-lg font-semibold text-[#c23326]">{progressPercentage}%</span>
+        <div className="w-full max-w-xl mb-4">
+          <div className="flex justify-between mb-1 px-1">
+            <span className="font-sans text-xs text-[#888888]">Processing...</span>
+            <span className="font-sans text-xs font-semibold text-[#c23326]">{progressPercentage}%</span>
           </div>
-          <div className="w-full h-3 bg-[#333333] rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-[#333333] rounded-full overflow-hidden">
             <div
               className="h-full bg-[#c23326] rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progressPercentage}%` }}
@@ -352,7 +352,7 @@ export default function Uploader() {
         </div>
 
         {/* Processing Steps */}
-        <div className="w-full max-w-[800px] flex flex-col gap-4 mb-10">
+        <div className="w-full max-w-xl flex flex-col gap-2 mb-4">
           {PROCESSING_STEPS.map((step, index) => {
             const isComplete = index < activeStepIndex;
             const isCurrent = index === activeStepIndex;
@@ -361,37 +361,37 @@ export default function Uploader() {
             return (
               <div
                 key={step.id}
-                className={`flex items-center gap-5 p-5 rounded-2xl transition-all duration-300 ${isCurrent ? 'bg-[#c23326]/10 border-2 border-[#c23326]/30' : 'border-2 border-transparent'}`}
+                className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-300 ${isCurrent ? 'bg-[#c23326]/10 border border-[#c23326]/30' : 'border border-transparent'}`}
               >
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${isComplete ? 'bg-[#22c55e]' : isCurrent ? 'bg-[#c23326]' : 'bg-[#212121]'}`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isComplete ? 'bg-[#22c55e]' : isCurrent ? 'bg-[#c23326]' : 'bg-[#212121]'}`}>
                   {isComplete ? (
-                    <CheckCircle2 size={28} color="#efefef" />
+                    <CheckCircle2 size={16} color="#efefef" />
                   ) : (
-                    <StepIcon size={28} color={isCurrent ? "#efefef" : "#888888"} />
+                    <StepIcon size={16} color={isCurrent ? "#efefef" : "#888888"} />
                   )}
                 </div>
-                <span className={`font-sans text-xl ${isCurrent ? 'font-semibold' : 'font-normal'} ${isComplete || isCurrent ? 'text-[#efefef]' : 'text-[#888888]'}`}>
+                <span className={`font-sans text-sm ${isCurrent ? 'font-semibold' : 'font-normal'} ${isComplete || isCurrent ? 'text-[#efefef]' : 'text-[#888888]'}`}>
                   {step.label}
                 </span>
                 {isCurrent && (
                   <div className="ml-auto">
-                    <Loader2 size={24} color="#c23326" className="animate-spin" />
+                    <Loader2 size={16} color="#c23326" className="animate-spin" />
                   </div>
                 )}
                 {isComplete && (
-                  <span className="ml-auto font-sans text-base font-medium text-[#22c55e]">✓ Complete</span>
+                  <span className="ml-auto font-sans text-xs font-medium text-[#22c55e]">✓ Complete</span>
                 )}
               </div>
             );
           })}
         </div>
 
-        {/* Event Counter (Large) */}
-        <div className="w-full max-w-[800px] bg-[#212121] p-12 rounded-[32px] text-center border-2 border-[#333333] shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
-          <div className="font-sans text-[128px] font-black text-[#c23326] leading-none animate-pulse">
+        {/* Event Counter */}
+        <div className="w-full max-w-xl bg-[#212121] p-6 rounded-xl text-center border border-[#333333] shadow-lg">
+          <div className="font-sans text-6xl font-black text-[#c23326] leading-none animate-pulse">
             ...
           </div>
-          <div className="font-sans text-2xl font-medium text-[#888888] mt-4">
+          <div className="font-sans text-sm font-medium text-[#888888] mt-2">
             Events Detected
           </div>
         </div>
@@ -404,24 +404,24 @@ export default function Uploader() {
 
     return (
       <div className="flex flex-col items-center justify-center font-sans w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="w-full max-w-[800px] bg-[#212121] p-10 rounded-[32px] border-2 border-[#333333] text-center shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
-          <div className={`w-20 h-20 mx-auto rounded-2xl flex items-center justify-center mb-8 ${isNoEvents ? 'bg-[#c23326]/15' : 'bg-red-500/15'}`}>
-            <AlertCircle size={42} className={isNoEvents ? 'text-[#c23326]' : 'text-red-400'} />
+        <div className="w-full max-w-xl bg-[#212121] p-6 rounded-2xl border border-[#333333] text-center shadow-lg">
+          <div className={`w-12 h-12 mx-auto rounded-xl flex items-center justify-center mb-4 ${isNoEvents ? 'bg-[#c23326]/15' : 'bg-red-500/15'}`}>
+            <AlertCircle size={24} className={isNoEvents ? 'text-[#c23326]' : 'text-red-400'} />
           </div>
-          <h2 className="text-[#efefef] text-3xl font-bold mb-4">
+          <h2 className="text-[#efefef] text-xl font-bold mb-2">
             {isNoEvents ? 'No calendar events found' : 'Processing failed'}
           </h2>
-          <p className="text-[#888888] text-xl max-w-2xl mx-auto mb-8">
+          <p className="text-[#888888] text-base max-w-md mx-auto mb-6">
             {statusQuery.data?.failureReason || (isNoEvents
               ? 'That file looked valid, but QuickCalAI could not find any dates or times to turn into events.'
               : 'QuickCalAI could not finish processing this upload.')}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button onClick={handleReset} className="bg-[#c23326] hover:bg-[#d43d2f] text-[#efefef] rounded-xl px-6 py-6 text-base font-bold">
-              <RotateCcw className="w-5 h-5 mr-2" />
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button onClick={handleReset} className="bg-[#c23326] hover:bg-[#d43d2f] text-[#efefef] rounded-xl px-4 py-3 text-sm font-bold">
+              <RotateCcw className="w-4 h-4 mr-2" />
               Try another file
             </Button>
-            <Button asChild variant="outline" className="border-[#333333] bg-[#161616] text-[#efefef] hover:bg-[#2a2a2a] rounded-xl px-6 py-6 text-base font-bold">
+            <Button asChild variant="outline" className="border-[#333333] bg-[#161616] text-[#efefef] hover:bg-[#2a2a2a] rounded-xl px-4 py-3 text-sm font-bold">
               <Link href="/dashboard/files">View files</Link>
             </Button>
           </div>
@@ -440,21 +440,21 @@ export default function Uploader() {
 
     return (
       <div className="flex flex-col items-center justify-center font-sans w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <h2 className="text-[#efefef] text-4xl font-bold text-center mb-10">Download your .ics and you're done</h2>
+        <h2 className="text-[#efefef] text-xl font-bold text-center mb-4">Download your .ics and you're done</h2>
 
         {/* Success Banner */}
-        <div className="w-full max-w-[900px] bg-[#22c55e]/10 p-10 rounded-2xl border-2 border-[#22c55e]/30 mb-10 flex items-center gap-6 shadow-xl">
-          <div className="w-20 h-20 bg-[#22c55e] rounded-2xl flex items-center justify-center shrink-0 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
-            <CheckCircle size={40} color="#efefef" />
+        <div className="w-full max-w-xl bg-[#22c55e]/10 p-4 rounded-xl border border-[#22c55e]/30 mb-4 flex items-center gap-4 shadow-lg">
+          <div className="w-10 h-10 bg-[#22c55e] rounded-lg flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+            <CheckCircle size={20} color="#efefef" />
           </div>
           <div>
-            <div className="font-sans text-3xl font-bold text-[#22c55e] mb-1">Processing Complete!</div>
-            <div className="font-sans text-2xl text-[#efefef]">{eventCount} events ready to download</div>
+            <div className="font-sans text-lg font-bold text-[#22c55e]">Processing Complete!</div>
+            <div className="font-sans text-base text-[#efefef]">{eventCount} events ready to download</div>
           </div>
         </div>
 
         {/* Export Options Grid */}
-        <div className="w-full max-w-[900px] grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="w-full max-w-xl grid grid-cols-1 md:grid-cols-2 gap-3">
           {exportOptions.map((option, index) => {
             const OptionIcon = option.icon;
             return (
@@ -462,50 +462,50 @@ export default function Uploader() {
                 key={index}
                 type="button"
                 onClick={option.onClick}
-                className={`flex items-center gap-5 p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 text-left group ${option.primary ? 'bg-[#c23326] shadow-[0_20px_50px_rgba(194,51,38,0.3)] hover:bg-[#d43d2f]' : 'bg-[#212121] border-2 border-[#333333] hover:border-[#444444]'}`}
+                className={`flex items-center gap-3 p-4 rounded-xl transition-all duration-300 hover:-translate-y-1 text-left group ${option.primary ? 'bg-[#c23326] shadow-[0_10px_25px_rgba(194,51,38,0.3)] hover:bg-[#d43d2f]' : 'bg-[#212121] border border-[#333333] hover:border-[#444444]'}`}
               >
-                <div className={`w-16 h-16 rounded-xl flex items-center justify-center shrink-0 transition-colors ${option.primary ? 'bg-[#efefef]/15 group-hover:bg-[#efefef]/25' : 'bg-[#161616]'}`}>
-                  <OptionIcon size={32} color={option.primary ? "#efefef" : "#c23326"} />
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors ${option.primary ? 'bg-[#efefef]/15 group-hover:bg-[#efefef]/25' : 'bg-[#161616]'}`}>
+                  <OptionIcon size={20} color={option.primary ? "#efefef" : "#c23326"} />
                 </div>
                 <div className="flex-1">
-                  <div className="font-sans text-2xl font-bold text-[#efefef] mb-1">{option.label}</div>
-                  <div className={`font-sans text-lg ${option.primary ? 'text-[#efefef]/80' : 'text-[#888888]'}`}>{option.desc}</div>
+                  <div className="font-sans text-base font-bold text-[#efefef]">{option.label}</div>
+                  <div className={`font-sans text-sm ${option.primary ? 'text-[#efefef]/80' : 'text-[#888888]'}`}>{option.desc}</div>
                 </div>
               </button>
             );
           })}
           <Link
             href="/dashboard/files"
-            className="flex items-center gap-5 p-8 rounded-2xl transition-all duration-300 hover:-translate-y-2 text-left group bg-[#212121] border-2 border-[#333333] hover:border-[#444444]"
+            className="flex items-center gap-3 p-4 rounded-xl transition-all duration-300 hover:-translate-y-1 text-left group bg-[#212121] border border-[#333333] hover:border-[#444444]"
           >
-            <div className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0 transition-colors bg-[#161616]">
-              <Mail size={32} color="#c23326" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors bg-[#161616]">
+              <Mail size={20} color="#c23326" />
             </div>
             <div className="flex-1">
-              <div className="font-sans text-2xl font-bold text-[#efefef] mb-1">Email or SMS</div>
-              <div className="font-sans text-lg text-[#888888]">Open file delivery options</div>
+              <div className="font-sans text-base font-bold text-[#efefef]">Email or SMS</div>
+              <div className="font-sans text-sm text-[#888888]">Open file delivery options</div>
             </div>
-            <MessageSquare size={24} className="text-[#888888]" />
+            <MessageSquare size={18} className="text-[#888888]" />
           </Link>
         </div>
 
         {/* File Preview Card */}
-        <div className="w-full max-w-[900px] mt-12 bg-[#212121] p-8 rounded-2xl border-2 border-[#333333] flex items-center gap-6 shadow-lg">
-          <div className="w-16 h-16 bg-[#c23326] rounded-xl flex items-center justify-center shrink-0">
-            <Calendar size={32} color="#efefef" />
+        <div className="w-full max-w-xl mt-6 bg-[#212121] p-4 rounded-xl border border-[#333333] flex items-center gap-4 shadow-lg">
+          <div className="w-10 h-10 bg-[#c23326] rounded-lg flex items-center justify-center shrink-0">
+            <Calendar size={20} color="#efefef" />
           </div>
-          <div className="flex-1">
-            <div className="font-sans text-2xl font-semibold text-[#efefef] mb-1">{uploadedFile.name.replace(/\.[^/.]+$/, "")}-events.ics</div>
-            <div className="font-sans text-lg text-[#888888]">{eventCount} events • Ready to import</div>
+          <div className="flex-1 min-w-0">
+            <div className="font-sans text-base font-semibold text-[#efefef] truncate">{uploadedFile.name.replace(/\.[^/.]+$/, "")}-events.ics</div>
+            <div className="font-sans text-sm text-[#888888]">{eventCount} events • Ready to import</div>
           </div>
-          <button type="button" onClick={handleCopyLink} className="px-8 py-3 bg-[#161616] rounded-xl border border-[#333333] flex items-center gap-3 hover:bg-[#2a2a2a] transition-all active:scale-95 group">
-            <Copy size={20} color="#888888" className="group-hover:text-[#efefef] transition-colors" />
-            <span className="font-sans text-lg text-[#efefef]">Copy Link</span>
+          <button type="button" onClick={handleCopyLink} className="px-4 py-2 bg-[#161616] rounded-lg border border-[#333333] flex items-center gap-2 hover:bg-[#2a2a2a] transition-all active:scale-95 group shrink-0">
+            <Copy size={16} color="#888888" className="group-hover:text-[#efefef] transition-colors" />
+            <span className="font-sans text-sm text-[#efefef]">Copy Link</span>
           </button>
         </div>
 
-        <div className="pt-12 text-center w-full">
-          <Button variant="link" onClick={handleReset} className="text-[#888888] hover:text-[#efefef] text-lg">
+        <div className="pt-6 text-center w-full">
+          <Button variant="link" onClick={handleReset} className="text-[#888888] hover:text-[#efefef] text-sm">
             Upload another file
           </Button>
         </div>
@@ -515,45 +515,45 @@ export default function Uploader() {
 
   // 3. Initial State (Upload Dropzone / Manual Form)
   return (
-    <div className="space-y-10 max-w-4xl mx-auto">
+    <div className="space-y-6 max-w-xl mx-auto">
       <div>
-        <div className="mb-10 text-center md:text-left flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+        <div className="mb-6 text-center md:text-left flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
-            <div className="flex items-center justify-center md:justify-start space-x-4 mb-3">
-              <h2 className="font-serif font-bold text-4xl text-[#efefef]">AI Calendar Extraction</h2>
+            <div className="flex items-center justify-center md:justify-start space-x-2 mb-2">
+              <h2 className="font-serif font-bold text-2xl text-[#efefef]">AI Calendar Extraction</h2>
               {isPremium && (
-                <div className="flex items-center space-x-2 bg-linear-to-r from-yellow-400 to-orange-500 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
-                  <Crown className="w-4 h-4" />
+                <div className="flex items-center space-x-1 bg-linear-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                  <Crown className="w-3 h-3" />
                   <span>PREMIUM</span>
                 </div>
               )}
             </div>
-            <p className="text-[#888888] text-xl max-w-2xl">
+            <p className="text-[#888888] text-base max-w-md">
               Upload an image or PDF with dates and times to extract calendar events instantly
             </p>
           </div>
 
-          <div className="flex bg-[#212121] p-1.5 rounded-2xl border border-[#333333]">
+          <div className="flex bg-[#212121] p-1 rounded-xl border border-[#333333]">
             <button
               onClick={() => setActiveTab('ai')}
-              className={`flex items-center space-x-2 px-6 py-2.5 rounded-xl text-base font-bold transition-all ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                 activeTab === 'ai'
-                  ? 'bg-[#c23326] text-[#efefef] shadow-lg'
+                  ? 'bg-[#c23326] text-[#efefef] shadow-md'
                   : 'text-[#888888] hover:text-[#efefef]'
               }`}
             >
-              <Zap className="w-5 h-5" />
+              <Zap className="w-4 h-4" />
               <span>AI Upload</span>
             </button>
             <button
               onClick={() => setActiveTab('manual')}
-              className={`flex items-center space-x-2 px-6 py-2.5 rounded-xl text-base font-bold transition-all ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                 activeTab === 'manual'
-                  ? 'bg-[#c23326] text-[#efefef] shadow-lg'
+                  ? 'bg-[#c23326] text-[#efefef] shadow-md'
                   : 'text-[#888888] hover:text-[#efefef]'
               }`}
             >
-              <PenTool className="w-5 h-5" />
+              <PenTool className="w-4 h-4" />
               <span>Manual</span>
             </button>
           </div>
@@ -565,8 +565,8 @@ export default function Uploader() {
               <>
               {isPremium ? (
                 <div
-                  className={`relative border-2 border-dashed rounded-[32px] p-24 text-center transition-all duration-500 ${
-                    dragActive ? "border-[#c23326] bg-[#c23326]/5 scale-[1.02] shadow-[0_0_60px_rgba(194,51,38,0.1)]" : "border-[#333333] hover:border-[#c23326]/40 bg-[#1a1a1a]"
+                  className={`relative border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-500 ${
+                    dragActive ? "border-[#c23326] bg-[#c23326]/5 scale-[1.02] shadow-[0_0_30px_rgba(194,51,38,0.1)]" : "border-[#333333] hover:border-[#c23326]/40 bg-[#1a1a1a]"
                   }`}
                   onDragEnter={handleDrag}
                   onDragLeave={handleDrag}
@@ -580,26 +580,26 @@ export default function Uploader() {
                     onChange={handleFileInput}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
-                  <div className="space-y-6">
-                    <div className="w-24 h-24 bg-[#c23326]/10 rounded-full flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform shadow-[0_0_40px_rgba(194,51,38,0.15)]">
-                      <Upload className="w-12 h-12 text-[#c23326]" />
+                  <div className="space-y-4">
+                    <div className="w-16 h-16 bg-[#c23326]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(194,51,38,0.15)]">
+                      <Upload className="w-8 h-8 text-[#c23326]" />
                     </div>
                     <div>
-                      <p className="text-3xl font-bold text-[#efefef]">Drop your document here</p>
-                      <p className="text-[#888888] text-xl mt-3">or click to browse files</p>
+                      <p className="text-xl font-bold text-[#efefef]">Drop your document here</p>
+                      <p className="text-[#888888] text-base mt-2">or click to browse files</p>
                     </div>
-                    <p className="text-base text-[#888888]/60 font-medium pt-8">Supports JPEG, PNG, WebP, and PDF up to 10MB</p>
+                    <p className="text-sm text-[#888888]/60 font-medium pt-4">Supports JPEG, PNG, WebP, and PDF up to 10MB</p>
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-20 bg-[#1a1a1a] rounded-[32px] border border-[#333333]">
-                  <Crown className="w-20 h-20 text-yellow-500 mx-auto mb-8" />
-                  <h3 className="text-2xl font-bold mb-3 text-[#efefef]">Premium Feature</h3>
-                  <p className="text-[#888888] mb-10 text-xl">
+                <div className="text-center py-12 bg-[#1a1a1a] rounded-2xl border border-[#333333]">
+                  <Crown className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold mb-2 text-[#efefef]">Premium Feature</h3>
+                  <p className="text-[#888888] mb-6 text-base">
                     Unlock AI-powered calendar extraction with our Premium plan
                   </p>
                   <Link href={'/dashboard/settings'}>
-                    <Button className="bg-[#c23326] hover:bg-[#d43d2f] text-white text-xl px-12 py-8 rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 font-bold">
+                    <Button className="bg-[#c23326] hover:bg-[#d43d2f] text-white text-lg px-8 py-4 rounded-xl shadow-lg transition-all hover:scale-105 active:scale-95 font-bold">
                       Upgrade to Premium
                     </Button>
                   </Link>
@@ -609,70 +609,70 @@ export default function Uploader() {
             )}
 
             {activeTab === 'manual' && (
-              <div className="bg-[#1a1a1a] rounded-[32px] border border-[#333333] p-10 space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
+              <div className="bg-[#1a1a1a] rounded-2xl border border-[#333333] p-6 space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
                 {userTimezone && (
-                  <div className="p-4 bg-[#c23326]/10 border border-[#c23326]/30 rounded-2xl flex items-center gap-4">
-                    <Calendar className="w-6 h-6 text-[#c23326]" />
-                    <p className="text-lg text-[#efefef]">
+                  <div className="p-3 bg-[#c23326]/10 border border-[#c23326]/30 rounded-xl flex items-center gap-3">
+                    <Calendar className="w-5 h-5 text-[#c23326]" />
+                    <p className="text-sm text-[#efefef]">
                       Events will be created in: <strong className="text-[#c23326]">{userTimezone}</strong>
                     </p>
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <Label htmlFor="title" className="text-lg text-[#efefef] font-semibold ml-1">Event Title *</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="title" className="text-sm text-[#efefef] font-semibold ml-1">Event Title *</Label>
                     <Input
                       id="title"
                       placeholder="Meeting with John"
                       value={manualEvent.title}
                       onChange={(e) => setManualEvent(prev => ({ ...prev, title: e.target.value }))}
-                      className="bg-[#212121] border-[#333333] text-[#efefef] h-14 rounded-xl text-lg focus:ring-[#c23326] focus:border-[#c23326]"
+                      className="bg-[#212121] border-[#333333] text-[#efefef] h-10 rounded-lg text-base focus:ring-[#c23326] focus:border-[#c23326]"
                     />
                   </div>
-                  <div className="space-y-3">
-                    <Label htmlFor="date" className="text-lg text-[#efefef] font-semibold ml-1">Date *</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="date" className="text-sm text-[#efefef] font-semibold ml-1">Date *</Label>
                      <Input
                        id="date"
                        type="date"
                        value={manualEvent.date}
                        onChange={(e) => setManualEvent(prev => ({ ...prev, date: e.target.value }))}
-                       className="bg-[#212121] border-[#333333] text-[#efefef] h-14 rounded-xl text-lg focus:ring-[#c23326] focus:border-[#c23326] cursor-text"
+                       className="bg-[#212121] border-[#333333] text-[#efefef] h-10 rounded-lg text-base focus:ring-[#c23326] focus:border-[#c23326] cursor-text"
                      />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                   <div className="space-y-3">
-                     <Label htmlFor="time" className="text-lg text-[#efefef] font-semibold ml-1">Time (optional)</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                     <Label htmlFor="time" className="text-sm text-[#efefef] font-semibold ml-1">Time (optional)</Label>
                      <Input
                        id="time"
                        type="time"
                        value={manualEvent.time}
                        onChange={(e) => setManualEvent(prev => ({ ...prev, time: e.target.value }))}
                        step="60"
-                       className="bg-[#212121] border-[#333333] text-[#efefef] h-14 rounded-xl text-lg focus:ring-[#c23326] focus:border-[#c23326] cursor-text"
+                       className="bg-[#212121] border-[#333333] text-[#efefef] h-10 rounded-lg text-base focus:ring-[#c23326] focus:border-[#c23326] cursor-text"
                      />
                    </div>
                 </div>
 
-                <div className="space-y-3">
-                  <Label htmlFor="description" className="text-lg text-[#efefef] font-semibold ml-1">Description</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-sm text-[#efefef] font-semibold ml-1">Description</Label>
                   <textarea
                     id="description"
                     placeholder="Event details..."
                     value={manualEvent.description}
                     onChange={(e) => setManualEvent(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full px-5 py-4 bg-[#212121] border border-[#333333] text-[#efefef] rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#c23326] focus:border-[#c23326] resize-none text-lg h-32"
+                    className="w-full px-4 py-3 bg-[#212121] border border-[#333333] text-[#efefef] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c23326] focus:border-[#c23326] resize-none text-base h-24"
                   />
                 </div>
 
                 <Button
                   onClick={handleManualEventSubmit}
                   disabled={!manualEvent.title || !manualEvent.date}
-                  className="w-full bg-[#c23326] hover:bg-[#d43d2f] text-[#efefef] h-16 rounded-2xl text-xl font-bold transition-all shadow-xl disabled:opacity-50"
+                  className="w-full bg-[#c23326] hover:bg-[#d43d2f] text-[#efefef] h-12 rounded-xl text-lg font-bold transition-all shadow-lg disabled:opacity-50"
                 >
-                  <Calendar className="w-6 h-6 mr-3" />
+                  <Calendar className="w-5 h-5 mr-2" />
                   Create Calendar Event
                 </Button>
                </div>
