@@ -7,7 +7,7 @@ import { users } from '@quickcalai/db/schema';
 import { createRouteContext, handleRouteError, jsonError, jsonSuccess } from '@/lib/server/route';
 import { MAX_UPLOAD_FILE_SIZE_BYTES, isAllowedUploadMimeType } from '@/lib/validators';
 import { getPostHogClient } from '@/lib/posthog-server';
-import { eq } from 'drizzle-orm';
+import { eq } from '@quickcalai/db';
 import { serverLogger } from '@/lib/logger';
 
 const WORKFLOW_START_TIMEOUT_MS = 15_000;

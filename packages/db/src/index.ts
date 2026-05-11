@@ -1,4 +1,5 @@
 import { drizzle } from "drizzle-orm/node-postgres";
+export { eq, and, ne, count } from "drizzle-orm";
 
 type DbInstance = ReturnType<typeof drizzle>;
 

@@ -3,7 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { getUserUploads, getUploadEvents, db } from "@quickcalai/db";
 import { users } from "@quickcalai/db/schema";
-import { eq } from "drizzle-orm";
+import { eq } from "@quickcalai/db";
 import { serverLogger } from "@/lib/logger";
 import { isRecoverableFreshDatabaseError } from "@/lib/server/db-errors";
 import {

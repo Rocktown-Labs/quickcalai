@@ -1,7 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@quickcalai/db';
 import { users } from '@quickcalai/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq } from '@quickcalai/db';
 import { createRouteContext, handleRouteError, jsonError, jsonSuccess } from '@/lib/server/route';
 
 export async function GET(request: Request) {

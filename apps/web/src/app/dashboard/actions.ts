@@ -4,7 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import * as Sentry from "@sentry/nextjs";
 import { db } from "@quickcalai/db";
 import { events, uploads } from "@quickcalai/db/schema";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "@quickcalai/db";
 import { serverLogger } from "@/lib/logger";
 import { isRecoverableFreshDatabaseError } from "@/lib/server/db-errors";
 

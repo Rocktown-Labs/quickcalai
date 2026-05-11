@@ -1,7 +1,7 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { db } from '@quickcalai/db';
 import { users } from '@quickcalai/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq } from '@quickcalai/db';
 import SettingsForm from '@/components/settings/settings-form';
 import SubscriptionManager from '@/components/settings/subscription-manager';
 import * as Sentry from '@sentry/nextjs';

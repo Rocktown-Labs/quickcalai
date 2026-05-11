@@ -2,7 +2,7 @@ import { auth, currentUser } from '@clerk/nextjs/server';
 import { db } from '@quickcalai/db';
 import { users, events } from '@quickcalai/db/schema';
 import { generateICSForManual } from '@/lib/ics';
-import { eq } from 'drizzle-orm';
+import { eq } from '@quickcalai/db';
 import { createRouteContext, handleRouteError, jsonError, jsonSuccess, parseJsonBody } from '@/lib/server/route';
 import { manualEventSchema } from '@/lib/validators';
 import { serverLogger } from '@/lib/logger';
