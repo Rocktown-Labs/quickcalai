@@ -35,7 +35,7 @@ export const completeOnboarding = async (formData: FormData) => {
     // Also update our database
     const { db } = await import('@quickcalai/db')
     const { users } = await import('@quickcalai/db/schema')
-    const { eq } = await import('drizzle-orm')
+    const { eq } = await import('@quickcalai/db')
 
     await db.update(users)
       .set({

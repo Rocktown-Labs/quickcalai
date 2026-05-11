@@ -94,6 +94,13 @@ const nextConfig: NextConfig = {
 
 	// Bundle analysis
 	webpack: (config, { isServer }) => {
+		// Force a single drizzle-orm instance across the monorepo to prevent
+		// type conflicts when workspace packages resolve different peer deps
+		config.resolve.alias = {
+			...config.resolve.alias,
+			'drizzle-orm': require.resolve('drizzle-orm'),
+		};
+
 		// Optimize bundle splitting
 		if (!isServer) {
 			config.optimization.splitChunks.chunks = 'all';
