@@ -112,6 +112,14 @@ export async function POST(request: NextRequest) {
         // Map Clerk event types to our status enum
         let status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'ended' | 'upcoming' | 'free' = 'free';
 
+        // Helper: Clerk sends timestamps in ms (13 digits) or seconds (10 digits)
+        const parseTimestamp = (ts: number | undefined): Date | null => {
+          if (!ts) return null;
+          // 13 digits = milliseconds, 10 digits = seconds
+          const ms = ts > 1_000_000_000_000 ? ts : ts * 1000;
+          return new Date(ms);
+        };
+
         // Handle subscription-level events
         if (evt.type === 'subscription.active') {
           status = 'active';
@@ -173,9 +181,9 @@ export async function POST(request: NextRequest) {
             planId: eventData.plan_id,
             status,
             isActive: status === 'active',
-            periodStart: eventData.period_start ? new Date(eventData.period_start * 1000) : null,
-            periodEnd: eventData.period_end ? new Date(eventData.period_end * 1000) : null,
-            canceledAt: eventData.canceled_at ? new Date(eventData.canceled_at * 1000) : null,
+            periodStart: parseTimestamp(eventData.period_start),
+            periodEnd: parseTimestamp(eventData.period_end),
+            canceledAt: parseTimestamp(eventData.canceled_at),
           };
 
           if (existingSubscriptionItem[0]) {
