@@ -152,6 +152,12 @@ export async function emailFile(uploadId: string, email: string) {
       throw new Error("File is not ready for sharing");
     }
 
+    // Fetch events for the email template
+    const events = await getUploadEvents(uploadId);
+    const shareUrl = upload.shareToken
+      ? `${process.env.NEXT_PUBLIC_APP_URL || 'https://quickcal.ai'}/s/${upload.shareToken}`
+      : undefined;
+
     try {
       await sendCalendarFileEmail({
         uploadId,
@@ -159,6 +165,8 @@ export async function emailFile(uploadId: string, email: string) {
         to: email,
         fileName: icsFileName,
         icsUrl,
+        eventCount: events.length,
+        shareUrl,
       });
 
       return { success: true, message: `ICS file sent to ${email}` };

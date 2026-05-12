@@ -23,6 +23,7 @@ export async function getUserUploads(userId: string) {
         fileType: uploads.fileType,
         storageUrl: uploads.storageUrl,
         icsUrl: uploads.icsUrl,
+        shareToken: uploads.shareToken,
         workflowRunId: uploads.workflowRunId,
         failureReason: uploads.failureReason,
         status: uploads.status,
@@ -56,6 +57,7 @@ export async function getUserUploads(userId: string) {
       return legacyUploads.map((upload) => ({
         ...upload,
         icsUrl: null,
+        shareToken: null,
         workflowRunId: null,
         failureReason: null,
       }));

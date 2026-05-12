@@ -32,9 +32,9 @@ export function DashboardNav() {
   return (
     <div className="flex flex-col h-full bg-background border-r">
       <div className="p-6 border-b border-border">
-        <Link href="/" className="flex items-center space-x-2">
+        <Link href="/" className="flex items-center">
           <Image src="/QuickCalAI.png" alt="QuickCal Logo" width={32} height={32} className="object-contain rounded" />
-          <span className="font-serif font-bold text-xl text-foreground">QuickCalAI</span>
+          <span className="font-bold text-xl text-foreground">QuickCalAI</span>
         </Link>
       </div>
       <nav className="flex-1 p-6">

@@ -138,6 +138,8 @@ export async function sendCalendarFileEmail(input: {
   to: string;
   fileName: string;
   icsUrl: string;
+  eventCount?: number;
+  shareUrl?: string;
 }) {
   const resend = getResendClient();
   const from = getFromEmail();
@@ -148,26 +150,27 @@ export async function sendCalendarFileEmail(input: {
     to: input.to,
   });
 
-  return resend.emails.send({
-    from,
-    to: input.to,
-    subject: `Your Calendar Events - ${input.fileName}`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">Your Calendar Events are Ready!</h2>
-        <p>Hi there,</p>
-        <p>Your calendar events have been extracted and are attached to this email as an ICS file.</p>
-        <p>You can import this file into any calendar application (Google Calendar, Outlook, Apple Calendar, etc.).</p>
-        <p>Best regards,<br>The QuickCal AI Team</p>
-      </div>
-    `,
-    attachments: [
-      {
-        filename: input.fileName,
-        path: input.icsUrl,
-      },
-    ],
-  });
+  const { data, error } = await resend.emails.send(
+    {
+      from,
+      to: input.to,
+      subject: `Your calendar from ${input.fileName.replace(/\.[^/.]+$/, '')} is ready`,
+      react: ProcessingCompleteEmail({
+        fileName: input.fileName,
+        eventCount: input.eventCount ?? 0,
+        shareUrl: input.shareUrl,
+        icsUrl: input.icsUrl,
+      }),
+    },
+    { idempotencyKey: `calendar-file/${input.userId}/${input.uploadId}` }
+  );
+
+  if (error) {
+    serverLogger.error('Failed to send calendar file email', { error, userId: input.userId });
+    throw new Error(`Failed to send calendar file email: ${error.message}`);
+  }
+
+  return data;
 }
 
 export async function sendCalendarFileSms(input: {
