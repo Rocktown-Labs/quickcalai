@@ -51,6 +51,9 @@ export default function ReEngagementEmail({ name }: ReEngagementEmailProps) {
                   <span className="text-[#c23326] font-bold">Fixed:</span> Premium status now syncs correctly
                 </Text>
                 <Text className="text-[#efefef] text-sm leading-relaxed m-0">
+                  <span className="text-[#c23326] font-bold">New:</span> Brand-new uploader with real-time progress and step-by-step status
+                </Text>
+                <Text className="text-[#efefef] text-sm leading-relaxed m-0">
                   <span className="text-[#c23326] font-bold">New:</span> Shareable preview pages — send a link instead of a file
                 </Text>
                 <Text className="text-[#efefef] text-sm leading-relaxed m-0">
