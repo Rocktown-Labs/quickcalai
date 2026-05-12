@@ -81,7 +81,7 @@ export async function sendReEngagementEmail(input: {
       subject: 'QuickCalAI is back and better than ever',
       react: ReEngagementEmail({ name: input.name }),
     },
-    { idempotencyKey: `reengagement-email/${input.userId}` }
+    { idempotencyKey: `reengagement-email/${input.userId}/${new Date().toISOString().split('T')[0]}` }
   );
 
   if (error) {
