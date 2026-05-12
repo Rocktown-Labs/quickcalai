@@ -4,7 +4,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Upload, ImageIcon, FileText, Settings, Shield } from "lucide-react"
 import { cn } from "@/lib/utils"
-import Image from "next/image"
 import type { Route } from "next"
 import { UserButton, Show, SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 import { ThemeSwitcher } from "../theme-provider"
@@ -33,7 +32,6 @@ export function DashboardNav() {
     <div className="flex flex-col h-full bg-background border-r">
       <div className="p-6 border-b border-border">
         <Link href="/" className="flex items-center">
-          <Image src="/QuickCalAI.png" alt="QuickCal Logo" width={32} height={32} className="object-contain rounded" />
           <span className="font-bold text-xl text-foreground">QuickCalAI</span>
         </Link>
       </div>
