@@ -2,24 +2,31 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Upload, ImageIcon, FileText, Settings } from "lucide-react"
+import { Upload, ImageIcon, FileText, Settings, Shield } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import type { Route } from "next"
-import { UserButton, Show, SignInButton, SignUpButton } from "@clerk/nextjs";
+import { UserButton, Show, SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 import { ThemeSwitcher } from "../theme-provider"
 import { usePremium } from "@/hooks/use-premium"
 
-const navigation = [
+const baseNavigation = [
   { name: "Home", href: "/dashboard" as Route, icon: Upload },
   { name: "Media", href: "/dashboard/media" as Route, icon: ImageIcon },
   { name: "Files", href: "/dashboard/files" as Route, icon: FileText },
   { name: "Settings", href: "/dashboard/settings" as Route, icon: Settings },
 ]
 
+const adminNavigation = [
+  { name: "Admin", href: "/dashboard/admin" as Route, icon: Shield },
+]
+
 export function DashboardNav() {
   const pathname = usePathname()
   const { isPremium } = usePremium()
+  const { user } = useUser()
+  const isAdmin = user?.primaryEmailAddress?.emailAddress === 'cg@rocktownlabs.com'
+  const navigation = isAdmin ? [...baseNavigation, ...adminNavigation] : baseNavigation
 
   // Desktop sidebar navigation
   return (

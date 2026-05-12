@@ -1,10 +1,12 @@
 import { NextRequest } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { db } from '@quickcalai/db';
 import { users } from '@quickcalai/db/schema';
 import { sendReEngagementEmail } from '@/lib/server/notifications';
 import { serverLogger } from '@/lib/logger';
 import { createRouteContext, jsonError, jsonSuccess } from '@/lib/server/route';
+
+const ADMIN_EMAIL = 'cg@rocktownlabs.com';
 
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
@@ -12,18 +14,12 @@ export async function POST(request: NextRequest) {
   const logger = serverLogger.child(context);
 
   try {
-    // Require admin secret for this sensitive operation
-    const authHeader = request.headers.get('authorization');
-    const expectedSecret = process.env.ADMIN_SECRET?.trim();
+    const user = await currentUser();
+    const userEmail = user?.emailAddresses?.[0]?.emailAddress;
 
-    if (!expectedSecret) {
-      logger.error('ADMIN_SECRET not configured');
-      return jsonError(context, 500, 'Server configuration error');
-    }
-
-    if (authHeader !== `Bearer ${expectedSecret}`) {
-      logger.warn('Unauthorized re-engagement attempt');
-      return jsonError(context, 401, 'Unauthorized');
+    if (userEmail !== ADMIN_EMAIL) {
+      logger.warn('Unauthorized re-engagement attempt', { userEmail, userId });
+      return jsonError(context, 403, 'Forbidden');
     }
 
     // Parse optional batch size limit

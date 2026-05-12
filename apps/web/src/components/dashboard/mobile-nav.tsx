@@ -2,20 +2,27 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { UserButton } from "@clerk/nextjs"
-import { Upload, ImageIcon, FileText, Settings } from "lucide-react"
+import { UserButton, useUser } from "@clerk/nextjs"
+import { Upload, ImageIcon, FileText, Settings, Shield } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Route } from "next"
 
-const navigation = [
+const baseNavigation = [
   { name: "Home", href: "/dashboard" as Route, icon: Upload },
   { name: "Media", href: "/dashboard/media" as Route, icon: ImageIcon },
   { name: "Files", href: "/dashboard/files" as Route, icon: FileText },
   { name: "Settings", href: "/dashboard/settings" as Route, icon: Settings },
 ]
 
+const adminNavigation = [
+  { name: "Admin", href: "/dashboard/admin" as Route, icon: Shield },
+]
+
 export function MobileNav() {
   const pathname = usePathname()
+  const { user } = useUser()
+  const isAdmin = user?.primaryEmailAddress?.emailAddress === 'cg@rocktownlabs.com'
+  const navigation = isAdmin ? [...baseNavigation, ...adminNavigation] : baseNavigation
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50 md:hidden">
