@@ -1,6 +1,11 @@
 import { and, count, desc, eq } from 'drizzle-orm';
+import { randomBytes } from 'crypto';
 import { db } from '../index';
 import { events, uploads, type UploadStatus } from '../schema';
+
+export function generateShareToken(): string {
+  return randomBytes(6).toString('base64url');
+}
 
 export async function createUploadRecord(input: {
   fileName: string;
@@ -41,6 +46,7 @@ export async function updateUploadRecord(
     status?: UploadStatus;
     workflowRunId?: string | null;
     icsUrl?: string | null;
+    shareToken?: string | null;
     failureReason?: string | null;
   }
 ) {
@@ -50,6 +56,7 @@ export async function updateUploadRecord(
       ...(updates.status ? { status: updates.status } : {}),
       ...(updates.workflowRunId !== undefined ? { workflowRunId: updates.workflowRunId } : {}),
       ...(updates.icsUrl !== undefined ? { icsUrl: updates.icsUrl } : {}),
+      ...(updates.shareToken !== undefined ? { shareToken: updates.shareToken } : {}),
       ...(updates.failureReason !== undefined ? { failureReason: updates.failureReason } : {}),
       updatedAt: new Date(),
     })
@@ -64,6 +71,7 @@ export async function getUploadByWorkflowRunId(workflowRunId: string) {
       fileType: uploads.fileType,
       storageUrl: uploads.storageUrl,
       icsUrl: uploads.icsUrl,
+      shareToken: uploads.shareToken,
       workflowRunId: uploads.workflowRunId,
       failureReason: uploads.failureReason,
       status: uploads.status,
@@ -86,6 +94,7 @@ export async function getUserUploadByWorkflowRunId(userId: string, workflowRunId
       fileType: uploads.fileType,
       storageUrl: uploads.storageUrl,
       icsUrl: uploads.icsUrl,
+      shareToken: uploads.shareToken,
       workflowRunId: uploads.workflowRunId,
       failureReason: uploads.failureReason,
       status: uploads.status,
@@ -122,4 +131,23 @@ export async function getRecentUploads(userId: string, limit = 5) {
     .where(eq(uploads.userId, userId))
     .orderBy(desc(uploads.createdAt))
     .limit(limit);
+}
+
+export async function getUploadByShareToken(shareToken: string) {
+  const result = await db
+    .select({
+      id: uploads.id,
+      fileName: uploads.fileName,
+      fileType: uploads.fileType,
+      icsUrl: uploads.icsUrl,
+      shareToken: uploads.shareToken,
+      status: uploads.status,
+      userId: uploads.userId,
+      createdAt: uploads.createdAt,
+    })
+    .from(uploads)
+    .where(eq(uploads.shareToken, shareToken))
+    .limit(1);
+
+  return result[0] ?? null;
 }

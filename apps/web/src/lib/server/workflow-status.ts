@@ -17,6 +17,7 @@ type OwnedWorkflowStatus = {
     eventCount: number;
     status: UploadStatus;
     icsUrl?: string;
+    shareToken?: string;
   } | null;
 };
 
@@ -28,6 +29,7 @@ function buildStatusResponse(input: {
   eventCount: number;
   failureReason: string | null;
   icsUrl?: string | null;
+  shareToken?: string | null;
 }): OwnedWorkflowStatus {
   return {
     uploadId: input.uploadId,
@@ -41,6 +43,7 @@ function buildStatusResponse(input: {
             eventCount: input.eventCount,
             status: input.status,
             ...(input.icsUrl ? { icsUrl: input.icsUrl } : {}),
+            ...(input.shareToken ? { shareToken: input.shareToken } : {}),
           }
         : null,
   };
@@ -62,6 +65,7 @@ export async function resolveOwnedWorkflowStatus(userId: string, runId: string) 
       eventCount,
       failureReason: upload.failureReason,
       icsUrl: upload.icsUrl,
+      shareToken: upload.shareToken,
     });
   }
 
@@ -104,6 +108,10 @@ export async function resolveOwnedWorkflowStatus(userId: string, runId: string) 
           typeof returnValue === 'object' && returnValue !== null && 'icsUrl' in returnValue
             ? (returnValue.icsUrl as string | undefined)
             : upload.icsUrl,
+        shareToken:
+          typeof returnValue === 'object' && returnValue !== null && 'shareToken' in returnValue
+            ? (returnValue.shareToken as string | undefined)
+            : upload.shareToken,
       });
     }
 

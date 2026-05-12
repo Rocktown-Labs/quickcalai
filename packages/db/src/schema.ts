@@ -64,6 +64,7 @@ export const uploads = pgTable("uploads", {
   fileType: text("file_type").notNull(), // e.g., 'image/png', 'application/pdf'
   storageUrl: text("storage_url").notNull(), // URL from Vercel Blob, S3, etc.
   icsUrl: text("ics_url"), // URL to the combined ICS file for all events
+  shareToken: text("share_token").unique(), // Public share token for preview page
   workflowRunId: text("workflow_run_id").unique(),
   failureReason: text("failure_reason"),
 

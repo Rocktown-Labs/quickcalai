@@ -24,6 +24,7 @@ export interface CalendarProcessingResult {
   eventCount: number;
   status: 'completed' | 'no_events' | 'failed';
   icsUrl?: string;
+  shareToken?: string;
 }
 
 export async function calendarProcessingWorkflow(
@@ -95,11 +96,12 @@ export async function calendarProcessingWorkflow(
        eventCount: extractedEvents.length,
      });
      return {
-       uploadId: result.uploadId,
-       eventCount: extractedEvents.length,
-       status: 'completed',
-       icsUrl: result.icsUrl
-     };
+        uploadId: result.uploadId,
+        eventCount: extractedEvents.length,
+        status: 'completed',
+        icsUrl: result.icsUrl,
+        shareToken: result.shareToken,
+      };
   } catch (error) {
     await markUploadFailed(
       input.uploadId,

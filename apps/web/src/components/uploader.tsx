@@ -34,6 +34,7 @@ type WorkflowStatusResponse = {
     eventCount: number;
     status: WorkflowStatus;
     icsUrl?: string;
+    shareToken?: string;
   } | null;
   eventCount: number;
   failureReason: string | null;
@@ -159,6 +160,8 @@ export default function Uploader() {
   const hasFailed = statusQuery.data?.status === 'failed';
   const eventCount = statusQuery.data?.eventCount || 0;
   const icsUrl = statusQuery.data?.result?.icsUrl;
+  const shareToken = statusQuery.data?.result?.shareToken;
+  const shareUrl = shareToken ? `${typeof window !== 'undefined' ? window.location.origin : ''}/s/${shareToken}` : undefined;
 
   // Handlers
   const handleDrag = (e: React.DragEvent) => {
@@ -224,31 +227,32 @@ export default function Uploader() {
   };
 
   const handleCopyLink = async () => {
-    if (!icsUrl) {
-      toast.error('The calendar link is not ready yet.');
+    if (!shareUrl) {
+      toast.error('The share link is not ready yet.');
       return;
     }
 
     try {
-      await navigator.clipboard.writeText(icsUrl);
-      toast.success('Calendar link copied.');
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('Share link copied.');
     } catch (error) {
-      logger.error('Failed to copy calendar link', { error, runId });
-      toast.error('Could not copy the calendar link.');
+      logger.error('Failed to copy share link', { error, runId });
+      toast.error('Could not copy the share link.');
     }
   };
 
   const handleShare = async () => {
-    if (!icsUrl) {
-      toast.error('The calendar link is not ready yet.');
+    if (!shareUrl) {
+      toast.error('The share link is not ready yet.');
       return;
     }
 
     try {
       if (navigator.share) {
         await navigator.share({
-          title: 'QuickCalAI calendar file',
-          url: icsUrl,
+          title: 'QuickCalAI Schedule',
+          text: 'Check out this calendar schedule:',
+          url: shareUrl,
         });
         return;
       }

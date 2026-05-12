@@ -1,6 +1,6 @@
 import { put } from '@vercel/blob';
 import { isDocumentCalendar, extractEventsFromDocument, type ExtractedEvent } from '@/lib/ai';
-import { db, updateUploadRecord } from '@quickcalai/db';
+import { db, updateUploadRecord, generateShareToken } from '@quickcalai/db';
 import { events, users } from '@quickcalai/db/schema';
 import { generateICSForAI, type CalendarEvent } from '@/lib/ics';
 import { randomUUID } from 'crypto';
@@ -68,6 +68,7 @@ export interface SaveToDatabaseInput {
 export interface SaveToDatabaseResult {
   uploadId: string;
   icsUrl?: string;
+  shareToken?: string;
 }
 
 export async function markUploadProcessing(uploadId: string) {
@@ -165,9 +166,12 @@ export async function saveToDatabase(input: SaveToDatabaseInput): Promise<SaveTo
     });
   }
 
+  const shareToken = generateShareToken();
+
   await updateUploadRecord(input.uploadId, {
     status: 'completed',
     icsUrl,
+    shareToken,
     failureReason: null,
   });
 
@@ -175,5 +179,5 @@ export async function saveToDatabase(input: SaveToDatabaseInput): Promise<SaveTo
     userId: input.userId,
     uploadId: input.uploadId,
   });
-  return { uploadId: input.uploadId, icsUrl };
+  return { uploadId: input.uploadId, icsUrl, shareToken };
 }
