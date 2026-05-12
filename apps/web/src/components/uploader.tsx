@@ -520,7 +520,7 @@ export default function Uploader() {
         <div className="mb-6 text-center md:text-left flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
             <div className="flex items-center justify-center md:justify-start space-x-2 mb-2">
-              <h2 className="font-serif font-bold text-2xl text-[#efefef]">AI Calendar Extraction</h2>
+              <h2 className="font-bold text-2xl text-[#efefef]">AI Calendar Extraction</h2>
               {isPremium && (
                 <div className="flex items-center space-x-1 bg-linear-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                   <Crown className="w-3 h-3" />
@@ -619,8 +619,8 @@ export default function Uploader() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2 md:col-span-1 space-y-2">
                     <Label htmlFor="title" className="text-sm text-[#efefef] font-semibold ml-1">Event Title *</Label>
                     <Input
                       id="title"
@@ -630,7 +630,7 @@ export default function Uploader() {
                       className="bg-[#212121] border-[#333333] text-[#efefef] h-10 rounded-lg text-base focus:ring-[#c23326] focus:border-[#c23326]"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="col-span-1 space-y-2">
                     <Label htmlFor="date" className="text-sm text-[#efefef] font-semibold ml-1">Date *</Label>
                      <Input
                        id="date"
@@ -640,10 +640,7 @@ export default function Uploader() {
                        className="bg-[#212121] border-[#333333] text-[#efefef] h-10 rounded-lg text-base focus:ring-[#c23326] focus:border-[#c23326] cursor-text"
                      />
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                   <div className="space-y-2">
+                  <div className="col-span-1 space-y-2">
                      <Label htmlFor="time" className="text-sm text-[#efefef] font-semibold ml-1">Time (optional)</Label>
                      <Input
                        id="time"
@@ -654,17 +651,16 @@ export default function Uploader() {
                        className="bg-[#212121] border-[#333333] text-[#efefef] h-10 rounded-lg text-base focus:ring-[#c23326] focus:border-[#c23326] cursor-text"
                      />
                    </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description" className="text-sm text-[#efefef] font-semibold ml-1">Description</Label>
-                  <textarea
-                    id="description"
-                    placeholder="Event details..."
-                    value={manualEvent.description}
-                    onChange={(e) => setManualEvent(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full px-4 py-3 bg-[#212121] border border-[#333333] text-[#efefef] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c23326] focus:border-[#c23326] resize-none text-base h-24"
-                  />
+                  <div className="col-span-2 md:col-span-1 space-y-2">
+                    <Label htmlFor="description" className="text-sm text-[#efefef] font-semibold ml-1">Description</Label>
+                    <textarea
+                      id="description"
+                      placeholder="Event details..."
+                      value={manualEvent.description}
+                      onChange={(e) => setManualEvent(prev => ({ ...prev, description: e.target.value }))}
+                      className="w-full px-4 py-3 bg-[#212121] border border-[#333333] text-[#efefef] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c23326] focus:border-[#c23326] resize-none text-base h-24"
+                    />
+                  </div>
                 </div>
 
                 <Button

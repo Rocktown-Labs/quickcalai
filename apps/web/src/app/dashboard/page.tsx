@@ -140,7 +140,7 @@ export default async function DashboardPage() {
         {stats.recentUploads.length > 0 && (
           <div>
             <div className="mb-6">
-              <h2 className="font-serif font-bold text-2xl text-foreground mb-2">Recent Activity</h2>
+              <h2 className="font-bold text-2xl text-foreground mb-2">Recent Activity</h2>
               <p className="text-muted-foreground">Your latest uploads and processing results</p>
             </div>
 

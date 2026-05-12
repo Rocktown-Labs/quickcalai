@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     });
 
     // Return JSON response with ICS content for frontend to handle
-    const fileName = `${title.replace(/[^a-zA-Z0-9\s]/g, '_').trim()}.ics`;
+    const fileName = `${title.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase()}.ics`;
     return jsonSuccess(context, {
       success: true,
       icsContent,
