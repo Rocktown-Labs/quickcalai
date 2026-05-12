@@ -18,7 +18,7 @@ export default function ReEngagementEmail({ name }: ReEngagementEmailProps) {
   return (
     <Html lang="en">
       <Head />
-      <Preview>We fixed QuickCalAI — and added something you are going to love</Preview>
+      <Preview>We fixed QuickCalAI - and added something you are going to love</Preview>
       <Tailwind>
         <Body className="bg-[#0a0a0a] font-sans py-8">
           <Container className="max-w-[600px] mx-auto bg-[#161616] rounded-xl overflow-hidden">
@@ -36,7 +36,7 @@ export default function ReEngagementEmail({ name }: ReEngagementEmailProps) {
               </Text>
 
               <Text className="text-[#888888] text-base leading-relaxed mb-4">
-                A little while ago, QuickCalAI was in a rough state. Uploads were failing, webhooks were breaking, and frankly, the experience was not what we promised. If you tried the app back then and it did not work — that was on us, not you.
+                A little while ago, QuickCalAI was in a rough state. Uploads were failing, webhooks were breaking, and frankly, the experience was not what we promised. If you tried the app back then and it did not work - that was on us, not you.
               </Text>
 
               <Text className="text-[#888888] text-base leading-relaxed mb-6">
@@ -54,7 +54,7 @@ export default function ReEngagementEmail({ name }: ReEngagementEmailProps) {
                   <span className="text-[#c23326] font-bold">New:</span> Brand-new uploader with real-time progress and step-by-step status
                 </Text>
                 <Text className="text-[#efefef] text-sm leading-relaxed m-0">
-                  <span className="text-[#c23326] font-bold">New:</span> Shareable preview pages — send a link instead of a file
+                  <span className="text-[#c23326] font-bold">New:</span> Shareable preview pages - send a link instead of a file
                 </Text>
                 <Text className="text-[#efefef] text-sm leading-relaxed m-0">
                   <span className="text-[#c23326] font-bold">New:</span> Manual event creation for one-off entries
@@ -73,7 +73,7 @@ export default function ReEngagementEmail({ name }: ReEngagementEmailProps) {
               </Button>
 
               <Text className="text-[#888888] text-sm mt-6 mb-0">
-                If you have any feedback or just want to vent about the old version, hit reply — we are listening.
+                If you have any feedback or just want to vent about the old version, hit reply - we are listening.
               </Text>
             </Section>
 

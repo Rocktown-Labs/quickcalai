@@ -25,7 +25,7 @@ export const completeOnboarding = async (formData: FormData) => {
     // Determine premium status based on account type
     const isPremiumUser = accountType === 'premium';
 
-    const res = await client.users.updateUser(userId, {
+    await client.users.updateUser(userId, {
       publicMetadata: {
         onboardingComplete: true,
         accountType,

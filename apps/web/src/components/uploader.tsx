@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { usePremium } from "@/hooks/use-premium";
 import { logger } from "@/lib/logger";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { emailFile, smsFile, getUserContactInfo } from "@/app/dashboard/files/actions";
 
 const PROCESSING_STEPS = [
   { id: 'analyzing', label: 'Analyzing image', icon: FileImage },
@@ -54,6 +55,13 @@ export default function Uploader() {
   // Processing State mapping
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const handledTerminalRunRef = useRef<string | null>(null);
+
+  // Delivery State
+  const [showDeliveryForm, setShowDeliveryForm] = useState(false);
+  const [deliveryEmail, setDeliveryEmail] = useState('');
+  const [deliveryPhone, setDeliveryPhone] = useState('');
+  const [isEmailing, setIsEmailing] = useState(false);
+  const [isSmsing, setIsSmsing] = useState(false);
 
   const { user } = useUser();
   const router = useRouter();
@@ -206,6 +214,9 @@ export default function Uploader() {
     uploadMutation.reset();
     setActiveStepIndex(0);
     handledTerminalRunRef.current = null;
+    setShowDeliveryForm(false);
+    setDeliveryEmail('');
+    setDeliveryPhone('');
     router.refresh();
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -265,6 +276,64 @@ export default function Uploader() {
 
       logger.error('Failed to share calendar link', { error, runId });
       toast.error('Could not share the calendar link.');
+    }
+  };
+
+  // Load user contact info when delivery form opens
+  useEffect(() => {
+    if (!showDeliveryForm) return;
+    let cancelled = false;
+    getUserContactInfo()
+      .then((info) => {
+        if (cancelled) return;
+        setDeliveryEmail((prev) => prev || info.email || '');
+        setDeliveryPhone((prev) => prev || info.phoneNumber || '');
+      })
+      .catch(() => {
+        // silent fail - user can type manually
+      });
+    return () => { cancelled = true; };
+  }, [showDeliveryForm]);
+
+  const handleEmailFile = async () => {
+    const uploadId = statusQuery.data?.uploadId;
+    if (!uploadId) {
+      toast.error('Upload ID not found. Please try again.');
+      return;
+    }
+    if (!deliveryEmail.trim()) {
+      toast.error('Please enter an email address.');
+      return;
+    }
+    setIsEmailing(true);
+    try {
+      const result = await emailFile(uploadId, deliveryEmail.trim());
+      toast.success(result.message || 'Email sent successfully.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to send email.');
+    } finally {
+      setIsEmailing(false);
+    }
+  };
+
+  const handleSmsFile = async () => {
+    const uploadId = statusQuery.data?.uploadId;
+    if (!uploadId) {
+      toast.error('Upload ID not found. Please try again.');
+      return;
+    }
+    if (!deliveryPhone.trim()) {
+      toast.error('Please enter a phone number.');
+      return;
+    }
+    setIsSmsing(true);
+    try {
+      const result = await smsFile(uploadId, deliveryPhone.trim());
+      toast.success(result.message || 'SMS sent successfully.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to send SMS.');
+    } finally {
+      setIsSmsing(false);
     }
   };
 
@@ -478,8 +547,9 @@ export default function Uploader() {
               </button>
             );
           })}
-          <Link
-            href="/dashboard/files"
+          <button
+            type="button"
+            onClick={() => setShowDeliveryForm((prev) => !prev)}
             className="flex items-center gap-3 p-4 rounded-xl transition-all duration-300 hover:-translate-y-1 text-left group bg-[#212121] border border-[#333333] hover:border-[#444444]"
           >
             <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors bg-[#161616]">
@@ -487,11 +557,59 @@ export default function Uploader() {
             </div>
             <div className="flex-1">
               <div className="font-sans text-base font-bold text-[#efefef]">Email or SMS</div>
-              <div className="font-sans text-sm text-[#888888]">Open file delivery options</div>
+              <div className="font-sans text-sm text-[#888888]">{showDeliveryForm ? 'Hide delivery options' : 'Send file directly'}</div>
             </div>
             <MessageSquare size={18} className="text-[#888888]" />
-          </Link>
+          </button>
         </div>
+
+        {/* Delivery Form */}
+        {showDeliveryForm && (
+          <div className="w-full mt-3 bg-[#212121] p-4 rounded-xl border border-[#333333] animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="delivery-email" className="text-[#efefef] text-sm font-medium">Email</Label>
+                <Input
+                  id="delivery-email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={deliveryEmail}
+                  onChange={(e) => setDeliveryEmail(e.target.value)}
+                  className="bg-[#161616] border-[#333333] text-[#efefef] placeholder:text-[#888888] focus:border-[#c23326] focus:ring-[#c23326]"
+                />
+                <Button
+                  type="button"
+                  onClick={handleEmailFile}
+                  disabled={isEmailing || !deliveryEmail.trim()}
+                  className="mt-1 bg-[#c23326] hover:bg-[#d43d2f] text-[#efefef] disabled:opacity-50"
+                >
+                  {isEmailing ? <Loader2 size={16} className="animate-spin mr-2" /> : <Mail size={16} className="mr-2" />}
+                  Send Email
+                </Button>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="delivery-phone" className="text-[#efefef] text-sm font-medium">Phone Number</Label>
+                <Input
+                  id="delivery-phone"
+                  type="tel"
+                  placeholder="+1 (555) 123-4567"
+                  value={deliveryPhone}
+                  onChange={(e) => setDeliveryPhone(e.target.value)}
+                  className="bg-[#161616] border-[#333333] text-[#efefef] placeholder:text-[#888888] focus:border-[#c23326] focus:ring-[#c23326]"
+                />
+                <Button
+                  type="button"
+                  onClick={handleSmsFile}
+                  disabled={isSmsing || !deliveryPhone.trim()}
+                  className="mt-1 bg-[#c23326] hover:bg-[#d43d2f] text-[#efefef] disabled:opacity-50"
+                >
+                  {isSmsing ? <Loader2 size={16} className="animate-spin mr-2" /> : <MessageSquare size={16} className="mr-2" />}
+                  Send SMS
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* File Preview Card */}
         <div className="w-full mt-6 bg-[#212121] p-4 rounded-xl border border-[#333333] flex items-center gap-4 shadow-lg">

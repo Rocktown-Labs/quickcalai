@@ -18,7 +18,7 @@ export default function WelcomeEmail({ name }: WelcomeEmailProps) {
   return (
     <Html lang="en">
       <Head />
-      <Preview>Welcome to QuickCalAI — turn any schedule into calendar events instantly</Preview>
+      <Preview>Welcome to QuickCalAI - turn any schedule into calendar events instantly</Preview>
       <Tailwind>
         <Body className="bg-[#0a0a0a] font-sans py-8">
           <Container className="max-w-[600px] mx-auto bg-[#161616] rounded-xl overflow-hidden">
@@ -36,7 +36,7 @@ export default function WelcomeEmail({ name }: WelcomeEmailProps) {
               </Text>
 
               <Text className="text-[#888888] text-base leading-relaxed mb-6">
-                You just joined thousands of parents and coaches who use QuickCalAI to extract calendar events from images and PDFs — no more typing schedules by hand.
+                You just joined thousands of parents and coaches who use QuickCalAI to extract calendar events from images and PDFs - no more typing schedules by hand.
               </Text>
 
               <Section className="bg-[#1a1a1a] rounded-lg p-5 mb-6">
@@ -58,7 +58,7 @@ export default function WelcomeEmail({ name }: WelcomeEmailProps) {
               </Button>
 
               <Text className="text-[#888888] text-sm mt-6 mb-0">
-                Questions? Just reply to this email — we read every one.
+                Questions? Just reply to this email - we read every one.
               </Text>
             </Section>
 
