@@ -1,0 +1,89 @@
+{
+  "node": {
+    "789b4688be686506938c64a9745492aaa04d48af69": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "getEmailsDirectoryMetadataAction",
+          "filename": "src/actions/get-emails-directory-metadata-action.ts"
+        }
+      },
+      "exportedName": "getEmailsDirectoryMetadataAction",
+      "filename": "src/actions/get-emails-directory-metadata-action.ts"
+    },
+    "6030743e26206c258900a7705c660b51e4fa0d776d": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "checkCompatibility",
+          "filename": "src/actions/email-validation/check-compatibility.ts"
+        }
+      },
+      "exportedName": "checkCompatibility",
+      "filename": "src/actions/email-validation/check-compatibility.ts"
+    },
+    "7fd6e4da69730d7467d3d96675240599e5add221ef": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "getEmailPathFromSlug",
+          "filename": "src/actions/get-email-path-from-slug.ts"
+        }
+      },
+      "exportedName": "getEmailPathFromSlug",
+      "filename": "src/actions/get-email-path-from-slug.ts"
+    },
+    "60c18c690dbf102c0edbc6a317e3ad3f3c3ef2b9e3": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "renderEmailByPath",
+          "filename": "src/actions/render-email-by-path.tsx"
+        }
+      },
+      "exportedName": "renderEmailByPath",
+      "filename": "src/actions/render-email-by-path.tsx"
+    },
+    "601950219410ffeb79ba5654aa07abdd133bf5dcfa": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "checkImages",
+          "filename": "src/actions/email-validation/check-images.ts"
+        }
+      },
+      "exportedName": "checkImages",
+      "filename": "src/actions/email-validation/check-images.ts"
+    },
+    "4032300f83efe042a3945f1ec80defa82462d68a5b": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "checkLinks",
+          "filename": "src/actions/email-validation/check-links.ts"
+        }
+      },
+      "exportedName": "checkLinks",
+      "filename": "src/actions/email-validation/check-links.ts"
+    },
+    "7fa644bb2113f211dea6035fd350730331f294ad65": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "exportSingleTemplate",
+          "filename": "src/actions/export-single-template.ts"
+        }
+      },
+      "exportedName": "exportSingleTemplate",
+      "filename": "src/actions/export-single-template.ts"
+    }
+  },
+  "edge": {}
+}

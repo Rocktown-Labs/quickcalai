@@ -155,7 +155,7 @@ export async function emailFile(uploadId: string, email: string) {
     // Fetch events for the email template
     const events = await getUploadEvents(uploadId);
     const shareUrl = upload.shareToken
-      ? `${process.env.NEXT_PUBLIC_APP_URL || 'https://quickcal.ai'}/s/${upload.shareToken}`
+      ? `${process.env.NEXT_PUBLIC_APP_URL || 'https://quickcalai.com'}/s/${upload.shareToken}`
       : undefined;
 
     try {

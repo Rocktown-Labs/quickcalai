@@ -1,0 +1,16 @@
+{
+  "pages": {},
+  "app": {
+    "[project]/src/app/preview/[...slug]/page": [
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
+      "static/media/SFMonoLight-s.p.136ey3pbab.pd.otf",
+      "static/media/SFMonoRegular-s.p.0t3gv_1qfx.k2.otf",
+      "static/media/SFMonoMedium-s.p.0n9-z-jaogp26.otf",
+      "static/media/SFMonoSemibold-s.p.0w03-9qf~or2e.otf",
+      "static/media/SFMonoBold-s.p.00.2m07513cfr.otf",
+      "static/media/SFMonoHeavy-s.p.0ng8yxss-95ti.otf"
+    ]
+  },
+  "appUsingSizeAdjust": true,
+  "pagesUsingSizeAdjust": false
+}

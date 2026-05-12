@@ -51,7 +51,7 @@ export default function WelcomeEmail({ name }: WelcomeEmailProps) {
               </Section>
 
               <Button
-                href="https://quickcal.ai/dashboard"
+                href="https://quickcalai.com/dashboard"
                 className="bg-[#c23326] text-white font-bold px-6 py-3 rounded-lg text-center block box-border"
               >
                 Upload Your First Schedule

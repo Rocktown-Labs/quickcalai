@@ -1,0 +1,102 @@
+{
+  "node": {
+    "789b4688be686506938c64a9745492aaa04d48af69": {
+      "workers": {
+        "app/_not-found/page": {
+          "moduleId": 78654,
+          "async": false,
+          "exportedName": "getEmailsDirectoryMetadataAction",
+          "filename": "src/actions/get-emails-directory-metadata-action.ts"
+        },
+        "app/page": {
+          "moduleId": 79394,
+          "async": false,
+          "exportedName": "getEmailsDirectoryMetadataAction",
+          "filename": "src/actions/get-emails-directory-metadata-action.ts"
+        },
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "getEmailsDirectoryMetadataAction",
+          "filename": "src/actions/get-emails-directory-metadata-action.ts"
+        }
+      },
+      "filename": "src/actions/get-emails-directory-metadata-action.ts",
+      "exportedName": "getEmailsDirectoryMetadataAction"
+    },
+    "6030743e26206c258900a7705c660b51e4fa0d776d": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "checkCompatibility",
+          "filename": "src/actions/email-validation/check-compatibility.ts"
+        }
+      },
+      "filename": "src/actions/email-validation/check-compatibility.ts",
+      "exportedName": "checkCompatibility"
+    },
+    "7fd6e4da69730d7467d3d96675240599e5add221ef": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "getEmailPathFromSlug",
+          "filename": "src/actions/get-email-path-from-slug.ts"
+        }
+      },
+      "filename": "src/actions/get-email-path-from-slug.ts",
+      "exportedName": "getEmailPathFromSlug"
+    },
+    "60c18c690dbf102c0edbc6a317e3ad3f3c3ef2b9e3": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "renderEmailByPath",
+          "filename": "src/actions/render-email-by-path.tsx"
+        }
+      },
+      "filename": "src/actions/render-email-by-path.tsx",
+      "exportedName": "renderEmailByPath"
+    },
+    "601950219410ffeb79ba5654aa07abdd133bf5dcfa": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "checkImages",
+          "filename": "src/actions/email-validation/check-images.ts"
+        }
+      },
+      "filename": "src/actions/email-validation/check-images.ts",
+      "exportedName": "checkImages"
+    },
+    "4032300f83efe042a3945f1ec80defa82462d68a5b": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "checkLinks",
+          "filename": "src/actions/email-validation/check-links.ts"
+        }
+      },
+      "filename": "src/actions/email-validation/check-links.ts",
+      "exportedName": "checkLinks"
+    },
+    "7fa644bb2113f211dea6035fd350730331f294ad65": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "exportSingleTemplate",
+          "filename": "src/actions/export-single-template.ts"
+        }
+      },
+      "filename": "src/actions/export-single-template.ts",
+      "exportedName": "exportSingleTemplate"
+    }
+  },
+  "edge": {},
+  "encryptionKey": "QxJwTHdbPNMNnvA8zfHOvVWAT2aU7HmC3hq9WLQqYbQ="
+}

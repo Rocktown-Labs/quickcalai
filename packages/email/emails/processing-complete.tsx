@@ -96,7 +96,7 @@ export default function ProcessingCompleteEmail({
 ProcessingCompleteEmail.PreviewProps = {
   fileName: 'Football 2026-27.pdf',
   eventCount: 12,
-  shareUrl: 'https://quickcal.ai/s/abc123',
+  shareUrl: 'https://quickcalai.com/s/abc123',
   icsUrl: 'https://blob.vercel-storage.com/calendar.ics',
 } satisfies ProcessingCompleteEmailProps;
 
