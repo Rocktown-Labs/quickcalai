@@ -5,6 +5,7 @@ import { eq, and, ne, count } from '@quickcalai/db';
 import { serverLogger } from '@/lib/logger';
 import { createRouteContext, captureRouteError } from '@/lib/server/route';
 import { getPostHogClient } from '@/lib/posthog-server';
+import { sendWelcomeEmail } from '@/lib/server/notifications';
 import type { NextRequest } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -58,6 +59,17 @@ export async function POST(request: NextRequest) {
             event: 'user_created',
             properties: { email: userEmail },
           });
+
+          // Send welcome email asynchronously (don't block webhook response)
+          if (userEmail) {
+            sendWelcomeEmail({
+              userId: user.id,
+              to: userEmail,
+              name: user.first_name || '',
+            }).catch((err) => {
+              logger.error('Failed to send welcome email', { error: err, userId: user.id });
+            });
+          }
         }
 
         return new Response('User synced to database', { status: 200 });

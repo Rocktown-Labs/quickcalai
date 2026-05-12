@@ -1,13 +1,16 @@
 {
-  "name": "react-email-starter",
-  "version": "1.1.0",
+  "name": "@quickcalai/emails",
+  "version": "0.1.0",
   "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
   "scripts": {
     "build": "email build",
-    "dev": "email dev",
+    "dev": "email dev --dir emails --port 3001",
     "export": "email export"
   },
   "dependencies": {
+    "@react-email/components": "0.0.36",
     "react-email": "6.1.1",
     "react-dom": "19.2.4",
     "react": "19.2.4"

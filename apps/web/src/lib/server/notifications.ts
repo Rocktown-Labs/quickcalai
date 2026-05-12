@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { Twilio } from 'twilio';
 import { serverLogger } from '@/lib/logger';
+import { WelcomeEmail, ReEngagementEmail, ProcessingCompleteEmail } from '@quickcalai/emails';
 
 export class NotificationConfigurationError extends Error {}
 
@@ -25,6 +26,112 @@ function getTwilioClient() {
   );
 }
 
+function getFromEmail() {
+  return process.env.RESEND_FROM_EMAIL?.trim() || 'QuickCalAI <noreply@extractions.quickcalai.com>';
+}
+
+export async function sendWelcomeEmail(input: {
+  userId: string;
+  to: string;
+  name: string;
+}) {
+  const resend = getResendClient();
+  const from = getFromEmail();
+
+  serverLogger.info('Sending welcome email', {
+    userId: input.userId,
+    to: input.to,
+  });
+
+  const { data, error } = await resend.emails.send(
+    {
+      from,
+      to: input.to,
+      subject: 'Welcome to QuickCalAI',
+      react: WelcomeEmail({ name: input.name }),
+    },
+    { idempotencyKey: `welcome-email/${input.userId}` }
+  );
+
+  if (error) {
+    serverLogger.error('Failed to send welcome email', { error, userId: input.userId });
+    throw new Error(`Failed to send welcome email: ${error.message}`);
+  }
+
+  return data;
+}
+
+export async function sendReEngagementEmail(input: {
+  userId: string;
+  to: string;
+  name: string;
+}) {
+  const resend = getResendClient();
+  const from = getFromEmail();
+
+  serverLogger.info('Sending re-engagement email', {
+    userId: input.userId,
+    to: input.to,
+  });
+
+  const { data, error } = await resend.emails.send(
+    {
+      from,
+      to: input.to,
+      subject: 'QuickCalAI is back and better than ever',
+      react: ReEngagementEmail({ name: input.name }),
+    },
+    { idempotencyKey: `reengagement-email/${input.userId}` }
+  );
+
+  if (error) {
+    serverLogger.error('Failed to send re-engagement email', { error, userId: input.userId });
+    throw new Error(`Failed to send re-engagement email: ${error.message}`);
+  }
+
+  return data;
+}
+
+export async function sendProcessingCompleteEmail(input: {
+  userId: string;
+  to: string;
+  fileName: string;
+  eventCount: number;
+  shareUrl?: string;
+  icsUrl?: string;
+}) {
+  const resend = getResendClient();
+  const from = getFromEmail();
+
+  serverLogger.info('Sending processing complete email', {
+    userId: input.userId,
+    to: input.to,
+    uploadId: input.fileName,
+  });
+
+  const { data, error } = await resend.emails.send(
+    {
+      from,
+      to: input.to,
+      subject: `Your calendar from ${input.fileName.replace(/\.[^/.]+$/, '')} is ready`,
+      react: ProcessingCompleteEmail({
+        fileName: input.fileName,
+        eventCount: input.eventCount,
+        shareUrl: input.shareUrl,
+        icsUrl: input.icsUrl,
+      }),
+    },
+    { idempotencyKey: `processing-complete/${input.userId}/${input.fileName}` }
+  );
+
+  if (error) {
+    serverLogger.error('Failed to send processing complete email', { error, userId: input.userId });
+    throw new Error(`Failed to send processing complete email: ${error.message}`);
+  }
+
+  return data;
+}
+
 export async function sendCalendarFileEmail(input: {
   uploadId: string;
   userId: string;
@@ -33,7 +140,7 @@ export async function sendCalendarFileEmail(input: {
   icsUrl: string;
 }) {
   const resend = getResendClient();
-  const from = process.env.RESEND_FROM_EMAIL?.trim() || 'QuickCalAI <noreply@extractions.quickcalai.com>';
+  const from = getFromEmail();
 
   serverLogger.info('Sending calendar file email', {
     userId: input.userId,
