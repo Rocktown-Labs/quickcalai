@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import {
 	DarkTheme,
 	DefaultTheme,
@@ -7,12 +7,15 @@ import {
 } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+// @ts-ignore
 import "../global.css";
 import { NAV_THEME } from "@/lib/constants";
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useColorScheme } from "@/lib/use-color-scheme";
-import { Platform } from "react-native";
+import { ActivityIndicator, Platform, View, Text } from "react-native";
 import { setAndroidNavigationBar } from "@/lib/android-navigation-bar";
+import { ClerkProvider, useAuth } from '@clerk/expo';
+import { tokenCache } from '@clerk/expo/token-cache';
 
 const LIGHT_THEME: Theme = {
 	...DefaultTheme,
@@ -23,9 +26,51 @@ const DARK_THEME: Theme = {
 	colors: NAV_THEME.dark,
 };
 
-export const unstable_settings = {
-	initialRouteName: "(drawer)",
-};
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+
+if (!publishableKey && Platform.OS !== 'web') {
+  console.warn("Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY. Please configure your .env file.");
+}
+
+function InitialLayout() {
+  const { isLoaded, isSignedIn } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (isSignedIn && inAuthGroup) {
+      // Redirect to app dashboard if signed in and trying to access sign-in/up
+      router.replace('/(app)');
+    } else if (!isSignedIn && !inAuthGroup) {
+      // Redirect to login if not signed in and trying to access protected screens
+      router.replace('/(auth)/sign-in');
+    }
+  }, [isSignedIn, isLoaded, segments]);
+
+  if (!isLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#121212' }}>
+        <ActivityIndicator size="large" color="#c23326" />
+        <Text style={{ color: '#888888', marginTop: 16 }}>Loading Authentication...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="(app)" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="modal"
+        options={{ title: "Modal", presentation: "modal" }}
+      />
+    </Stack>
+  );
+}
 
 export default function RootLayout() {
 	const hasMounted = useRef(false);
@@ -48,19 +93,16 @@ export default function RootLayout() {
 	if (!isColorSchemeLoaded) {
 		return null;
 	}
+
 	return (
-		<ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-			<StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-			<GestureHandlerRootView style={{ flex: 1 }}>
-				<Stack>
-					<Stack.Screen name="(drawer)" options={{ headerShown: false }} />
-					<Stack.Screen
-						name="modal"
-						options={{ title: "Modal", presentation: "modal" }}
-					/>
-				</Stack>
-			</GestureHandlerRootView>
-		</ThemeProvider>
+    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+      <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+        <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <InitialLayout />
+        </GestureHandlerRootView>
+      </ThemeProvider>
+    </ClerkProvider>
 	);
 }
 

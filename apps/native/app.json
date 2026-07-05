@@ -28,6 +28,14 @@
 		},
 		"plugins": [
 			"expo-router",
+			"@clerk/expo",
+			[
+				"expo-image-picker",
+				{
+					"cameraPermission": "Allow QuickCalAI to access your camera",
+					"photosPermission": "Allow QuickCalAI to access your photos"
+				}
+			],
 			[
 				"expo-splash-screen",
 				{
