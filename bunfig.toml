@@ -1,0 +1,5 @@
+[install]
+# Use a flat node_modules (like npm/yarn). Babel resolves plugin names (returned
+# by nested presets such as @babel/preset-react and @react-native/babel-preset)
+# from the app directory, which fails under bun's default "isolated" linker.
+linker = "hoisted"

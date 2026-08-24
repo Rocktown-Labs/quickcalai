@@ -2,10 +2,15 @@
   "name": "quickcalai",
   "private": true,
   "type": "module",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ],
+    "catalog": {
+      "zod": "^4.1.12"
+    }
+  },
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
@@ -32,10 +37,9 @@
     "turbo": "^2.9.12"
   },
   "packageManager": "pnpm@10.19.0",
-  "pnpm": {
-    "overrides": {
-      "baseline-browser-mapping": "^2.10.16",
-      "@xmldom/xmldom": "^0.8.12"
-    }
+  "overrides": {
+    "baseline-browser-mapping": "^2.10.16",
+    "@xmldom/xmldom": "^0.8.12",
+    "@react-native/babel-preset": "0.83.10"
   }
 }
