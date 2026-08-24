@@ -1,14 +1,14 @@
-import { auth } from '@clerk/nextjs/server';
 import { NextRequest } from 'next/server';
 import { createRouteContext, handleRouteError, jsonError, jsonSuccess } from '@/lib/server/route';
 import { resolveOwnedWorkflowStatus } from '@/lib/server/workflow-status';
+import { resolveRequestUserId } from '@/lib/server/native-auth';
 import { serverLogger } from '@/lib/logger';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ runId: string }> }
 ) {
-  const { userId } = await auth();
+  const { userId } = await resolveRequestUserId(request, '/api/workflow/status/[runId]');
   const context = createRouteContext('/api/workflow/status/[runId]', request, { userId: userId ?? undefined });
   const logger = serverLogger.child({ ...context, route: '/api/workflow/status/[runId]' });
 

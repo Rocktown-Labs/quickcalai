@@ -1,14 +1,15 @@
-import { auth, currentUser } from '@clerk/nextjs/server';
+import { createClerkClient } from '@clerk/backend';
 import { db } from '@quickcalai/db';
 import { users, events } from '@quickcalai/db/schema';
 import { generateICSForManual } from '@/lib/ics';
 import { eq } from '@quickcalai/db';
 import { createRouteContext, handleRouteError, jsonError, jsonSuccess, parseJsonBody } from '@/lib/server/route';
 import { manualEventSchema } from '@/lib/validators';
+import { resolveRequestUserId } from '@/lib/server/native-auth';
 import { serverLogger } from '@/lib/logger';
 
 export async function POST(request: Request) {
-  const { userId } = await auth();
+  const { userId } = await resolveRequestUserId(request, '/api/manual-event');
   const context = createRouteContext('/api/manual-event', request, { userId: userId ?? undefined });
 
   try {
@@ -19,8 +20,13 @@ export async function POST(request: Request) {
     const { title, date, time, description, timezone } = await parseJsonBody(request, manualEventSchema);
 
     // Ensure user exists in database
-    const clerkUser = await currentUser();
-    if (!clerkUser) {
+    // Fetch via the Clerk Backend API (works for both cookie sessions and
+    // Bearer tokens from the native app, unlike currentUser()).
+    const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! });
+    let clerkUser;
+    try {
+      clerkUser = await clerk.users.getUser(userId);
+    } catch {
       return jsonError(context, 404, 'User not found');
     }
 

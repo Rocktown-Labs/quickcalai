@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server';
+import { resolveRequestUserId } from '@/lib/server/native-auth';
 import { db } from '@quickcalai/db';
 import { events, uploads, users } from '@quickcalai/db/schema';
 import { and, desc, eq, sql } from '@quickcalai/db';
@@ -31,7 +31,7 @@ const EMPTY_STATS = {
 };
 
 export async function GET(request: Request) {
-  const { userId } = await auth();
+  const { userId } = await resolveRequestUserId(request, '/api/user/dashboard-stats');
   const context = createRouteContext('/api/user/dashboard-stats', request, { userId: userId ?? undefined });
   const logger = serverLogger.child({ ...context, route: '/api/user/dashboard-stats' });
 

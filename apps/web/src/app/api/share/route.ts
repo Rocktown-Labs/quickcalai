@@ -1,10 +1,10 @@
-import { auth } from '@clerk/nextjs/server';
 import { emailFile, smsFile } from '@/app/dashboard/files/actions';
 import { createRouteContext, handleRouteError, jsonError, jsonSuccess } from '@/lib/server/route';
+import { resolveRequestUserId } from '@/lib/server/native-auth';
 import { serverLogger } from '@/lib/logger';
 
 export async function POST(request: Request) {
-  const { userId } = await auth();
+  const { userId } = await resolveRequestUserId(request, '/api/share');
   const context = createRouteContext('/api/share', request, { userId: userId ?? undefined });
   const logger = serverLogger.child({ ...context, route: '/api/share' });
 

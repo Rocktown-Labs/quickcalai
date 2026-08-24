@@ -1,7 +1,8 @@
 import { put } from '@vercel/blob';
 import { start } from 'workflow/api';
 import { calendarProcessingWorkflow, type CalendarProcessingInput } from '@/workflows/calendar-processing';
-import { auth, currentUser } from '@clerk/nextjs/server';
+import { currentUser } from '@clerk/nextjs/server';
+import { resolveRequestUserId } from '@/lib/server/native-auth';
 import { createUploadRecord, db, updateUploadRecord } from '@quickcalai/db';
 import { users } from '@quickcalai/db/schema';
 import { createRouteContext, handleRouteError, jsonError, jsonSuccess } from '@/lib/server/route';
@@ -22,7 +23,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
 }
 
 export async function POST(request: Request) {
-  const { userId } = await auth();
+  const { userId } = await resolveRequestUserId(request, '/api/upload');
   const context = createRouteContext('/api/upload', request, { userId: userId ?? undefined });
   const logger = serverLogger.child(context);
 
