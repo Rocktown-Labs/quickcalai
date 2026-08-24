@@ -38,7 +38,7 @@ type RecentUpload = {
 };
 
 export default function DashboardScreen() {
-  const { signOut, getToken } = useAuth();
+  const { signOut, getToken, isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
   const router = useRouter();
 
@@ -50,7 +50,7 @@ export default function DashboardScreen() {
     isPremium: false,
   });
   const [recentUploads, setRecentUploads] = useState<RecentUpload[]>([]);
-  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Upload & Active Processing States
@@ -75,9 +75,14 @@ export default function DashboardScreen() {
   const stepIntervalRef = useRef<any>(null);
 
   const fetchStats = async (showLoader = true) => {
+    // Don't fetch until Clerk has resolved and the user is actually signed in
+    if (!isLoaded || !isSignedIn) return;
     if (showLoader) setIsLoadingStats(true);
     try {
       const token = await getToken();
+      if (!token) {
+        throw new Error('No auth token available');
+      }
       const response = await fetch(`${SERVER_URL}/api/user/dashboard-stats`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -102,8 +107,9 @@ export default function DashboardScreen() {
         setDeliveryEmail(user.primaryEmailAddress?.emailAddress || '');
         setDeliveryPhone(user.primaryPhoneNumber?.phoneNumber || '');
       }
-    } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
+    } catch {
+      // Fail silently — stats stay at their zero defaults until a
+      // pull-to-refresh or completed upload refreshes them.
     } finally {
       setIsLoadingStats(false);
       setIsRefreshing(false);
@@ -111,7 +117,6 @@ export default function DashboardScreen() {
   };
 
   useEffect(() => {
-    fetchStats();
     return () => {
       stopPolling();
     };
