@@ -107,8 +107,9 @@ export async function downloadFile(uploadId: string) {
   }
 }
 
-export async function emailFile(uploadId: string, email: string) {
-  const { userId, has } = await auth();
+export async function emailFile(uploadId: string, email: string, actingUserId?: string) {
+  const { userId: sessionUserId, has } = await auth();
+  const userId = actingUserId ?? sessionUserId;
 
   if (!userId) {
     throw new Error("Unauthorized");
@@ -194,8 +195,9 @@ export async function emailFile(uploadId: string, email: string) {
   }
 }
 
-export async function smsFile(uploadId: string, phoneNumber: string) {
-  const { userId, has } = await auth();
+export async function smsFile(uploadId: string, phoneNumber: string, actingUserId?: string) {
+  const { userId: sessionUserId, has } = await auth();
+  const userId = actingUserId ?? sessionUserId;
 
   if (!userId) {
     throw new Error("Unauthorized");

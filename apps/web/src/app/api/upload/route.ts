@@ -1,7 +1,7 @@
 import { put } from '@vercel/blob';
 import { start } from 'workflow/api';
 import { calendarProcessingWorkflow, type CalendarProcessingInput } from '@/workflows/calendar-processing';
-import { currentUser } from '@clerk/nextjs/server';
+import { createClerkClient } from '@clerk/backend';
 import { resolveRequestUserId } from '@/lib/server/native-auth';
 import { createUploadRecord, db, updateUploadRecord } from '@quickcalai/db';
 import { users } from '@quickcalai/db/schema';
@@ -51,10 +51,19 @@ export async function POST(request: Request) {
 
     logger.info('File validated', { fileName: file.name, fileType: file.type, fileSize: file.size });
 
-    const clerkUser = await currentUser();
-    const email = clerkUser?.emailAddresses[0]?.emailAddress?.trim();
+    // Use the backend API instead of currentUser() so native bearer-token
+    // requests resolve the same user as browser cookie requests.
+    const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! });
+    let clerkUser;
+    try {
+      clerkUser = await clerk.users.getUser(userId);
+    } catch {
+      return jsonError(context, 404, 'User not found');
+    }
 
-    if (!clerkUser || !email) {
+    const email = clerkUser.emailAddresses[0]?.emailAddress?.trim();
+
+    if (!email) {
       return jsonError(context, 400, 'Authenticated user is missing an email address');
     }
 

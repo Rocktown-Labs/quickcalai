@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server';
+import { resolveRequestUserId } from '@/lib/server/native-auth';
 import { db } from '@quickcalai/db';
 import { users } from '@quickcalai/db/schema';
 import { eq } from '@quickcalai/db';
@@ -6,7 +6,7 @@ import { createRouteContext, handleRouteError, jsonError, jsonSuccess, parseJson
 import { settingsSchema } from '@/lib/validators';
 
 export async function POST(request: Request) {
-  const { userId } = await auth();
+  const { userId } = await resolveRequestUserId(request, '/api/settings');
   const context = createRouteContext('/api/settings', request, { userId: userId ?? undefined });
 
   try {
@@ -30,13 +30,29 @@ export async function POST(request: Request) {
 
     const name = `${firstName} ${lastName}`.trim();
 
-    await db.update(users)
-      .set({
+    const existingAccount = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (existingAccount[0]) {
+      await db.update(users)
+        .set({
+          email,
+          name: name || null,
+          phoneNumber: phone || null,
+        })
+        .where(eq(users.id, userId));
+    } else {
+      await db.insert(users).values({
+        id: userId,
         email,
         name: name || null,
         phoneNumber: phone || null,
-      })
-      .where(eq(users.id, userId));
+        isOnboarded: true,
+      });
+    }
 
     return jsonSuccess(context, { success: true });
   } catch (error) {

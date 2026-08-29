@@ -13,6 +13,15 @@ type UserFile = {
   createdAt: Date;
   updatedAt: Date;
   eventCount: number;
+  events: Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    location: string | null;
+    startTime: Date;
+    endTime?: Date;
+    isAllDay: boolean;
+  }>;
 };
 
 /**
@@ -64,6 +73,15 @@ export async function GET(request: Request) {
           createdAt: upload.createdAt,
           updatedAt: upload.updatedAt,
           eventCount: events.length,
+          events: events.map((event) => ({
+            id: event.id,
+            title: event.title,
+            description: event.description,
+            location: event.location,
+            startTime: new Date(event.startTime),
+            endTime: event.endTime ? new Date(event.endTime) : undefined,
+            isAllDay: event.isAllDay,
+          })),
         };
       }),
     );

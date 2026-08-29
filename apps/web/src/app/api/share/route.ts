@@ -23,10 +23,10 @@ export async function POST(request: Request) {
     logger.info('Share request received', { uploadId, type, destination, userId });
 
     if (type === 'email') {
-      const result = await emailFile(uploadId, destination);
+      const result = await emailFile(uploadId, destination, userId);
       return jsonSuccess(context, result);
     } else if (type === 'sms') {
-      const result = await smsFile(uploadId, destination);
+      const result = await smsFile(uploadId, destination, userId);
       return jsonSuccess(context, result);
     } else {
       return jsonError(context, 400, 'Invalid share type');

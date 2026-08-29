@@ -1,60 +1,90 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  TouchableOpacity, 
-  ActivityIndicator, 
-  Alert, 
-  Image, 
-  Linking, 
-  Share, 
-  TextInput,
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Linking,
+  Platform,
+  Pressable,
   RefreshControl,
-  Platform
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { useAuth, useUser } from '@clerk/expo';
-import { useRouter } from 'expo-router';
+import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
+import * as Clipboard from 'expo-clipboard';
+import * as Sharing from 'expo-sharing';
+import { File, Paths } from 'expo-file-system';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  apiRequest,
+  SERVER_URL,
+  type DashboardStatsResponse,
+  type UploadStatus,
+} from '@/lib/api';
 
-const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL || 'https://quickcalai.com';
+const RED = '#c23326';
+const BACKGROUND = '#121212';
+const CARD = '#1a1a1a';
+const SUBTLE_CARD = '#161616';
+const BORDER = '#2a2a2a';
+const MUTED = '#888888';
 
 const PROCESSING_STEPS = [
   { id: 'analyzing', label: 'Analyzing image', icon: 'image-outline' },
   { id: 'detecting', label: 'Detecting dates & times', icon: 'sparkles-outline' },
   { id: 'extracting', label: 'Extracting event details', icon: 'flash-outline' },
   { id: 'formatting', label: 'Formatting calendar data', icon: 'checkmark-circle-outline' },
-];
+] as const;
 
-type UploadStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'no_events';
-
-type RecentUpload = {
-  id: string;
-  fileName: string;
+type WorkflowStatusResponse = {
   status: UploadStatus;
-  createdAt: string;
+  result: {
+    uploadId: string;
+    eventCount: number;
+    status: UploadStatus;
+    icsUrl?: string;
+    shareToken?: string;
+  } | null;
   eventCount: number;
+  failureReason: string | null;
+  uploadId: string;
+};
+
+type SelectedFile = {
+  uri: string;
+  name: string;
+  type: string;
+};
+
+type ManualEvent = {
+  title: string;
+  date: string;
+  time: string;
+  description: string;
 };
 
 export default function DashboardScreen() {
-  const { signOut, getToken, isLoaded, isSignedIn } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
-  const router = useRouter();
 
-  // Dashboard Stats
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStatsResponse>({
     totalUploads: 0,
     totalEvents: 0,
     completedUploads: 0,
+    recentUploads: [],
     isPremium: false,
+    hasDataError: false,
   });
-  const [recentUploads, setRecentUploads] = useState<RecentUpload[]>([]);
-  const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Upload & Active Processing States
-  const [processingFile, setProcessingFile] = useState<{ uri: string; name: string } | null>(null);
+  const [activeTab, setActiveTab] = useState<'ai' | 'manual'>('ai');
+  const [processingFile, setProcessingFile] = useState<SelectedFile | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [uploadStatus, setUploadStatus] = useState<UploadStatus | null>(null);
@@ -63,71 +93,24 @@ export default function DashboardScreen() {
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [uploadId, setUploadId] = useState<string | null>(null);
   const [failureReason, setFailureReason] = useState<string | null>(null);
-  
-  // Delivery State
+  const [manualEvent, setManualEvent] = useState<ManualEvent>({
+    title: '',
+    date: '',
+    time: '',
+    description: '',
+  });
+  const [lastManualResult, setLastManualResult] = useState<{ fileName: string; icsContent: string } | null>(null);
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
   const [deliveryEmail, setDeliveryEmail] = useState('');
   const [deliveryPhone, setDeliveryPhone] = useState('');
   const [isEmailing, setIsEmailing] = useState(false);
   const [isSmsing, setIsSmsing] = useState(false);
 
-  const pollingIntervalRef = useRef<any>(null);
-  const stepIntervalRef = useRef<any>(null);
+  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const stepIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  const fetchStats = async (showLoader = true) => {
-    // Don't fetch until Clerk has resolved and the user is actually signed in
-    if (!isLoaded || !isSignedIn) return;
-    if (showLoader) setIsLoadingStats(true);
-    try {
-      const token = await getToken();
-      if (!token) {
-        throw new Error('No auth token available');
-      }
-      const response = await fetch(`${SERVER_URL}/api/user/dashboard-stats`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch dashboard stats');
-      }
-
-      const data = await response.json();
-      setStats({
-        totalUploads: data.totalUploads,
-        totalEvents: data.totalEvents,
-        completedUploads: data.completedUploads,
-        isPremium: data.isPremium,
-      });
-      setRecentUploads(data.recentUploads || []);
-      
-      // Auto-fill delivery info from user profile if available
-      if (user) {
-        setDeliveryEmail(user.primaryEmailAddress?.emailAddress || '');
-        setDeliveryPhone(user.primaryPhoneNumber?.phoneNumber || '');
-      }
-    } catch {
-      // Fail silently — stats stay at their zero defaults until a
-      // pull-to-refresh or completed upload refreshes them.
-    } finally {
-      setIsLoadingStats(false);
-      setIsRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      stopPolling();
-    };
-  }, []);
-
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    fetchStats(false);
-  };
-
-  const stopPolling = () => {
+  const stopPolling = useCallback(() => {
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
       pollingIntervalRef.current = null;
@@ -136,72 +119,165 @@ export default function DashboardScreen() {
       clearInterval(stepIntervalRef.current);
       stepIntervalRef.current = null;
     }
+  }, []);
+
+  const fetchStats = useCallback(async (showLoader = true) => {
+    if (!isLoaded || !isSignedIn) return;
+
+    if (showLoader) setIsLoadingStats(true);
+    try {
+      const token = await getToken();
+      if (!token) throw new Error('No auth token available');
+
+      const data = await apiRequest<DashboardStatsResponse>('/api/user/dashboard-stats', token);
+      setStats({
+        totalUploads: data.totalUploads ?? 0,
+        totalEvents: data.totalEvents ?? 0,
+        completedUploads: data.completedUploads ?? 0,
+        recentUploads: data.recentUploads ?? [],
+        isPremium: data.isPremium === true,
+        hasDataError: data.hasDataError === true,
+      });
+    } catch {
+      // Keep the last successful values. Pull-to-refresh can retry without
+      // interrupting the upload flow.
+    } finally {
+      setIsLoadingStats(false);
+      setIsRefreshing(false);
+    }
+  }, [getToken, isLoaded, isSignedIn]);
+
+  useEffect(() => {
+    void fetchStats();
+  }, [fetchStats]);
+
+  useEffect(() => {
+    if (user) {
+      setDeliveryEmail((current) => current || user.primaryEmailAddress?.emailAddress || '');
+      setDeliveryPhone((current) => current || user.primaryPhoneNumber?.phoneNumber || '');
+    }
+  }, [user]);
+
+  useEffect(() => stopPolling, [stopPolling]);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    void fetchStats(false);
   };
 
-  // Start polling Clerk workflow status
-  const startPollingStatus = (runId: string) => {
+  const startPollingStatus = useCallback((runId: string) => {
     stopPolling();
-    
-    // Simulate steps progress over time
     setActiveStepIndex(0);
+
     stepIntervalRef.current = setInterval(() => {
-      setActiveStepIndex((prev) => (prev < PROCESSING_STEPS.length - 1 ? prev + 1 : prev));
+      setActiveStepIndex((current) =>
+        current < PROCESSING_STEPS.length - 1 ? current + 1 : current,
+      );
     }, 3000);
 
-    // Poll the backend endpoint
-    pollingIntervalRef.current = setInterval(async () => {
-      try {
-        const token = await getToken();
-        const response = await fetch(`${SERVER_URL}/api/workflow/status/${runId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
+    pollingIntervalRef.current = setInterval(() => {
+      void (async () => {
+        try {
+          const token = await getToken();
+          if (!token) return;
 
-        if (!response.ok) return;
+          const data = await apiRequest<WorkflowStatusResponse>(
+            `/api/workflow/status/${runId}`,
+            token,
+          );
 
-        const data = await response.json();
-        const status: UploadStatus = data.status;
+          if (!['completed', 'failed', 'no_events'].includes(data.status)) return;
 
-        if (status === 'completed' || status === 'failed' || status === 'no_events') {
           stopPolling();
-          setUploadStatus(status);
+          setUploadStatus(data.status);
           setEventCount(data.eventCount || 0);
-          setUploadId(data.uploadId);
-          
-          if (status === 'completed') {
+          setUploadId(data.uploadId || null);
+          setFailureReason(data.failureReason || null);
+
+          if (data.status === 'completed') {
             setActiveStepIndex(PROCESSING_STEPS.length);
             setIcsUrl(data.result?.icsUrl || null);
             setShareToken(data.result?.shareToken || null);
-            Alert.alert('Done!', `Extracted ${data.eventCount} events successfully.`);
-            fetchStats(false);
-          } else if (status === 'no_events') {
-            Alert.alert('No Events Found', 'The document looked valid, but no calendar events were detected.');
-            fetchStats(false);
-          } else if (status === 'failed') {
-            setFailureReason(data.failureReason || 'An error occurred during workflow execution.');
+            Alert.alert(
+              'Done!',
+              `Extracted ${data.eventCount || 0} event${data.eventCount === 1 ? '' : 's'} successfully.`,
+            );
+          } else if (data.status === 'no_events') {
+            Alert.alert(
+              'No Events Found',
+              'The document looked valid, but no calendar events were detected.',
+            );
+          } else {
             Alert.alert('Processing Failed', data.failureReason || 'AI extraction failed.');
-            fetchStats(false);
           }
+
+          void fetchStats(false);
+        } catch {
+          // A transient polling failure should not discard the active run.
         }
-      } catch (err) {
-        console.error('Polling error:', err);
-      }
+      })();
     }, 2000);
+  }, [fetchStats, getToken, stopPolling]);
+
+  const startUpload = async (file: SelectedFile) => {
+    if (!stats.isPremium) {
+      Alert.alert(
+        'Premium Feature',
+        'AI calendar extraction is a premium feature. Upgrade from Account settings on the web application.',
+      );
+      return;
+    }
+
+    setProcessingFile(file);
+    setIsUploading(true);
+    setUploadStatus('pending');
+    setActiveStepIndex(0);
+    setFailureReason(null);
+    setIcsUrl(null);
+    setShareToken(null);
+    setUploadId(null);
+
+    try {
+      const token = await getToken();
+      if (!token) throw new Error('Not signed in');
+
+      const formData = new FormData();
+      formData.append('file', {
+        uri: Platform.OS === 'ios' ? file.uri.replace('file://', '') : file.uri,
+        name: file.name,
+        type: file.type,
+      } as unknown as Blob);
+
+      const data = await apiRequest<{ runId: string }>('/api/upload', token, {
+        method: 'POST',
+        body: formData,
+      });
+
+      setIsUploading(false);
+      setUploadStatus('processing');
+      startPollingStatus(data.runId);
+    } catch (error) {
+      setIsUploading(false);
+      setUploadStatus('failed');
+      setFailureReason(error instanceof Error ? error.message : 'Failed to upload file.');
+      Alert.alert(
+        'Upload Failed',
+        error instanceof Error ? error.message : 'An error occurred during file upload.',
+      );
+    }
   };
 
-  // Handle Photo Picker
   const pickImage = async (useCamera: boolean) => {
     if (!stats.isPremium) {
       Alert.alert(
-        'Premium Feature', 
-        'AI calendar extraction is a premium feature. Please upgrade your subscription on the web application.'
+        'Premium Feature',
+        'AI calendar extraction is a premium feature. Upgrade from Account settings on the web application.',
       );
       return;
     }
 
     try {
-      let result;
+      let result: ImagePicker.ImagePickerResult;
       if (useCamera) {
         const permission = await ImagePicker.requestCameraPermissionsAsync();
         if (!permission.granted) {
@@ -224,54 +300,44 @@ export default function DashboardScreen() {
         });
       }
 
-      if (!result.canceled && result.assets?.[0]) {
-        const asset = result.assets[0];
-        const uri = asset.uri;
-        const name = asset.fileName || uri.split('/').pop() || 'photo.jpg';
-        
-        setProcessingFile({ uri, name });
-        setIsUploading(true);
-        setUploadStatus('pending');
-        setFailureReason(null);
-        setIcsUrl(null);
-        setShareToken(null);
-        
-        // 1. Prepare FormData
-        const formData = new FormData();
-        // @ts-ignore
-        formData.append('file', {
-          uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri,
-          name,
-          type: asset.mimeType || 'image/jpeg',
-        });
+      const asset = result.canceled ? undefined : result.assets?.[0];
+      if (!asset) return;
 
-        // 2. Upload to Next.js API
-        const token = await getToken();
-        const uploadResponse = await fetch(`${SERVER_URL}/api/upload`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: formData,
-        });
+      await startUpload({
+        uri: asset.uri,
+        name: asset.fileName || asset.uri.split('/').pop() || 'photo.jpg',
+        type: asset.mimeType || 'image/jpeg',
+      });
+    } catch (error) {
+      Alert.alert('Upload Failed', error instanceof Error ? error.message : 'Could not select the image.');
+    }
+  };
 
-        const data = await uploadResponse.json();
-        
-        if (!uploadResponse.ok) {
-          throw new Error(data.error || 'Failed to start processing');
-        }
+  const pickDocument = async () => {
+    if (!stats.isPremium) {
+      Alert.alert(
+        'Premium Feature',
+        'AI calendar extraction is a premium feature. Upgrade from Account settings on the web application.',
+      );
+      return;
+    }
 
-        setIsUploading(false);
-        setUploadStatus('processing');
-        startPollingStatus(data.runId);
-      }
-    } catch (error: any) {
-      console.error('Upload error:', error);
-      setIsUploading(false);
-      setUploadStatus('failed');
-      setFailureReason(error.message || 'Failed to connect to the server.');
-      Alert.alert('Upload Failed', error.message || 'An error occurred during file upload.');
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['image/*', 'application/pdf'],
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      const asset = result.canceled ? undefined : result.assets?.[0];
+      if (!asset) return;
+
+      await startUpload({
+        uri: asset.uri,
+        name: asset.name,
+        type: asset.mimeType || (asset.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg'),
+      });
+    } catch (error) {
+      Alert.alert('Upload Failed', error instanceof Error ? error.message : 'Could not select the file.');
     }
   };
 
@@ -279,6 +345,7 @@ export default function DashboardScreen() {
     stopPolling();
     setProcessingFile(null);
     setUploadStatus(null);
+    setActiveStepIndex(0);
     setEventCount(0);
     setIcsUrl(null);
     setShareToken(null);
@@ -288,482 +355,469 @@ export default function DashboardScreen() {
   };
 
   const openCalendarFile = async () => {
-    if (icsUrl) {
-      const supported = await Linking.canOpenURL(icsUrl);
-      if (supported) {
+    if (!icsUrl) {
+      Alert.alert('Not Ready', 'The calendar file is not ready yet.');
+      return;
+    }
+
+    try {
+      if (await Linking.canOpenURL(icsUrl)) {
         await Linking.openURL(icsUrl);
       } else {
-        Alert.alert('Cannot Open', 'No application found to handle calendar file URLs.');
+        Alert.alert('Cannot Open', 'No application found to handle calendar files.');
       }
+    } catch {
+      Alert.alert('Error', 'Could not open the calendar file.');
     }
   };
 
+  const getShareUrl = () => (shareToken ? `${process.env.EXPO_PUBLIC_SERVER_URL || 'https://quickcalai.com'}/s/${shareToken}` : null);
+
+  const copyShareLink = async () => {
+    const shareUrl = getShareUrl();
+    if (!shareUrl) {
+      Alert.alert('Not Ready', 'The share link is not ready yet.');
+      return;
+    }
+    await Clipboard.setStringAsync(shareUrl);
+    Alert.alert('Copied', 'Share link copied to your clipboard.');
+  };
+
   const shareCalendar = async () => {
-    if (!shareToken) return;
-    const shareUrl = `${SERVER_URL}/s/${shareToken}`;
+    const shareUrl = getShareUrl();
+    if (!shareUrl) {
+      Alert.alert('Not Ready', 'The share link is not ready yet.');
+      return;
+    }
+
     try {
       await Share.share({
         message: `Check out my calendar events: ${shareUrl}`,
         url: shareUrl,
       });
-    } catch (error) {
-      console.error('Error sharing:', error);
+    } catch {
+      Alert.alert('Share Failed', 'Could not share the calendar link.');
     }
   };
 
   const handleEmailFile = async () => {
-    if (!uploadId || !deliveryEmail.trim()) return;
+    if (!uploadId) {
+      Alert.alert('Not Ready', 'Upload ID not found. Please try again.');
+      return;
+    }
+    if (!deliveryEmail.trim()) {
+      Alert.alert('Missing Email', 'Please enter an email address.');
+      return;
+    }
+
     setIsEmailing(true);
     try {
       const token = await getToken();
-      const response = await fetch(`${SERVER_URL}/api/share`, {
+      if (!token) throw new Error('Not signed in');
+      await apiRequest('/api/share', token, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          uploadId,
-          type: 'email',
-          destination: deliveryEmail.trim(),
-        }),
+        body: JSON.stringify({ uploadId, type: 'email', destination: deliveryEmail.trim() }),
       });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to email file');
-
-      Alert.alert('Email Sent', `Calendar events emailed successfully to ${deliveryEmail}`);
-    } catch (error: any) {
-      Alert.alert('Failed to Email', error.message || 'An error occurred.');
+      Alert.alert('Email Sent', `Calendar events emailed to ${deliveryEmail.trim()}.`);
+    } catch (error) {
+      Alert.alert('Failed to Email', error instanceof Error ? error.message : 'Could not send email.');
     } finally {
       setIsEmailing(false);
     }
   };
 
   const handleSmsFile = async () => {
-    if (!uploadId || !deliveryPhone.trim()) return;
+    if (!uploadId) {
+      Alert.alert('Not Ready', 'Upload ID not found. Please try again.');
+      return;
+    }
+    if (!deliveryPhone.trim()) {
+      Alert.alert('Missing Phone Number', 'Please enter a phone number.');
+      return;
+    }
+
     setIsSmsing(true);
     try {
       const token = await getToken();
-      const response = await fetch(`${SERVER_URL}/api/share`, {
+      if (!token) throw new Error('Not signed in');
+      await apiRequest('/api/share', token, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          uploadId,
-          type: 'sms',
-          destination: deliveryPhone.trim(),
-        }),
+        body: JSON.stringify({ uploadId, type: 'sms', destination: deliveryPhone.trim() }),
       });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to send SMS');
-
-      Alert.alert('SMS Sent', `SMS delivery link sent successfully to ${deliveryPhone}`);
-    } catch (error: any) {
-      Alert.alert('Failed to Send SMS', error.message || 'An error occurred.');
+      Alert.alert('SMS Sent', `Calendar link sent to ${deliveryPhone.trim()}.`);
+    } catch (error) {
+      Alert.alert('Failed to Send SMS', error instanceof Error ? error.message : 'Could not send SMS.');
     } finally {
       setIsSmsing(false);
     }
   };
 
-  const handleSignOut = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: () => signOut() },
-    ]);
+  const handleManualEventSubmit = async () => {
+    if (!manualEvent.title.trim() || !manualEvent.date.trim()) {
+      Alert.alert('Check your input', 'Please enter an event title and date.');
+      return;
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(manualEvent.date.trim())) {
+      Alert.alert('Check your input', 'Date must be in YYYY-MM-DD format.');
+      return;
+    }
+    if (manualEvent.time.trim() && !/^([01]\d|2[0-3]):[0-5]\d$/.test(manualEvent.time.trim())) {
+      Alert.alert('Check your input', 'Time must be in HH:MM 24-hour format.');
+      return;
+    }
+
+    try {
+      const token = await getToken();
+      if (!token) throw new Error('Not signed in');
+      const data = await apiRequest<{ fileName: string; icsContent: string }>('/api/manual-event', token, {
+        method: 'POST',
+        body: JSON.stringify({
+          ...manualEvent,
+          title: manualEvent.title.trim(),
+          date: manualEvent.date.trim(),
+          time: manualEvent.time.trim(),
+          description: manualEvent.description.trim(),
+          timezone,
+        }),
+      });
+      setLastManualResult({ fileName: data.fileName, icsContent: data.icsContent });
+      Alert.alert('Event Created', `${data.fileName} is ready to export.`);
+      setManualEvent({ title: '', date: '', time: '', description: '' });
+    } catch (error) {
+      Alert.alert('Failed to Create Event', error instanceof Error ? error.message : 'Could not create event.');
+    }
   };
 
-  // Render Stats Card Helper
-  const renderStatCard = (title: string, value: string | number, subtitle: string, icon: string) => (
-    <View className="flex-1 bg-[#1a1a1a] border border-[#2a2a2a] p-4 rounded-2xl items-center justify-center min-h-[100px]">
-      <Ionicons name={icon as any} size={24} color="#c23326" className="mb-2" />
-      <Text className="text-white text-xl font-bold">{value}</Text>
-      <Text className="text-[#888888] text-xs font-semibold mt-1 text-center">{title}</Text>
-      <Text className="text-[#555555] text-[10px] text-center mt-0.5">{subtitle}</Text>
+  const shareManualFile = async () => {
+    if (!lastManualResult) return;
+    try {
+      const file = new File(Paths.cache, lastManualResult.fileName);
+      file.write(lastManualResult.icsContent);
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(file.uri, {
+          mimeType: 'text/calendar',
+          dialogTitle: 'Share calendar file',
+        });
+      } else {
+        Alert.alert('Export Unavailable', 'This device cannot open the calendar share sheet.');
+      }
+    } catch (error) {
+      Alert.alert('Export Failed', error instanceof Error ? error.message : 'Could not export the calendar file.');
+    }
+  };
+
+  const renderStatCard = (title: string, value: string | number, subtitle: string, icon: keyof typeof Ionicons.glyphMap) => (
+    <View style={styles.statCard}>
+      <Ionicons name={icon} size={20} color={RED} />
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statTitle}>{title}</Text>
+      <Text style={styles.statSubtitle}>{subtitle}</Text>
     </View>
   );
 
+  const renderStatus = (status: UploadStatus) => (
+    <View style={[styles.statusPill, status === 'completed' ? styles.successPill : status === 'failed' ? styles.errorPill : styles.pendingPill]}>
+      <Text style={[styles.statusText, status === 'completed' ? styles.successText : status === 'failed' ? styles.errorText : styles.pendingText]}>
+        {status.replace('_', ' ').toUpperCase()}
+      </Text>
+    </View>
+  );
+
+  const isProcessing = isUploading || uploadStatus === 'pending' || uploadStatus === 'processing';
+
   return (
-    <View className="flex-1 bg-[#121212]">
-      {/* Header */}
-      <View className="pt-14 pb-4 px-6 border-b border-[#222222] flex-row justify-between items-center bg-[#161616]">
-        <View className="flex-row items-center">
-          <View className="w-8 h-8 bg-[#c23326] rounded-lg items-center justify-center mr-2 shadow-md shadow-[#c23326]/20">
-            <Ionicons name="calendar" size={16} color="#ffffff" />
-          </View>
-          <Text className="text-white text-lg font-bold">
-            QuickCal<Text className="text-[#c23326]">AI</Text>
-          </Text>
-        </View>
-
-        <TouchableOpacity 
-          onPress={handleSignOut}
-          className="w-8 h-8 bg-[#212121] rounded-lg items-center justify-center border border-[#333333] active:bg-[#333333]"
-        >
-          <Ionicons name="log-out-outline" size={18} color="#efefef" />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView 
-        className="flex-1 px-6 pt-6"
-        contentContainerStyle={{ paddingBottom: 40 }}
-        refreshControl={
-          <RefreshControl 
-            refreshing={isRefreshing} 
-            onRefresh={handleRefresh}
-            tintColor="#c23326"
-            colors={['#c23326']}
-          />
-        }
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={RED} colors={[RED]} />}
       >
-        {/* Welcome */}
-        <View className="mb-6">
-          <Text className="text-white text-2xl font-bold">
-            Welcome back, {user?.firstName || 'User'}! 👋
-          </Text>
-          <Text className="text-[#888888] text-sm mt-1">
-            Extract schedule events easily with Gemini AI.
-          </Text>
+        <View style={styles.header}>
+          <View style={styles.brandMark}><Ionicons name="calendar" size={18} color="#ffffff" /></View>
+          <Text style={styles.brand}>QuickCal<Text style={styles.brandAccent}>AI</Text></Text>
         </View>
 
-        {/* Stats Row */}
-        {!isLoadingStats && (
-          <View className="flex-row gap-3 mb-6">
+        <View style={styles.welcome}>
+          <Text style={styles.heading}>Welcome back, {user?.firstName || 'User'}! 👋</Text>
+          <Text style={styles.subheading}>Ready to extract calendar events from your images?</Text>
+        </View>
+
+        {stats.hasDataError && (
+          <View style={styles.notice}><Text style={styles.noticeText}>Stats are temporarily unavailable, but you can still create events and upload files.</Text></View>
+        )}
+
+        {isLoadingStats ? (
+          <ActivityIndicator color={RED} style={styles.statsLoader} />
+        ) : (
+          <View style={styles.statsRow}>
             {renderStatCard('Total Uploads', stats.totalUploads, `${stats.completedUploads} completed`, 'document-text-outline')}
-            {renderStatCard('Events Extracted', stats.totalEvents, 'Calendar events', 'sparkles-outline')}
+            {renderStatCard('Events Extracted', stats.totalEvents, 'Calendar events', 'calendar-outline')}
             {renderStatCard('Success Rate', `${stats.totalUploads > 0 ? Math.round((stats.completedUploads / stats.totalUploads) * 100) : 0}%`, 'Processing rate', 'checkmark-circle-outline')}
           </View>
         )}
 
-        {/* --- UPLOADER COMPONENT --- */}
-        <View className="bg-[#1a1a1a] border border-[#2a2a2a] p-5 rounded-3xl mb-6 shadow-xl">
-          {/* 1. INITIAL STATE */}
+        <View style={styles.uploaderCard}>
           {uploadStatus === null && (
-            <View>
-              <View className="flex-row justify-between items-center mb-4">
-                <Text className="text-white text-lg font-bold">AI Calendar Extraction</Text>
-                {stats.isPremium ? (
-                  <View className="bg-gradient-to-r from-amber-500 to-orange-600 bg-amber-600 px-2.5 py-0.5 rounded-full flex-row items-center">
-                    <Ionicons name="ribbon-outline" size={10} color="#ffffff" className="mr-1" />
-                    <Text className="text-white text-[9px] font-black">PREMIUM</Text>
+            <>
+              <View style={styles.uploaderTitleRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.cardHeading}>Calendar Extraction</Text>
+                  <Text style={styles.cardDescription}>Upload an image or PDF with dates and times to extract events instantly.</Text>
+                </View>
+                <View style={styles.planPill}>
+                  <Ionicons name={stats.isPremium ? 'ribbon-outline' : 'lock-closed-outline'} size={12} color={stats.isPremium ? '#f59e0b' : MUTED} />
+                  <Text style={styles.planText}>{stats.isPremium ? 'PREMIUM' : 'FREE'}</Text>
+                </View>
+              </View>
+
+              <View style={styles.segmentedControl}>
+                <Pressable style={[styles.segment, activeTab === 'ai' && styles.activeSegment]} onPress={() => setActiveTab('ai')}>
+                  <Ionicons name="flash-outline" size={16} color={activeTab === 'ai' ? '#ffffff' : MUTED} />
+                  <Text style={[styles.segmentText, activeTab === 'ai' && styles.activeSegmentText]}>AI Upload</Text>
+                </Pressable>
+                <Pressable style={[styles.segment, activeTab === 'manual' && styles.activeSegment]} onPress={() => setActiveTab('manual')}>
+                  <Ionicons name="create-outline" size={16} color={activeTab === 'manual' ? '#ffffff' : MUTED} />
+                  <Text style={[styles.segmentText, activeTab === 'manual' && styles.activeSegmentText]}>Manual</Text>
+                </Pressable>
+              </View>
+
+              {activeTab === 'ai' ? (
+                stats.isPremium ? (
+                  <View>
+                    <Text style={styles.helperText}>Take a photo, choose an image, or upload a PDF.</Text>
+                    <View style={styles.actionRow}>
+                      <ActionButton icon="camera-outline" label="Take Photo" onPress={() => void pickImage(true)} primary />
+                      <ActionButton icon="images-outline" label="Gallery" onPress={() => void pickImage(false)} />
+                    </View>
+                    <Pressable style={styles.documentButton} onPress={() => void pickDocument()}>
+                      <Ionicons name="document-attach-outline" size={18} color="#efefef" />
+                      <Text style={styles.secondaryButtonText}>Choose Image or PDF</Text>
+                    </Pressable>
+                    <Text style={styles.limitText}>Supports JPEG, PNG, WebP, and PDF up to 10MB.</Text>
                   </View>
                 ) : (
-                  <View className="bg-[#222] border border-[#333] px-2 py-0.5 rounded-full">
-                    <Text className="text-[#888] text-[9px] font-bold">FREE PLAN</Text>
+                  <View style={styles.premiumBox}>
+                    <Ionicons name="ribbon-outline" size={30} color="#d97706" />
+                    <Text style={styles.premiumTitle}>Unlock AI Extraction</Text>
+                    <Text style={styles.premiumDescription}>Upgrade to Premium in Account settings on the web app to process images and PDFs.</Text>
+                    <Pressable style={styles.upgradeButton} onPress={() => void Linking.openURL(`${SERVER_URL}/dashboard/settings#subscription`)}>
+                      <Text style={styles.upgradeButtonText}>Manage Subscription</Text>
+                    </Pressable>
                   </View>
-                )}
-              </View>
-              
-              <Text className="text-[#888888] text-sm mb-6 leading-relaxed">
-                Take a photo of a flyer, sports schedule, or syllabus, or upload an image to convert it into a calendar file.
-              </Text>
-
-              {stats.isPremium ? (
-                <View className="flex-row gap-3">
-                  <TouchableOpacity
-                    onPress={() => pickImage(true)}
-                    className="flex-1 bg-[#c23326] h-12 rounded-xl flex-row items-center justify-center shadow-md shadow-[#c23326]/30 active:opacity-95"
-                  >
-                    <Ionicons name="camera-outline" size={18} color="#ffffff" className="mr-2" />
-                    <Text className="text-white text-sm font-bold">Take Photo</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => pickImage(false)}
-                    className="flex-1 bg-[#222222] border border-[#333333] h-12 rounded-xl flex-row items-center justify-center active:bg-[#333333]"
-                  >
-                    <Ionicons name="images-outline" size={18} color="#efefef" className="mr-2" />
-                    <Text className="text-[#efefef] text-sm font-bold">From Gallery</Text>
-                  </TouchableOpacity>
-                </View>
+                )
               ) : (
-                <View className="bg-[#222] border border-[#333] p-4 rounded-xl items-center">
-                  <Ionicons name="ribbon-outline" size={32} color="#d97706" className="mb-2" />
-                  <Text className="text-white text-sm font-bold">Unlock AI Extraction</Text>
-                  <Text className="text-[#888] text-xs text-center mt-1 mb-4">
-                    Upgrade to Premium on our web application settings page to start uploading documents.
-                  </Text>
-                  <TouchableOpacity 
-                    onPress={() => Alert.alert('Premium settings', 'Please visit settings in the web app to manage your billing.')}
-                    className="bg-[#d97706] px-4 py-2 rounded-lg active:opacity-90"
-                  >
-                    <Text className="text-white text-xs font-bold">Learn More</Text>
-                  </TouchableOpacity>
+                <View>
+                  <View style={styles.timezoneNotice}>
+                    <Ionicons name="globe-outline" size={18} color={RED} />
+                    <Text style={styles.timezoneText}>Events will be created in <Text style={styles.timezoneValue}>{timezone}</Text></Text>
+                  </View>
+                  <Field label="Event Title *" value={manualEvent.title} onChangeText={(value) => setManualEvent((current) => ({ ...current, title: value }))} placeholder="Meeting with John" />
+                  <View style={styles.inputRow}>
+                    <View style={styles.halfInput}><Field label="Date *" value={manualEvent.date} onChangeText={(value) => setManualEvent((current) => ({ ...current, date: value }))} placeholder="2026-09-01" keyboardType="numbers-and-punctuation" /></View>
+                    <View style={styles.halfInput}><Field label="Time (optional)" value={manualEvent.time} onChangeText={(value) => setManualEvent((current) => ({ ...current, time: value }))} placeholder="15:30" keyboardType="numbers-and-punctuation" /></View>
+                  </View>
+                  <Field label="Description" value={manualEvent.description} onChangeText={(value) => setManualEvent((current) => ({ ...current, description: value }))} placeholder="Event details..." multiline />
+                  <Pressable style={styles.primaryButton} onPress={() => void handleManualEventSubmit()}>
+                    <Ionicons name="calendar-outline" size={18} color="#ffffff" />
+                    <Text style={styles.primaryButtonText}>Create Calendar Event</Text>
+                  </Pressable>
+                  {lastManualResult && (
+                    <Pressable style={styles.secondaryActionFull} onPress={() => void shareManualFile()}>
+                      <Ionicons name="share-social-outline" size={17} color="#efefef" />
+                      <Text style={styles.secondaryButtonText}>Export / Share .ics File</Text>
+                    </Pressable>
+                  )}
                 </View>
               )}
-            </View>
+            </>
           )}
 
-          {/* 2. UPLOADING / PROCESSING STATE */}
-          {(isUploading || uploadStatus === 'pending' || uploadStatus === 'processing') && processingFile && (
+          {isProcessing && processingFile && (
             <View>
-              <Text className="text-white text-lg font-bold mb-4">AI extracts details instantly</Text>
-              
-              {/* File details card */}
-              <View className="bg-[#222] border border-[#333] p-3 rounded-xl flex-row items-center mb-4">
-                <View className="w-10 h-10 bg-[#c23326] rounded-lg items-center justify-center mr-3">
-                  <Ionicons name="image-outline" size={20} color="#ffffff" />
-                </View>
-                <View className="flex-1 mr-2">
-                  <Text className="text-white text-xs font-bold" numberOfLines={1}>
-                    {processingFile.name}
-                  </Text>
-                  <Text className="text-[#888] text-[10px] mt-0.5">
-                    {isUploading ? 'Uploading securely...' : 'Processing with AI...'}
-                  </Text>
-                </View>
-                <ActivityIndicator size="small" color="#c23326" />
+              <Text style={styles.cardHeading}>AI extracts details instantly</Text>
+              <View style={styles.fileRow}>
+                <View style={styles.fileIcon}><Ionicons name="document-text-outline" size={20} color="#ffffff" /></View>
+                <View style={styles.fileInfo}><Text style={styles.fileName} numberOfLines={1}>{processingFile.name}</Text><Text style={styles.fileMeta}>{isUploading ? 'Uploading securely...' : 'Processing with AI...'}</Text></View>
+                <ActivityIndicator size="small" color={RED} />
               </View>
-
-              {/* Red progress banner */}
-              <View className="bg-[#c23326] p-3 rounded-xl flex-row items-center justify-center mb-5">
-                <Ionicons name="flash" size={14} color="#ffffff" className="mr-1.5 animate-pulse" />
-                <Text className="text-white text-xs font-black">AI Processing in Progress</Text>
-              </View>
-
-              {/* Progress Steps Checklist */}
-              <View className="space-y-2">
-                {PROCESSING_STEPS.map((step, idx) => {
-                  const isDone = idx < activeStepIndex;
-                  const isCurrent = idx === activeStepIndex;
-                  return (
-                    <View 
-                      key={step.id}
-                      className={`flex-row items-center p-3 rounded-xl border ${isCurrent ? 'bg-[#c23326]/10 border-[#c23326]/20' : 'border-transparent'}`}
-                    >
-                      <View className={`w-8 h-8 rounded-lg items-center justify-center mr-3 ${isDone ? 'bg-[#22c55e]' : isCurrent ? 'bg-[#c23326]' : 'bg-[#222]'}`}>
-                        {isDone ? (
-                          <Ionicons name="checkmark-done" size={16} color="#ffffff" />
-                        ) : (
-                          <Ionicons name={step.icon as any} size={16} color={isCurrent ? '#ffffff' : '#888888'} />
-                        )}
-                      </View>
-                      <Text className={`text-sm flex-1 ${isCurrent ? 'text-white font-bold' : isDone ? 'text-[#efefef]' : 'text-[#666666]'}`}>
-                        {step.label}
-                      </Text>
-                      {isCurrent && <ActivityIndicator size="small" color="#c23326" />}
-                      {isDone && <Text className="text-[#22c55e] text-xs font-bold">✓ Complete</Text>}
+              <View style={styles.processingBanner}><Ionicons name="flash" size={16} color="#ffffff" /><Text style={styles.processingBannerText}>AI Processing in Progress</Text></View>
+              {PROCESSING_STEPS.map((step, index) => {
+                const complete = index < activeStepIndex;
+                const current = index === activeStepIndex;
+                return (
+                  <View key={step.id} style={[styles.stepRow, current && styles.currentStep]}>
+                    <View style={[styles.stepIcon, complete ? styles.completeStep : current ? styles.currentStepIcon : styles.waitingStep]}>
+                      <Ionicons name={complete ? 'checkmark' : step.icon} size={16} color={complete || current ? '#ffffff' : MUTED} />
                     </View>
-                  );
-                })}
-              </View>
+                    <Text style={[styles.stepLabel, !complete && !current && styles.waitingStepLabel]}>{step.label}</Text>
+                    {current && <ActivityIndicator size="small" color={RED} />}
+                    {complete && <Text style={styles.completeLabel}>Complete</Text>}
+                  </View>
+                );
+              })}
             </View>
           )}
 
-          {/* 3. COMPLETED STATE */}
           {uploadStatus === 'completed' && (
             <View>
-              <Text className="text-white text-lg font-bold mb-4">Export options</Text>
-
-              {/* Success Banner */}
-              <View className="bg-[#22c55e]/10 border border-[#22c55e]/20 p-4 rounded-xl flex-row items-center mb-6">
-                <View className="w-10 h-10 bg-[#22c55e] rounded-lg items-center justify-center mr-3">
-                  <Ionicons name="checkmark-circle-outline" size={24} color="#ffffff" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-[#22c55e] text-sm font-bold">Processing Complete!</Text>
-                  <Text className="text-white text-xs mt-0.5">{eventCount} events ready</Text>
-                </View>
+              <View style={styles.successBanner}><Ionicons name="checkmark-circle" size={26} color="#22c55e" /><View><Text style={styles.successTitle}>Processing Complete!</Text><Text style={styles.successSubtitle}>{eventCount} event{eventCount === 1 ? '' : 's'} ready to download</Text></View></View>
+              <Pressable style={styles.primaryButton} onPress={() => void openCalendarFile()}><Ionicons name="download-outline" size={18} color="#ffffff" /><Text style={styles.primaryButtonText}>Download / Add to Calendar</Text></Pressable>
+              <View style={styles.actionRow}>
+                <Pressable style={styles.secondaryAction} onPress={() => void copyShareLink()}><Ionicons name="copy-outline" size={17} color="#efefef" /><Text style={styles.secondaryButtonText}>Copy Link</Text></Pressable>
+                <Pressable style={styles.secondaryAction} onPress={() => void shareCalendar()}><Ionicons name="share-social-outline" size={17} color="#efefef" /><Text style={styles.secondaryButtonText}>Share Link</Text></Pressable>
               </View>
-
-              {/* Action Buttons Grid */}
-              <View className="space-y-3">
-                <TouchableOpacity
-                  onPress={openCalendarFile}
-                  disabled={!icsUrl}
-                  className="bg-[#c23326] h-12 rounded-xl flex-row items-center justify-center shadow-lg shadow-[#c23326]/20 active:opacity-90"
-                >
-                  <Ionicons name="download-outline" size={18} color="#ffffff" className="mr-2" />
-                  <Text className="text-white text-sm font-bold">Download / Add to Calendar</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={shareCalendar}
-                  disabled={!shareToken}
-                  className="bg-[#222222] border border-[#333333] h-12 rounded-xl flex-row items-center justify-center active:bg-[#333333]"
-                >
-                  <Ionicons name="share-social-outline" size={18} color="#efefef" className="mr-2" />
-                  <Text className="text-[#efefef] text-sm font-bold">Share Calendar Link</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => setShowDeliveryForm(!showDeliveryForm)}
-                  className="bg-[#222222] border border-[#333333] h-12 rounded-xl flex-row items-center justify-center active:bg-[#333333]"
-                >
-                  <Ionicons name="mail-outline" size={18} color="#efefef" className="mr-2" />
-                  <Text className="text-[#efefef] text-sm font-bold">
-                    {showDeliveryForm ? 'Hide Delivery Options' : 'Email or SMS to Friend'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Delivery Form */}
+              <Pressable style={styles.secondaryActionFull} onPress={() => setShowDeliveryForm((current) => !current)}><Ionicons name="mail-outline" size={17} color="#efefef" /><Text style={styles.secondaryButtonText}>{showDeliveryForm ? 'Hide Delivery Options' : 'Email or SMS'}</Text></Pressable>
               {showDeliveryForm && (
-                <View className="bg-[#222] border border-[#333] p-4 rounded-xl mt-4 space-y-4">
-                  {/* Email Section */}
-                  <View>
-                    <Text className="text-white text-xs font-bold mb-1.5">Email Address</Text>
-                    <View className="flex-row gap-2">
-                      <TextInput
-                        value={deliveryEmail}
-                        onChangeText={setDeliveryEmail}
-                        placeholder="friend@example.com"
-                        placeholderTextColor="#666666"
-                        autoCapitalize="none"
-                        className="flex-1 bg-[#161616] border border-[#333] text-white px-3 py-2 rounded-lg text-sm"
-                      />
-                      <TouchableOpacity
-                        onPress={handleEmailFile}
-                        disabled={isEmailing || !deliveryEmail}
-                        className="bg-[#c23326] px-4 rounded-lg flex-row items-center justify-center disabled:opacity-50 h-10"
-                      >
-                        {isEmailing ? <ActivityIndicator size="small" color="#fff" /> : <Text className="text-white text-xs font-bold">Email</Text>}
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-
-                  {/* SMS Section */}
-                  <View>
-                    <Text className="text-white text-xs font-bold mb-1.5">Phone Number</Text>
-                    <View className="flex-row gap-2">
-                      <TextInput
-                        value={deliveryPhone}
-                        onChangeText={setDeliveryPhone}
-                        placeholder="+1 (555) 123-4567"
-                        placeholderTextColor="#666666"
-                        keyboardType="phone-pad"
-                        className="flex-1 bg-[#161616] border border-[#333] text-white px-3 py-2 rounded-lg text-sm"
-                      />
-                      <TouchableOpacity
-                        onPress={handleSmsFile}
-                        disabled={isSmsing || !deliveryPhone}
-                        className="bg-[#c23326] px-4 rounded-lg flex-row items-center justify-center disabled:opacity-50 h-10"
-                      >
-                        {isSmsing ? <ActivityIndicator size="small" color="#fff" /> : <Text className="text-white text-xs font-bold">SMS</Text>}
-                      </TouchableOpacity>
-                    </View>
-                  </View>
+                <View style={styles.deliveryBox}>
+                  <Field label="Email" value={deliveryEmail} onChangeText={setDeliveryEmail} placeholder="you@example.com" keyboardType="email-address" />
+                  <Pressable style={styles.smallPrimaryButton} disabled={isEmailing} onPress={() => void handleEmailFile()}>{isEmailing ? <ActivityIndicator size="small" color="#ffffff" /> : <><Ionicons name="mail-outline" size={15} color="#ffffff" /><Text style={styles.primaryButtonText}>Send Email</Text></>}</Pressable>
+                  <Field label="Phone Number" value={deliveryPhone} onChangeText={setDeliveryPhone} placeholder="+1 (555) 123-4567" keyboardType="phone-pad" />
+                  <Pressable style={styles.smallPrimaryButton} disabled={isSmsing} onPress={() => void handleSmsFile()}>{isSmsing ? <ActivityIndicator size="small" color="#ffffff" /> : <><Ionicons name="chatbubble-outline" size={15} color="#ffffff" /><Text style={styles.primaryButtonText}>Send SMS</Text></>}</Pressable>
                 </View>
               )}
-
-              {/* Reset / Done Button */}
-              <TouchableOpacity
-                onPress={handleReset}
-                className="mt-6 align-self-center py-2 px-6 bg-[#222] border border-[#333] rounded-full"
-              >
-                <Text className="text-[#888888] text-xs font-bold text-center">Upload another document</Text>
-              </TouchableOpacity>
+              <Pressable style={styles.resetButton} onPress={handleReset}><Text style={styles.resetText}>Upload another file</Text></Pressable>
             </View>
           )}
 
-          {/* 4. FAILED / NO_EVENTS STATE */}
-          {(uploadStatus === 'failed' || uploadStatus === 'no_events') && (
-            <View className="items-center py-4">
-              <View className="w-12 h-12 bg-red-500/10 border border-red-500/20 rounded-2xl items-center justify-center mb-4">
-                <Ionicons 
-                  name={uploadStatus === 'no_events' ? 'alert-circle-outline' : 'warning-outline'} 
-                  size={28} 
-                  color="#ef4444" 
-                />
-              </View>
-              
-              <Text className="text-white text-lg font-bold text-center">
-                {uploadStatus === 'no_events' ? 'No events found' : 'Extraction failed'}
-              </Text>
-              
-              <Text className="text-[#888] text-xs text-center mt-2 mb-6 max-w-[250px] leading-relaxed">
-                {uploadStatus === 'no_events' 
-                  ? 'QuickCalAI checked your image, but could not detect any scheduling dates or times.'
-                  : failureReason || 'We encountered an error processing your upload.'}
-              </Text>
-
-              <View className="flex-row gap-3">
-                <TouchableOpacity
-                  onPress={handleReset}
-                  className="bg-[#c23326] px-5 py-2.5 rounded-xl shadow-md active:opacity-90"
-                >
-                  <Text className="text-white text-xs font-bold">Try Another File</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={handleReset}
-                  className="bg-[#222] border border-[#333] px-5 py-2.5 rounded-xl active:bg-[#333]"
-                >
-                  <Text className="text-[#888] text-xs font-bold">Close</Text>
-                </TouchableOpacity>
-              </View>
+          {(uploadStatus === 'failed' || uploadStatus === 'no_events') && processingFile && (
+            <View style={styles.failureBox}>
+              <Ionicons name={uploadStatus === 'no_events' ? 'alert-circle-outline' : 'warning-outline'} size={32} color={uploadStatus === 'no_events' ? RED : '#ef4444'} />
+              <Text style={styles.cardHeading}>{uploadStatus === 'no_events' ? 'No calendar events found' : 'Processing failed'}</Text>
+              <Text style={styles.failureText}>{failureReason || (uploadStatus === 'no_events' ? 'That file did not contain dates or times that could be turned into events.' : 'QuickCalAI could not finish processing this upload.')}</Text>
+              <Pressable style={styles.primaryButton} onPress={handleReset}><Ionicons name="refresh-outline" size={17} color="#ffffff" /><Text style={styles.primaryButtonText}>Try another file</Text></Pressable>
             </View>
           )}
         </View>
 
-        {/* --- RECENT ACTIVITY --- */}
-        <View className="mb-10">
-          <Text className="text-white text-lg font-bold mb-4">Recent Activity</Text>
-
-          {isLoadingStats ? (
-            <ActivityIndicator size="small" color="#c23326" className="py-6" />
-          ) : recentUploads.length > 0 ? (
-            <View className="space-y-3">
-              {recentUploads.map((item) => (
-                <View 
-                  key={item.id}
-                  className="bg-[#161616] border border-[#222] p-4 rounded-2xl flex-row items-center justify-between"
-                >
-                  <View className="flex-row items-center flex-1 mr-3">
-                    <View className="w-9 h-9 bg-[#222] border border-[#333] rounded-lg items-center justify-center mr-3">
-                      <Ionicons name="document-text" size={16} color="#c23326" />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-white text-xs font-bold" numberOfLines={1}>
-                        {item.fileName}
-                      </Text>
-                      <Text className="text-[#555] text-[9px] mt-0.5">
-                        {item.eventCount} events • {new Date(item.createdAt).toLocaleDateString()}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View className="flex-row items-center">
-                    <View 
-                      className={`px-2.5 py-0.5 rounded-full mr-2 ${
-                        item.status === 'completed' 
-                          ? 'bg-green-500/10 border border-green-500/20' 
-                          : item.status === 'processing' 
-                          ? 'bg-blue-500/10 border border-blue-500/20' 
-                          : item.status === 'failed' 
-                          ? 'bg-red-500/10 border border-red-500/20' 
-                          : 'bg-amber-500/10 border border-amber-500/20'
-                      }`}
-                    >
-                      <Text 
-                        className={`text-[9px] font-black uppercase ${
-                          item.status === 'completed' 
-                            ? 'text-green-500' 
-                            : item.status === 'processing' 
-                            ? 'text-blue-500' 
-                            : item.status === 'failed' 
-                            ? 'text-red-500' 
-                            : 'text-amber-500'
-                        }`}
-                      >
-                        {item.status}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              ))}
-            </View>
+        <View style={styles.recentSection}>
+          <Text style={styles.sectionHeading}>Recent Activity</Text>
+          {stats.recentUploads.length === 0 ? (
+            <View style={styles.emptyBox}><Ionicons name="document-outline" size={28} color="#444444" /><Text style={styles.emptyText}>No recent activity. Upload a schedule to get started.</Text></View>
           ) : (
-            <View className="bg-[#161616] border border-[#222] p-6 rounded-2xl items-center">
-              <Ionicons name="document-outline" size={28} color="#444" className="mb-2" />
-              <Text className="text-[#555] text-xs">No recent activity. Upload a schedule to get started!</Text>
-            </View>
+            stats.recentUploads.map((item) => (
+              <View key={item.id} style={styles.recentRow}>
+                <View style={styles.recentIcon}><Ionicons name="document-text-outline" size={17} color={RED} /></View>
+                <View style={styles.recentInfo}><Text style={styles.fileName} numberOfLines={1}>{item.fileName}</Text><Text style={styles.fileMeta}>{item.eventCount} event{item.eventCount === 1 ? '' : 's'} • {new Date(item.createdAt).toLocaleDateString()}</Text></View>
+                {renderStatus(item.status)}
+              </View>
+            ))
           )}
         </View>
       </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+function ActionButton({ icon, label, onPress, primary = false }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; primary?: boolean }) {
+  return (
+    <Pressable style={[styles.actionButton, primary ? styles.primaryButton : styles.secondaryAction]} onPress={onPress}>
+      <Ionicons name={icon} size={18} color="#ffffff" />
+      <Text style={primary ? styles.primaryButtonText : styles.secondaryButtonText}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function Field({ label, value, onChangeText, placeholder, multiline = false, keyboardType = 'default' }: { label: string; value: string; onChangeText: (value: string) => void; placeholder: string; multiline?: boolean; keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'numbers-and-punctuation' }) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <TextInput style={[styles.input, multiline && styles.textArea]} value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor="#666666" multiline={multiline} keyboardType={keyboardType} autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'} />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: BACKGROUND },
+  content: { padding: 20, paddingBottom: 40 },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
+  brandMark: { width: 34, height: 34, borderRadius: 10, backgroundColor: RED, alignItems: 'center', justifyContent: 'center', marginRight: 9 },
+  brand: { color: '#ffffff', fontSize: 20, fontWeight: '800' },
+  brandAccent: { color: RED },
+  welcome: { marginBottom: 20 },
+  heading: { color: '#ffffff', fontSize: 25, fontWeight: '800' },
+  subheading: { color: MUTED, fontSize: 14, marginTop: 6 },
+  notice: { backgroundColor: '#3b2a12', borderColor: '#76521c', borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 16 },
+  noticeText: { color: '#f7d99a', fontSize: 12, lineHeight: 17 },
+  statsLoader: { marginVertical: 30 },
+  statsRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
+  statCard: { flex: 1, minHeight: 108, backgroundColor: CARD, borderColor: BORDER, borderWidth: 1, borderRadius: 16, padding: 10, alignItems: 'center', justifyContent: 'center' },
+  statValue: { color: '#ffffff', fontSize: 21, fontWeight: '800', marginTop: 5 },
+  statTitle: { color: '#dddddd', fontSize: 10, fontWeight: '700', textAlign: 'center', marginTop: 2 },
+  statSubtitle: { color: '#666666', fontSize: 9, textAlign: 'center', marginTop: 2 },
+  uploaderCard: { backgroundColor: CARD, borderColor: BORDER, borderWidth: 1, borderRadius: 22, padding: 16 },
+  uploaderTitleRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 16 },
+  cardHeading: { color: '#ffffff', fontSize: 19, fontWeight: '800' },
+  cardDescription: { color: MUTED, fontSize: 13, lineHeight: 18, marginTop: 5, paddingRight: 8 },
+  planPill: { flexDirection: 'row', alignItems: 'center', gap: 4, borderColor: BORDER, borderWidth: 1, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 5 },
+  planText: { color: MUTED, fontSize: 9, fontWeight: '800' },
+  segmentedControl: { flexDirection: 'row', backgroundColor: SUBTLE_CARD, borderColor: BORDER, borderWidth: 1, borderRadius: 11, padding: 3, marginBottom: 16 },
+  segment: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9, borderRadius: 8 },
+  activeSegment: { backgroundColor: RED },
+  segmentText: { color: MUTED, fontSize: 13, fontWeight: '700' },
+  activeSegmentText: { color: '#ffffff' },
+  helperText: { color: MUTED, fontSize: 13, marginBottom: 12 },
+  actionRow: { flexDirection: 'row', gap: 10 },
+  actionButton: { flex: 1, minHeight: 46, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 11 },
+  primaryButton: { minHeight: 46, backgroundColor: RED, borderRadius: 11, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 14, marginTop: 12 },
+  primaryButtonText: { color: '#ffffff', fontSize: 13, fontWeight: '800' },
+  secondaryAction: { backgroundColor: '#222222', borderColor: '#3a3a3a', borderWidth: 1 },
+  secondaryButtonText: { color: '#efefef', fontSize: 13, fontWeight: '700' },
+  documentButton: { minHeight: 44, borderColor: '#3a3a3a', borderWidth: 1, borderRadius: 11, marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  limitText: { color: '#666666', fontSize: 11, textAlign: 'center', marginTop: 12 },
+  premiumBox: { backgroundColor: '#222222', borderColor: '#3a3a3a', borderWidth: 1, borderRadius: 14, padding: 18, alignItems: 'center' },
+  premiumTitle: { color: '#ffffff', fontSize: 15, fontWeight: '800', marginTop: 8 },
+  premiumDescription: { color: MUTED, fontSize: 12, lineHeight: 17, textAlign: 'center', marginTop: 5 },
+  upgradeButton: { backgroundColor: '#d97706', borderRadius: 9, paddingHorizontal: 15, paddingVertical: 9, marginTop: 13 },
+  upgradeButtonText: { color: '#ffffff', fontSize: 12, fontWeight: '800' },
+  timezoneNotice: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#3b1714', borderColor: '#64251f', borderWidth: 1, borderRadius: 10, padding: 10, marginBottom: 4 },
+  timezoneText: { color: '#efefef', fontSize: 12, flex: 1 },
+  timezoneValue: { color: '#f06a5b', fontWeight: '800' },
+  field: { marginTop: 13 },
+  fieldLabel: { color: '#dddddd', fontSize: 12, fontWeight: '700', marginBottom: 6 },
+  inputRow: { flexDirection: 'row', gap: 10 },
+  halfInput: { flex: 1 },
+  input: { backgroundColor: SUBTLE_CARD, borderColor: '#3a3a3a', borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: Platform.OS === 'ios' ? 11 : 8, color: '#ffffff', fontSize: 14 },
+  textArea: { minHeight: 78, textAlignVertical: 'top' },
+  fileRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#222222', borderColor: '#333333', borderWidth: 1, borderRadius: 12, padding: 12, marginTop: 14 },
+  fileIcon: { width: 40, height: 40, borderRadius: 9, backgroundColor: RED, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  fileInfo: { flex: 1, marginRight: 8 },
+  fileName: { color: '#ffffff', fontSize: 12, fontWeight: '700' },
+  fileMeta: { color: '#666666', fontSize: 10, marginTop: 3 },
+  processingBanner: { backgroundColor: RED, borderRadius: 11, padding: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginVertical: 14 },
+  processingBannerText: { color: '#ffffff', fontSize: 12, fontWeight: '800' },
+  stepRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 10, padding: 9, marginBottom: 3 },
+  currentStep: { backgroundColor: '#3b1714', borderColor: '#64251f', borderWidth: 1 },
+  stepIcon: { width: 31, height: 31, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  completeStep: { backgroundColor: '#22c55e' },
+  currentStepIcon: { backgroundColor: RED },
+  waitingStep: { backgroundColor: '#222222' },
+  stepLabel: { color: '#efefef', fontSize: 13, flex: 1 },
+  waitingStepLabel: { color: '#666666' },
+  completeLabel: { color: '#22c55e', fontSize: 10, fontWeight: '800' },
+  successBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#12301e', borderColor: '#1d6b38', borderWidth: 1, borderRadius: 12, padding: 14, gap: 10, marginBottom: 4 },
+  successTitle: { color: '#22c55e', fontSize: 14, fontWeight: '800' },
+  successSubtitle: { color: '#efefef', fontSize: 12, marginTop: 3 },
+  secondaryActionFull: { height: 46, backgroundColor: '#222222', borderColor: '#3a3a3a', borderWidth: 1, borderRadius: 11, marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  deliveryBox: { backgroundColor: '#222222', borderColor: '#333333', borderWidth: 1, borderRadius: 12, padding: 12, marginTop: 10 },
+  smallPrimaryButton: { minHeight: 40, backgroundColor: RED, borderRadius: 9, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 9 },
+  resetButton: { alignItems: 'center', paddingVertical: 14 },
+  resetText: { color: MUTED, fontSize: 12, fontWeight: '700' },
+  failureBox: { alignItems: 'center', paddingVertical: 8 },
+  failureText: { color: MUTED, fontSize: 12, lineHeight: 18, textAlign: 'center', marginTop: 8 },
+  recentSection: { marginTop: 25 },
+  sectionHeading: { color: '#ffffff', fontSize: 19, fontWeight: '800', marginBottom: 12 },
+  recentRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: SUBTLE_CARD, borderColor: '#252525', borderWidth: 1, borderRadius: 14, padding: 12, marginBottom: 8 },
+  recentIcon: { width: 36, height: 36, borderRadius: 9, backgroundColor: '#222222', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  recentInfo: { flex: 1, marginRight: 7 },
+  statusPill: { borderRadius: 20, paddingHorizontal: 7, paddingVertical: 4 },
+  successPill: { backgroundColor: '#12301e' },
+  errorPill: { backgroundColor: '#3b1714' },
+  pendingPill: { backgroundColor: '#332812' },
+  statusText: { fontSize: 8, fontWeight: '900' },
+  successText: { color: '#22c55e' },
+  errorText: { color: '#ef4444' },
+  pendingText: { color: '#f59e0b' },
+  emptyBox: { backgroundColor: SUBTLE_CARD, borderColor: '#252525', borderWidth: 1, borderRadius: 14, padding: 24, alignItems: 'center', gap: 8 },
+  emptyText: { color: '#666666', fontSize: 12, textAlign: 'center' },
+});
